@@ -1,6 +1,8 @@
 # TrustedLogos.com
 
-A modern logo discovery and AI-powered logo generation platform built with React, TypeScript, and Supabase.
+A modern logo discovery and AI-powered logo generation platform built with React, TypeScript, and Supabase. 
+
+🌐 **Live Demo**: [Visit TrustedLogos.com](https://trustedlogos.netlify.app)
 
 ## Features
 
@@ -107,13 +109,29 @@ supabase/
 
 ## Deployment
 
-The application is configured for deployment on Netlify:
+### Netlify Deployment
+
+This application is deployed on Netlify and configured for automatic deployments:
 
 1. Connect your GitHub repository to Netlify
 2. Set build command: `npm run build`
 3. Set publish directory: `dist`
-4. Add environment variables in Netlify dashboard
+4. Add environment variables in Netlify dashboard:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
 5. Deploy!
+
+### Manual Deployment
+
+To deploy manually:
+
+```bash
+# Build the project
+npm run build
+
+# Deploy to Netlify (requires Netlify CLI)
+npx netlify deploy --prod --dir=dist
+```
 
 ## Environment Variables
 
@@ -121,6 +139,15 @@ Required environment variables:
 
 - `VITE_SUPABASE_URL` - Your Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+
+## Database Setup
+
+Before deploying, make sure to:
+
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Run the migration file in `supabase/migrations/` in your Supabase SQL editor
+3. Configure Row Level Security policies
+4. Add your Supabase credentials to environment variables
 
 ## Contributing
 
