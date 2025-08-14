@@ -13,7 +13,12 @@ export const checkDatabaseConnection = async () => {
     console.log('- VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase environment variables');
+      console.warn('⚠️ Using placeholder Supabase environment variables');
+      return {
+        connected: false,
+        error: 'Missing Supabase environment variables. Please update your .env file with actual Supabase credentials.',
+        needsSetup: true
+      };
     }
     
     // Test basic connection
