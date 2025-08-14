@@ -24,16 +24,26 @@ const App = () => {
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
 
-  const sidebarItems = [
+  // Base sidebar items available to all users
+  const baseSidebarItems = [
     { name: 'Home', icon: Home, path: '/' },
     { name: 'AI Logo Generator', icon: Zap, path: '/ai-logo-generator' },
-    { name: 'Add Logo', icon: Plus, path: '/admin/add-logo' },
-    { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
     { name: 'All Logos', icon: HandMetal, path: '/brands-logos' },
     { name: 'AI Name Generator', icon: Zap, path: '/ai-name-generator' },
     { name: 'Color Palette', icon: Star, path: '/color-palette' },
     { name: 'Fonts', icon: Folder, path: '/fonts' },
   ];
+
+  // Admin-only sidebar items
+  const adminSidebarItems = [
+    { name: 'Add Logo', icon: Plus, path: '/admin/add-logo' },
+    { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
+  ];
+
+  // Combine sidebar items based on user role
+  const sidebarItems = user?.role === 'admin' 
+    ? [...baseSidebarItems.slice(0, 2), ...adminSidebarItems, ...baseSidebarItems.slice(2)]
+    : baseSidebarItems;
 
   const pinnedItems = [
     { name: 'Assistant', icon: Zap },
