@@ -12,7 +12,7 @@ export const checkDatabaseConnection = async () => {
     console.log('- VITE_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
     console.log('- VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
     
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder') || supabaseAnonKey.includes('placeholder')) {
       console.warn('⚠️ Using placeholder Supabase environment variables');
       return {
         connected: false,
@@ -64,7 +64,14 @@ export const checkDatabaseConnection = async () => {
   }
 };
 
-// Auto-run the check when this module is imported
-checkDatabaseConnection().then(result => {
-  console.log('🏁 Database check result:', result);
-});
+// Only auto-run the check if we have valid environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('placeholder') && !supabaseAnonKey.includes('placeholder')) {
+  checkDatabaseConnection().then(result => {
+    console.log('🏁 Database check result:', result);
+  });
+} else {
+  console.log('⚠️ Skipping auto database check - placeholder environment variables detected');
+}
