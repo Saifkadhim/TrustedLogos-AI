@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, Chrome } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 interface AuthModalProps {
@@ -9,7 +9,7 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'signin' }) => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [userType, setUserType] = useState<'user' | 'admin'>('user');
   const [showPassword, setShowPassword] = useState(false);
@@ -97,6 +97,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
     } catch (error) {
       setMessage({ type: 'error', text: (error as Error).message });
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      await signInWithGoogle();
+      // The redirect will handle closing the modal and navigation
+    } catch (error) {
+      setMessage({ type: 'error', text: (error as Error).message });
       setIsLoading(false);
     }
   };
@@ -367,6 +380,41 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 's
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="mt-6 mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Google Sign In Button */}
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center border ${
+              isLoading
+                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm hover:shadow'
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400 mr-2"></div>
+                Connecting...
+              </>
+            ) : (
+              <>
+                <Chrome className="h-5 w-5 mr-2 text-blue-500" />
+                {mode === 'signin' ? 'Sign in with Google' : 'Sign up with Google'}
+              </>
+            )}
+          </button>
 
           {/* Switch Mode */}
           <div className="mt-6 text-center">
