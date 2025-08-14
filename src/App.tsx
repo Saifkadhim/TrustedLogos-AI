@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Twitter, Instagram, Linkedin, Mail, Menu, X, FileText, Settings, Home, Users, Zap, Star, Folder, Bookmark, Image, Play, Video, Headphones, Palette, Grid, HandMetal, Eye, Plus, Sparkles, LogIn } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Twitter, Instagram, Linkedin, Mail, Menu, X, FileText, Settings, Home, Users, Zap, Star, Folder, Bookmark, Image, Play, Video, Headphones, Palette, Grid, HandMetal, Eye, Plus, Sparkles, LogIn, Database } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import AuthModal from './components/AuthModal';
 import UserMenu from './components/UserMenu';
+import DatabaseStatus from './components/DatabaseStatus';
 import AllImagesPage from './AllImagesPage';
 import AINameGeneratorPage from './AINameGeneratorPage';
 import ColorPalettePage from './ColorPalettePage';
@@ -23,6 +24,7 @@ const App = () => {
   const [activeTab, setActiveTab] = useState('All');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
+  const [showDatabaseStatus, setShowDatabaseStatus] = useState(false);
 
   // Base sidebar items available to all users
   const baseSidebarItems = [
@@ -139,6 +141,16 @@ const App = () => {
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4 ml-6">
+              {/* Database Status Button */}
+              <button
+                onClick={() => setShowDatabaseStatus(true)}
+                className="flex items-center px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors duration-200"
+                title="Check Database Status"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                Database
+              </button>
+              
               {user ? (
                 <UserMenu />
               ) : (
@@ -190,6 +202,11 @@ const App = () => {
         onClose={() => setShowAuthModal(false)}
         initialMode={authModalMode}
       />
+
+      {/* Database Status Modal */}
+      {showDatabaseStatus && (
+        <DatabaseStatus onClose={() => setShowDatabaseStatus(false)} />
+      )}
     </div>
   );
 };
