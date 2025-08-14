@@ -1,7 +1,27 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "trustedlogos-website",
+  "description": "A modern logo discovery and AI-powered logo generation platform",
+  "version": "1.0.0",
+  "author": "TrustedLogos Team",
+  "homepage": "https://trustedlogos.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trustedlogos/trustedlogos-website.git"
+  },
+  "bugs": {
+    "url": "https://github.com/trustedlogos/trustedlogos-website/issues"
+  },
+  "keywords": [
+    "logos",
+    "branding",
+    "design",
+    "ai",
+    "logo-generator",
+    "react",
+    "typescript",
+    "supabase"
+  ],
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

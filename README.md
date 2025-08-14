@@ -1,8 +1,9 @@
 # TrustedLogos.com
 
-A modern logo discovery and AI-powered logo generation platform built with React, TypeScript, and Supabase. 
+A modern logo discovery and AI-powered logo generation platform built with React, TypeScript, and Supabase.
 
 🌐 **Live Demo**: [Visit TrustedLogos.com](https://trustedlogos.netlify.app)
+📂 **GitHub Repository**: [https://github.com/trustedlogos/trustedlogos-website](https://github.com/trustedlogos/trustedlogos-website)
 
 ## Features
 
@@ -34,7 +35,7 @@ A modern logo discovery and AI-powered logo generation platform built with React
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_USERNAME/trustedlogos-website.git
+git clone https://github.com/trustedlogos/trustedlogos-website.git
 cd trustedlogos-website
 ```
 
@@ -151,11 +152,21 @@ Before deploying, make sure to:
 
 ## Contributing
 
+We welcome contributions from the community! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/trustedlogos-website.git`
+3. Create a feature branch: `git checkout -b feature/amazing-feature`
+4. Make your changes and commit: `git commit -m 'Add amazing feature'`
+5. Push to the branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+### Development Guidelines
+
+- Follow the existing code style and conventions
+- Add tests for new features when applicable
+- Update documentation as needed
+- Ensure all tests pass before submitting PR
 
 ## License
 
@@ -163,8 +174,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-For support, email support@trustedlogos.com or join our community discussions.
+For support:
+- 📧 Email: support@trustedlogos.com
+- 💬 GitHub Discussions: [Community Forum](https://github.com/trustedlogos/trustedlogos-website/discussions)
+- 🐛 Bug Reports: [GitHub Issues](https://github.com/trustedlogos/trustedlogos-website/issues)
+- 💡 Feature Requests: [GitHub Issues](https://github.com/trustedlogos/trustedlogos-website/issues)
 
 ---
-
-Made with ❤️ for designers worldwide
