@@ -164,6 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Invalid admin code');
       }
 
+      // First, try to sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -180,30 +181,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(authError.message);
       }
 
-      if (authData.user) {
-        // Create profile record
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email: data.email,
-            full_name: data.fullName,
-            company: data.company || null,
-            role: data.role,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          // Don't throw here as the user was created successfully
-        }
-      }
+      // The profile creation is handled by the database trigger
+      // If the trigger fails, the user is still created in auth.users
+      console.log('User signup successful:', authData.user?.email);
 
       // Note: User will need to confirm email before they can sign in
     } catch (error) {
       console.error('Sign up error:', error);
-      throw error;
+      // Provide more user-friendly error messages
+      if (error.message?.includes('Database error')) {
+        throw new Error('Account created but profile setup incomplete. Please try signing in.');
+      } else if (error.message?.includes('User already registered')) {
+        throw new Error('An account with this email already exists. Please sign in instead.');
+      } else {
+        throw error;
+      }
     } finally {
       setIsLoading(false);
     }
