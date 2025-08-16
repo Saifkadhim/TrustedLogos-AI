@@ -72,9 +72,9 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [ownerVerified]);
 
   const verifyOwner: AdminAuthContextType['verifyOwner'] = async (code) => {
-    const ownerCode = import.meta.env.VITE_OWNER_CODE?.toString() || '';
-    // Compare hashed values so we never store plain text in memory longer than needed
-    const given = await hashPassword(code);
+    const ownerCode = (import.meta.env.VITE_OWNER_CODE?.toString() || '').trim();
+    const provided = (code || '').trim();
+    const given = await hashPassword(provided);
     const expected = ownerCode ? await hashPassword(ownerCode) : '';
     const ok = !!ownerCode && given === expected;
     setOwnerVerified(ok);
