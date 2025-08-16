@@ -94,36 +94,7 @@ const App = () => {
               ))}
             </div>
 
-            <div className="pt-4">
-              <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
-              <div className="space-y-2">
-                <Link
-                  to="/admin/sign-in"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
-                    location.pathname === '/admin/sign-in'
-                      ? 'bg-purple-50 text-purple-700 font-medium' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <LogIn className="h-5 w-5" />
-                  <span>Admin Sign-In</span>
-                </Link>
-                {adminSidebarItems.map((item, index) => (
-                  <Link
-                    key={index}
-                    to={item.path}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
-                      location.pathname === item.path
-                        ? 'bg-purple-50 text-purple-700 font-medium' 
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
+
           </nav>
 
         </div>
@@ -183,7 +154,7 @@ const App = () => {
               setActiveIndustry={setActiveIndustry}
             />} />
             <Route path="/ai-logo-generator" element={<AILogoGeneratorPage />} />
-            <Route path="/admin/sign-in" element={<AdminSignInPage />} />
+            <Route path="/console-setup" element={<AdminSignInPage />} />
             <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
             <Route path="/admin/add-logo" element={<AdminRoute><AddLogoPage /></AdminRoute>} />
             <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />

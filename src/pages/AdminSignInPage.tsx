@@ -43,7 +43,8 @@ const AdminSignInPage: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">Admin Sign-In</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">Admin Console</h1>
+      <p className="text-sm text-gray-600 mb-4">Use your private link to access this page. Regular users cannot reach it via navigation.</p>
 
       {message && (
         <div className="mb-4 p-3 rounded border bg-yellow-50 text-yellow-800">{message}</div>
