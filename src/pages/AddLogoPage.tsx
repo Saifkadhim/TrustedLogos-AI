@@ -800,8 +800,20 @@ const AddLogoPage = () => {
                     <>
                       {/* Logo Preview */}
                       <div className="h-32 bg-gray-50 flex items-center justify-center relative overflow-hidden">
+                        {logo.imageUrl ? (
+                          <img
+                            src={logo.imageUrl}
+                            alt={logo.name}
+                            className="max-w-full max-h-full object-contain"
+                            onError={(e) => {
+                              // Fallback to letter if image fails to load
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
                         <div
-                          className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl"
+                          className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl ${logo.imageUrl ? 'hidden' : ''}`}
                           style={{ backgroundColor: logo.primaryColor }}
                         >
                           {logo.name.charAt(0)}
@@ -809,8 +821,8 @@ const AddLogoPage = () => {
                         <div className="absolute top-2 right-2 flex space-x-1">
                           <div
                             className="w-3 h-3 rounded-full border border-white"
-                            style={{ backgroundColor: logo.color }}
-                            title={`Primary: ${logo.color}`}
+                            style={{ backgroundColor: logo.primaryColor }}
+                            title={`Primary: ${logo.primaryColor}`}
                           />
                           <div
                             className="w-3 h-3 rounded-full border border-white"
@@ -871,9 +883,21 @@ const AddLogoPage = () => {
                     <>
                       {/* List View */}
                       <div className="flex items-center space-x-4 flex-1">
-                        <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {logo.imageUrl ? (
+                            <img
+                              src={logo.imageUrl}
+                              alt={logo.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback to letter if image fails to load
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
                           <div
-                            className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm"
+                            className={`w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm ${logo.imageUrl ? 'hidden' : ''}`}
                             style={{ backgroundColor: logo.primaryColor }}
                           >
                             {logo.name.charAt(0)}
