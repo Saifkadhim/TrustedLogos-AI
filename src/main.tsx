@@ -3,17 +3,20 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import { LogoProvider } from './hooks/useLogos';
+import { AdminAuthProvider } from './hooks/useAdminAuth';
 import App from './App.tsx';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <LogoProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </LogoProvider>
+      <AdminAuthProvider>
+        <LogoProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </LogoProvider>
+      </AdminAuthProvider>
     </AuthProvider>
   </StrictMode>
 );

@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Twitter, Instagram, Linkedin, Mail, Menu, X, FileText, Settings, Home, Users, Zap, Star, Folder, Bookmark, Image, Play, Video, Headphones, Palette, Grid, HandMetal, Eye, Plus, Sparkles, LogIn, Database } from 'lucide-react';
-import { useAuth } from './hooks/useAuth';
-import AuthModal from './components/AuthModal';
-import UserMenu from './components/UserMenu';
+import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, LogIn, Database } from 'lucide-react';
 import DatabaseStatus from './components/DatabaseStatus';
 import AllImagesPage from './AllImagesPage';
 import AINameGeneratorPage from './AINameGeneratorPage';
@@ -16,19 +13,14 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import FontsAdminPage from './pages/FontsAdminPage';
 import AdminRoute from './components/AdminRoute';
 import { useLogos } from './hooks/useLogos';
+import AdminSignInPage from './pages/AdminSignInPage';
 
 const App = () => {
   const location = useLocation();
-  const { user } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
-  const [currentLogoIndex, setCurrentLogoIndex] = useState(0);
-  const [selectedColor, setSelectedColor] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showDatabaseStatus, setShowDatabaseStatus] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
-  const [showDatabaseStatus, setShowDatabaseStatus] = useState(false);
 
   // Base sidebar items available to all users
   const baseSidebarItems = [
@@ -106,6 +98,17 @@ const App = () => {
               <div className="pt-4">
                 <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
                 <div className="space-y-2">
+                  <Link
+                    to="/admin/sign-in"
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                      location.pathname === '/admin/sign-in'
+                        ? 'bg-purple-50 text-purple-700 font-medium' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <LogIn className="h-5 w-5" />
+                    <span>Admin Sign-In</span>
+                  </Link>
                   {adminSidebarItems.map((item, index) => (
                     <Link
                       key={index}
@@ -166,18 +169,6 @@ const App = () => {
                 <Database className="h-4 w-4 mr-2" />
                 Database
               </button>
-              
-              {user ? (
-                <UserMenu />
-              ) : (
-                <button 
-                  onClick={() => openAuthModal('signin')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Login
-                </button>
-              )}
             </div>
           </div>
         </header>
@@ -194,6 +185,7 @@ const App = () => {
               setActiveIndustry={setActiveIndustry}
             />} />
             <Route path="/ai-logo-generator" element={<AILogoGeneratorPage />} />
+            <Route path="/admin/sign-in" element={<AdminSignInPage />} />
             <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
             <Route path="/admin/add-logo" element={<AdminRoute><AddLogoPage /></AdminRoute>} />
             <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />
@@ -206,12 +198,7 @@ const App = () => {
         </div>
       </div>
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        initialMode={authModalMode}
-      />
+      
 
       {/* Database Status Modal */}
       {showDatabaseStatus && (
