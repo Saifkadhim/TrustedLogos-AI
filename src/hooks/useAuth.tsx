@@ -21,6 +21,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  signInWithTempCredentials: (role: 'admin' | 'user') => Promise<void>;
 }
 
 interface SignUpData {
@@ -270,6 +271,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithTempCredentials = async (role: 'admin' | 'user') => {
+    // Create a temporary user object without Supabase session
+    const tempUser: User = {
+      id: `temp-${role}-${Date.now()}`,
+      email: role === 'admin' ? 'admin@example.com' : 'user@example.com',
+      fullName: role === 'admin' ? 'Temp Admin' : 'Temp User',
+      role,
+      createdAt: new Date().toISOString()
+    };
+
+    setUser(tempUser);
+    setSession(null);
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -278,7 +293,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     signInWithGoogle,
-    updateProfile
+    updateProfile,
+    signInWithTempCredentials
   };
 
   return (

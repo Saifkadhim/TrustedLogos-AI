@@ -159,21 +159,13 @@ const App = () => {
               {user ? (
                 <UserMenu />
               ) : (
-                <>
-                  <button 
-                    onClick={() => openAuthModal('signin')}
-                    className="flex items-center px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors duration-200"
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Sign In
-                  </button>
-                  <button 
-                    onClick={() => openAuthModal('signup')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-                  >
-                    Sign Up
-                  </button>
-                </>
+                <button 
+                  onClick={() => openAuthModal('signin')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
+                </button>
               )}
             </div>
           </div>
