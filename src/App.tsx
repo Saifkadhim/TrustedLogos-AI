@@ -14,9 +14,11 @@ import FontsAdminPage from './pages/FontsAdminPage';
 import AdminRoute from './components/AdminRoute';
 import { useLogos } from './hooks/useLogos';
 import AdminSignInPage from './pages/AdminSignInPage';
+import { useAdminAuth } from './hooks/useAdminAuth';
 
 const App = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAdminAuth();
   const [showDatabaseStatus, setShowDatabaseStatus] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
@@ -42,14 +44,7 @@ const App = () => {
 
   // Admin sections are rendered separately in the sidebar
 
-  const pinnedItems = [
-    { name: 'Assistant', icon: Zap },
-  ];
-
-  const openAuthModal = (mode: 'signin' | 'signup') => {
-    setAuthModalMode(mode);
-    setShowAuthModal(true);
-  };
+  // Admin sections are rendered in the sidebar based on authentication status
 
   const quickActionTabs = [
     'For you', 'Images', 'Vectors', 'Videos', 'Designs', 'Mockups', 'Icons', 'Others'
@@ -94,6 +89,36 @@ const App = () => {
               ))}
             </div>
 
+            <div className="pt-4">
+              <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
+              <div className="space-y-2">
+                <Link
+                  to="/console-setup"
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                    location.pathname === '/console-setup'
+                      ? 'bg-purple-50 text-purple-700 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <LogIn className="h-5 w-5" />
+                  <span>Admin Sign-In</span>
+                </Link>
+                {isAuthenticated && adminSidebarItems.map((item, index) => (
+                  <Link
+                    key={index}
+                    to={item.path}
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                      location.pathname === item.path
+                        ? 'bg-purple-50 text-purple-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
 
           </nav>
 
