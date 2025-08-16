@@ -1,66 +1,24 @@
-import React, { useState } from 'react';
-import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shapes, Edit3, Trash2, Search, Filter, Grid, List, Eye, Download, Star, Heart } from 'lucide-react';
-import { useLogos } from '../hooks/useLogos';
+import React, { useState, useEffect } from 'react';
+import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shapes, Edit3, Trash2, Search, Filter, Grid, List, Eye, Download, Star, Heart, Loader } from 'lucide-react';
+import { useLogos, type Logo, type CreateLogoData, type UpdateLogoData } from '../hooks/useLogos';
 
 const AddLogoPage = () => {
-  const { addLogo } = useLogos();
-  // Sample logo data - in a real app, this would come from a database
-  const [logos, setLogos] = useState([
-    {
-      id: 1,
-      name: 'Apple',
-      type: 'Pictorial Marks',
-      industry: 'Technology',
-      color: '#000000',
-      secondaryColor: '#ffffff',
-      shape: 'circle',
-      imageFile: null,
-      imageName: 'apple-logo.png',
-      information: 'The Apple logo is one of the most recognizable logos in the world. It represents innovation, simplicity, and premium quality. The bitten apple symbolizes knowledge and discovery.',
-      designerUrl: 'https://www.apple.com',
-      createdAt: '2025-01-15',
-      updatedAt: '2025-01-15',
-      isPublic: true,
-      downloads: 1247,
-      likes: 89
-    },
-    {
-      id: 2,
-      name: 'Nike',
-      type: 'Abstract Marks',
-      industry: 'Fashion',
-      color: '#000000',
-      secondaryColor: '#ffffff',
-      shape: 'other',
-      imageFile: null,
-      imageName: 'nike-logo.png',
-      information: 'The Nike Swoosh represents motion and speed. Designed by Carolyn Davidson in 1971 for just $35, it has become one of the most valuable logos in the world.',
-      designerUrl: 'https://www.nike.com',
-      createdAt: '2025-01-14',
-      updatedAt: '2025-01-14',
-      isPublic: true,
-      downloads: 892,
-      likes: 67
-    },
-    {
-      id: 3,
-      name: 'Google',
-      type: 'Wordmarks',
-      industry: 'Technology',
-      color: '#4285f4',
-      secondaryColor: '#ea4335',
-      shape: 'rectangle',
-      imageFile: null,
-      imageName: 'google-logo.png',
-      information: 'Google\'s colorful wordmark reflects the company\'s playful and innovative spirit. The multicolored letters represent diversity and creativity in technology.',
-      designerUrl: 'https://www.google.com',
-      createdAt: '2025-01-13',
-      updatedAt: '2025-01-13',
-      isPublic: true,
-      downloads: 2156,
-      likes: 134
-    }
-  ]);
+  const { 
+    logos: allLogos, 
+    loading, 
+    error: hookError, 
+    addLogo, 
+    updateLogo, 
+    deleteLogo,
+    refreshLogos 
+  } = useLogos();
+  // Use logos from Supabase
+  const [logos, setLogos] = useState<Logo[]>([]);
+  
+  // Sync with Supabase data
+  useEffect(() => {
+    setLogos(allLogos);
+  }, [allLogos]);
 
   // Form states
   const [logoName, setLogoName] = useState('');
@@ -256,93 +214,60 @@ const AddLogoPage = () => {
     setSubmitMessage(null);
 
     try {
-      // Convert image file to data URL for preview/storage in local store
-      let imageDataUrl: string | undefined = undefined;
-      if (logoImageFile) {
-        imageDataUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = () => reject(new Error('Failed to read image'));
-          reader.readAsDataURL(logoImageFile!);
-        });
-      }
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const logoData = {
-        name: logoName,
-        type: logoType,
-        industry: industryCategory,
-        color: logoColor,
-        secondaryColor: secondaryLogoColor,
-        shape: logoShape.toLowerCase(),
-        imageFile: logoImageFile,
-        imageName: logoImageFile ? logoImageFile.name : (editingLogo ? editingLogo.imageName : ''),
-        information: logoInformation,
-        designerUrl: designerUrl,
-        isPublic: true,
-        downloads: editingLogo ? editingLogo.downloads : 0,
-        likes: editingLogo ? editingLogo.likes : 0
-      };
-
       if (editingLogo) {
         // Update existing logo
-        setLogos(prev => prev.map(logo => 
-          logo.id === editingLogo.id 
-            ? {
-                ...logo,
-                ...logoData,
-                updatedAt: new Date().toISOString().split('T')[0]
-              }
-            : logo
-        ));
-        setSubmitMessage({ type: 'success', text: 'Logo updated successfully!' });
-
-        // Update shared store if this was in it previously
-        addLogo({
-          id: String(editingLogo.id),
+        const updateData: UpdateLogoData = {
+          id: editingLogo.id,
           name: logoName,
-          color: logoColor,
-          imageDataUrl
-        });
+          type: logoType,
+          industry: industryCategory,
+          primaryColor: logoColor,
+          secondaryColor: secondaryLogoColor,
+          shape: logoShape.toLowerCase(),
+          information: logoInformation || undefined,
+          designerUrl: designerUrl || undefined,
+          imageFile: logoImageFile || undefined,
+        };
+
+        await updateLogo(updateData);
+        setSubmitMessage({ type: 'success', text: 'Logo updated successfully!' });
       } else {
         // Add new logo
-        const newLogo = {
-          id: Date.now(),
-          ...logoData,
-          createdAt: new Date().toISOString().split('T')[0],
-          updatedAt: new Date().toISOString().split('T')[0]
-        };
-        setLogos(prev => [newLogo, ...prev]);
-        setSubmitMessage({ type: 'success', text: 'Logo added successfully!' });
-
-        // Save a simplified version to shared store for site-wide display
-        addLogo({
-          id: String(newLogo.id),
+        const logoData: CreateLogoData = {
           name: logoName,
-          color: logoColor,
-          imageDataUrl
-        });
+          type: logoType,
+          industry: industryCategory,
+          primaryColor: logoColor,
+          secondaryColor: secondaryLogoColor,
+          shape: logoShape.toLowerCase(),
+          information: logoInformation || undefined,
+          designerUrl: designerUrl || undefined,
+          imageFile: logoImageFile!,
+          isPublic: true,
+        };
+
+        await addLogo(logoData);
+        setSubmitMessage({ type: 'success', text: 'Logo added successfully!' });
       }
       
       // Reset form
       resetForm();
       
     } catch (error) {
-      setSubmitMessage({ type: 'error', text: 'Failed to save logo. Please try again.' });
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save logo. Please try again.';
+      setSubmitMessage({ type: 'error', text: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEditLogo = (logo) => {
+  const handleEditLogo = (logo: Logo) => {
     setEditingLogo(logo);
     setLogoName(logo.name);
     setLogoType(logo.type);
     setIndustryCategory(logo.industry);
-    setLogoColor(logo.color);
-    setSecondaryLogoColor(logo.secondaryColor);
+    setLogoColor(logo.primaryColor);
+    setSecondaryLogoColor(logo.secondaryColor || '#ffffff');
     setLogoShape(logo.shape);
     setLogoImageFile(null);
     setLogoInformation(logo.information || '');
@@ -351,9 +276,15 @@ const AddLogoPage = () => {
     setSubmitMessage(null);
   };
 
-  const handleDeleteLogo = (id) => {
+  const handleDeleteLogo = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this logo?')) {
-      setLogos(prev => prev.filter(logo => logo.id !== id));
+      try {
+        await deleteLogo(id);
+        setSubmitMessage({ type: 'success', text: 'Logo deleted successfully!' });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to delete logo';
+        setSubmitMessage({ type: 'error', text: errorMessage });
+      }
     }
   };
 
@@ -361,7 +292,7 @@ const AddLogoPage = () => {
     const csvContent = "data:text/csv;charset=utf-8," + 
       "Name,Type,Industry,Color,Secondary Color,Shape,Image,Public,Downloads,Likes,Created,Updated\n" +
       filteredLogos.map(logo => 
-        `"${logo.name}","${logo.type}","${logo.industry}","${logo.color}","${logo.secondaryColor}","${logo.shape}","${logo.imageName}",${logo.isPublic},${logo.downloads},${logo.likes},${logo.createdAt},${logo.updatedAt}`
+        `"${logo.name}","${logo.type}","${logo.industry}","${logo.primaryColor}","${logo.secondaryColor}","${logo.shape}","${logo.imageName}",${logo.isPublic},${logo.downloads},${logo.likes},${logo.createdAt},${logo.updatedAt}`
       ).join("\n");
 
     const encodedUri = encodeURI(csvContent);
@@ -706,21 +637,21 @@ const AddLogoPage = () => {
               </div>
 
               {/* Submit Message */}
-              {submitMessage && (
+              {(submitMessage || hookError) && (
                 <div className={`p-4 rounded-lg flex items-center ${
-                  submitMessage.type === 'success' 
+                  submitMessage?.type === 'success' 
                     ? 'bg-green-50 border border-green-200' 
                     : 'bg-red-50 border border-red-200'
                 }`}>
-                  {submitMessage.type === 'success' ? (
+                  {submitMessage?.type === 'success' ? (
                     <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
                   ) : (
                     <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
                   )}
                   <span className={`text-sm font-medium ${
-                    submitMessage.type === 'success' ? 'text-green-800' : 'text-red-800'
+                    submitMessage?.type === 'success' ? 'text-green-800' : 'text-red-800'
                   }`}>
-                    {submitMessage.text}
+                    {submitMessage?.text || hookError}
                   </span>
                 </div>
               )}
@@ -729,9 +660,9 @@ const AddLogoPage = () => {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || loading}
                   className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center ${
-                    isSubmitting
+                    isSubmitting || loading
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
                   }`}
@@ -740,6 +671,11 @@ const AddLogoPage = () => {
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       {editingLogo ? 'Updating Logo...' : 'Adding Logo...'}
+                    </>
+                  ) : loading ? (
+                    <>
+                      <Loader className="h-4 w-4 mr-2 animate-spin" />
+                      Loading...
                     </>
                   ) : (
                     <>
@@ -866,7 +802,7 @@ const AddLogoPage = () => {
                       <div className="h-32 bg-gray-50 flex items-center justify-center relative overflow-hidden">
                         <div
                           className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl"
-                          style={{ backgroundColor: logo.color }}
+                          style={{ backgroundColor: logo.primaryColor }}
                         >
                           {logo.name.charAt(0)}
                         </div>
@@ -938,7 +874,7 @@ const AddLogoPage = () => {
                         <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
                           <div
                             className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm"
-                            style={{ backgroundColor: logo.color }}
+                            style={{ backgroundColor: logo.primaryColor }}
                           >
                             {logo.name.charAt(0)}
                           </div>
