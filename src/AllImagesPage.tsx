@@ -1,69 +1,63 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
+import { useLogos } from './hooks/useLogos';
 
 const AllImagesPage = () => {
+  const { logos, loading, error } = useLogos();
   const [selectedLogoTypes, setSelectedLogoTypes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Generate dynamic data from uploaded logos
+  const logosByType = useMemo(() => {
+    const grouped: { [key: string]: any[] } = {};
+    
+    logos.forEach(logo => {
+      if (!grouped[logo.type]) {
+        grouped[logo.type] = [];
+      }
+      grouped[logo.type].push({
+        name: logo.name,
+        color: logo.primaryColor,
+        letter: logo.name.charAt(0),
+        imageUrl: logo.imageUrl,
+        industry: logo.industry,
+        shape: logo.shape,
+        id: logo.id,
+        downloads: logo.downloads,
+        likes: logo.likes,
+        information: logo.information,
+        designerUrl: logo.designerUrl
+      });
+    });
+    
+    return grouped;
+  }, [logos]);
 
   const logoTypes = {
     'Wordmarks': {
-      logos: [
-        { name: 'Google', color: '#4285f4', letter: 'G' },
-        { name: 'Coca-Cola', color: '#f40009', letter: 'C' },
-        { name: 'FedEx', color: '#4d148c', letter: 'F' },
-        { name: 'Visa', color: '#1a1f71', letter: 'V' }
-      ]
+      logos: logosByType['Wordmarks'] || []
     },
     'Lettermarks': {
-      logos: [
-        { name: 'IBM', color: '#1f70c1', letter: 'I' },
-        { name: 'HBO', color: '#000000', letter: 'H' },
-        { name: 'CNN', color: '#cc0000', letter: 'C' },
-        { name: 'NASA', color: '#fc3d21', letter: 'N' }
-      ]
+      logos: logosByType['Lettermarks'] || []
     },
     'Pictorial Marks': {
-      logos: [
-        { name: 'Apple', color: '#000000', letter: 'A' },
-        { name: 'Twitter', color: '#1da1f2', letter: 'T' },
-        { name: 'Target', color: '#cc0000', letter: 'T' },
-        { name: 'Shell', color: '#ffde00', letter: 'S' }
-      ]
+      logos: logosByType['Pictorial Marks'] || []
     },
     'Abstract Marks': {
-      logos: [
-        { name: 'Nike', color: '#000000', letter: 'N' },
-        { name: 'Pepsi', color: '#004b93', letter: 'P' },
-        { name: 'Adidas', color: '#000000', letter: 'A' },
-        { name: 'BP', color: '#00914c', letter: 'B' }
-      ]
+      logos: logosByType['Abstract Marks'] || []
     },
     'Combination Marks': {
-      logos: [
-        { name: 'Burger King', color: '#d62300', letter: 'B' },
-        { name: 'Lacoste', color: '#00a651', letter: 'L' },
-        { name: 'Doritos', color: '#e50000', letter: 'D' },
-        { name: 'Taco Bell', color: '#702f8a', letter: 'T' }
-      ]
+      logos: logosByType['Combination Marks'] || []
     },
     'Emblem Logos': {
-      logos: [
-        { name: 'Starbucks', color: '#00704a', letter: 'S' },
-        { name: 'BMW', color: '#0066b2', letter: 'B' },
-        { name: 'Harley-Davidson', color: '#f47216', letter: 'H' },
-        { name: 'NFL', color: '#013369', letter: 'N' }
-      ]
+      logos: logosByType['Emblem Logos'] || []
     },
     'Mascot Logos': {
-      logos: [
-        { name: 'KFC', color: '#f40027', letter: 'K' },
-        { name: 'Mailchimp', color: '#ffe01b', letter: 'M' },
-        { name: 'Pringles', color: '#e30613', letter: 'P' },
-        { name: 'Michelin', color: '#0033a0', letter: 'M' }
-      ]
+      logos: logosByType['Mascot Logos'] || []
     }
   };
 
@@ -435,96 +429,30 @@ const AllImagesPage = () => {
     }
   };
 
-  const recentCreations = [
-    { 
-      id: 1, 
-      title: 'Apple Logo Evolution', 
-      date: 'April 29, 2025',
-      image: 'A',
-      color: '#000000'
-    },
-    { 
-      id: 2, 
-      title: 'Nike Swoosh Design', 
-      date: 'April 29, 2025',
-      image: 'N',
-      color: '#000000'
-    },
-    { 
-      id: 3, 
-      title: 'Google Brand Identity', 
-      date: 'April 29, 2025',
-      image: 'G',
-      color: '#4285f4'
-    }
-  ];
 
-  // Assign shapes based on logo characteristics
-  const getLogoShape = (letter: string, name: string) => {
-    const circularLogos = ['O', 'Q', 'C', 'G', 'D', 'P', 'R', 'B'];
-    const triangularLogos = ['A', 'V', 'W', 'Y', 'X', 'Z'];
-    
-    if (circularLogos.includes(letter) || name.toLowerCase().includes('circle')) {
-      return 'circle';
-    } else if (triangularLogos.includes(letter) || name.toLowerCase().includes('triangle')) {
-      return 'triangle';
-    }
-    return 'rectangle';
-  };
 
-  // Consolidate all logos into a single array
+  // Use dynamic logos from Supabase
   const allLogos = useMemo(() => {
-    const logos: any[] = [];
-    
-    // Add recent creations
-    recentCreations.forEach((logo, index) => {
-      logos.push({
-        id: `recent-${index}`,
-        name: logo.title,
-        color: logo.color,
-        letter: logo.image,
-        type: 'Recent Creation',
-        category: 'Recent',
-        shape: getLogoShape(logo.image, logo.title)
-      });
-    });
-
-    // Add logo types
-    Object.entries(logoTypes).forEach(([type, data]) => {
-      data.logos.forEach((logo, index) => {
-        logos.push({
-          id: `${type}-${index}`,
-          name: logo.name,
-          color: logo.color,
-          letter: logo.letter,
-          type: type,
-          category: type,
-          shape: getLogoShape(logo.letter, logo.name)
-        });
-      });
-    });
-
-    // Add industry logos
-    Object.entries(industryLogos).forEach(([industry, data]) => {
-      data.logos.forEach((logo, index) => {
-        logos.push({
-          id: `${industry}-${index}`,
-          name: logo.name,
-          color: logo.color,
-          letter: logo.letter,
-          type: 'Industry Specific',
-          category: industry,
-          shape: getLogoShape(logo.letter, logo.name)
-        });
-      });
-    });
-
-    return logos;
-  }, []);
+    return logos.map((logo) => ({
+      id: logo.id,
+      name: logo.name,
+      color: logo.primaryColor,
+      letter: logo.name.charAt(0),
+      type: logo.type,
+      category: logo.industry,
+      shape: logo.shape,
+      imageUrl: logo.imageUrl,
+      industry: logo.industry,
+      information: logo.information,
+      designerUrl: logo.designerUrl,
+      downloads: logo.downloads,
+      likes: logo.likes
+    }));
+  }, [logos]);
 
   // Get unique values for filters
   const uniqueLogoTypes = useMemo(() => {
-    return [...new Set(allLogos.map(logo => logo.type))].filter(type => type !== 'Industry Specific' && type !== 'Recent Creation');
+    return [...new Set(allLogos.map(logo => logo.type))];
   }, [allLogos]);
 
   const uniqueColors = useMemo(() => {
@@ -549,16 +477,20 @@ const AllImagesPage = () => {
     return [...new Set(allLogos.map(logo => logo.shape))];
   }, [allLogos]);
 
-  // Filter logos based on selected filters
+  // Filter logos based on selected filters and search query
   const filteredLogos = useMemo(() => {
     return allLogos.filter(logo => {
       const typeMatch = selectedLogoTypes.length === 0 || selectedLogoTypes.includes(logo.type);
       const colorMatch = selectedColors.length === 0 || selectedColors.includes(logo.color);
       const shapeMatch = selectedShapes.length === 0 || selectedShapes.includes(logo.shape);
+      const searchMatch = searchQuery === '' || 
+        logo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        logo.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        logo.industry.toLowerCase().includes(searchQuery.toLowerCase());
       
-      return typeMatch && colorMatch && shapeMatch;
+      return typeMatch && colorMatch && shapeMatch && searchMatch;
     });
-  }, [allLogos, selectedLogoTypes, selectedColors, selectedShapes]);
+  }, [allLogos, selectedLogoTypes, selectedColors, selectedShapes, searchQuery]);
 
   // Handle filter changes
   const handleFilterChange = (filterType: 'type' | 'color' | 'shape', value: string) => {
@@ -596,6 +528,19 @@ const AllImagesPage = () => {
   const quickActionTabs = [
     'All', 'Airlines', 'Automotive', 'Cosmetics', 'E-commerce', 'Education', 'Electronics', 'Energy companies', 'Fashion', 'Finance / Bank', 'Fitness', 'Food & Drinks', 'Games', 'Hotels', 'Industrial', 'Insurance', 'Internet', 'Media / TV', 'Motorcycles', 'Music', 'Organizations', 'Pets', 'Pharma', 'Retailers', 'Restaurant', 'Software', 'Technology', 'Sports', 'Other'
   ];
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading logos...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -666,6 +611,8 @@ const AllImagesPage = () => {
                   <input
                     type="text"
                     placeholder="Search logos..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   />
                 </div>
@@ -761,8 +708,19 @@ const AllImagesPage = () => {
                     ? 'aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden' 
                     : 'w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center mr-4 flex-shrink-0'
                 }`}>
+                  {logo.imageUrl ? (
+                    <img 
+                      src={logo.imageUrl} 
+                      alt={logo.name} 
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
                   <div
-                    className={`${
+                    className={`${logo.imageUrl ? 'hidden' : ''} ${
                       viewMode === 'grid' 
                         ? 'w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200'
                         : 'w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm'

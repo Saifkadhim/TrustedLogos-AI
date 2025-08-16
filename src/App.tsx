@@ -194,55 +194,48 @@ const HomePage = ({
   activeIndustry: string;
   setActiveIndustry: (industry: string) => void;
 }) => {
-  const { logos } = useLogos();
-  const recentCreations = [
-    { 
-      id: 1, 
-      title: 'Apple Logo Evolution', 
-      date: 'April 29, 2025',
-      image: 'A',
-      color: '#000000'
-    },
-    { 
-      id: 2, 
-      title: 'Nike Swoosh Design', 
-      date: 'April 29, 2025',
-      image: 'N',
-      color: '#000000'
-    },
-    { 
-      id: 3, 
-      title: 'Google Brand Identity', 
-      date: 'April 29, 2025',
-      image: 'G',
-      color: '#4285f4'
-    },
-    { 
-      id: 4, 
-      title: "McDonald's Golden Arches", 
-      date: 'April 15, 2025',
-      image: 'M',
-      color: '#ffc72c'
-    },
-    { 
-      id: 5, 
-      title: 'Tesla Logo Concept', 
-      date: 'April 15, 2025',
-      image: 'T',
-      color: '#cc0000'
-    },
-  ];
+  const { logos, loading } = useLogos();
+  
+  // Import the distribution utility
+  const { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } = React.useMemo(() => {
+    return require('./utils/logoDistribution');
+  }, []);
+  
+  // Distribute logos across sections
+  const distributedData = React.useMemo(() => {
+    if (logos.length === 0) {
+      return distributeLogos([]);
+    }
+    return distributeLogos(logos);
+  }, [logos, distributeLogos]);
 
-  const uploaded = logos.map(l => ({
-    id: l.id,
-    title: l.name,
-    date: new Date(l.createdAt).toLocaleDateString(),
-    imageUrl: l.imageUrl,
-    color: l.primaryColor,
-    letter: l.name?.charAt(0)?.toUpperCase() || 'L'
+  // Get available types and industries (only show tabs that have logos)
+  const availableLogoTypes = React.useMemo(() => {
+    const available = getAvailableLogoTypes(logos);
+    // Always include at least some basic types for navigation
+    const basicTypes = ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
+    return available.length > 0 ? available : basicTypes;
+  }, [logos, getAvailableLogoTypes]);
+
+  const availableIndustries = React.useMemo(() => {
+    const available = getAvailableIndustries(logos);
+    // Always include basic industries for navigation
+    const basicIndustries = ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
+    return available.length > 0 ? available : basicIndustries;
+  }, [logos, getAvailableIndustries]);
+
+  // Use TOP logos from distributed data
+  const topLogosForDisplay = distributedData.topLogos.map(logo => ({
+    id: logo.id,
+    title: logo.name,
+    date: new Date(logo.createdAt).toLocaleDateString(),
+    imageUrl: logo.imageUrl,
+    color: logo.primaryColor,
+    letter: logo.name?.charAt(0)?.toUpperCase() || 'L'
   }));
 
-  const combined = [...uploaded, ...recentCreations].slice(0, 10);
+  // If we have less than 5 logos, add some placeholders to make the grid look good
+  const displayLogos = topLogosForDisplay.length > 0 ? topLogosForDisplay.slice(0, 10) : [];
 
   const quickActions = [
     {
@@ -543,9 +536,9 @@ const HomePage = ({
           ))}
         </div>
 
-        {/* Recent Creations Grid */}
+        {/* TOP Logos Grid */}
         <div className="grid grid-cols-5 gap-4 mb-8">
-          {combined.map((creation) => (
+          {displayLogos.length > 0 ? displayLogos.map((creation) => (
             <div
               key={creation.id}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
@@ -577,7 +570,12 @@ const HomePage = ({
                 <p className="text-xs text-gray-500">{creation.date}</p>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="col-span-5 text-center py-12 text-gray-500">
+              <div className="text-lg font-medium mb-2">No logos uploaded yet</div>
+              <p className="text-sm">Upload some logos through the admin panel to see them here!</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -646,15 +644,7 @@ const HomePage = ({
         
         {/* Logo Types Tab Menu */}
         <div className="flex flex-wrap gap-2 mb-8 bg-white rounded-lg p-2 shadow-sm border border-gray-200">
-          {[
-            'Wordmarks',
-            'Lettermarks', 
-            'Pictorial Marks',
-            'Abstract Marks',
-            'Combination Marks',
-            'Emblem Logos',
-            'Mascot Logos'
-          ].map((logoType, index) => (
+          {availableLogoTypes.map((logoType, index) => (
             <button
               key={logoType}
               onClick={() => setActiveLogoType(logoType)}
@@ -672,38 +662,54 @@ const HomePage = ({
         {/* Logo Type Description */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">{activeLogoType}</h3>
-          <p className="text-gray-600 mb-4">{logoTypes[activeLogoType].description}</p>
+          <p className="text-gray-600 mb-4">{distributedData.logoTypes[activeLogoType]?.description || 'Logo type description'}</p>
           <div className="flex items-center text-sm text-gray-500">
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mr-3">
-              Examples: {logoTypes[activeLogoType].examples}
+              Examples: {distributedData.logoTypes[activeLogoType]?.examples || 'Various examples'}
             </span>
-            <span>Best for: {logoTypes[activeLogoType].bestFor}</span>
+            <span>Best for: {distributedData.logoTypes[activeLogoType]?.bestFor || 'Multiple use cases'}</span>
           </div>
         </div>
 
         {/* Logo Examples Grid */}
         <div className="grid grid-cols-4 gap-4">
-          {logoTypes[activeLogoType].logos.map((logo, index) => (
+          {distributedData.logoTypes[activeLogoType]?.logos?.length > 0 ? distributedData.logoTypes[activeLogoType].logos.map((logo, index) => (
             <div
               key={index}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200"
             >
               <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden">
+                {logo.imageUrl ? (
+                  <img 
+                    src={logo.imageUrl} 
+                    alt={logo.name} 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
                 <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200"
-                  style={{ backgroundColor: logo.color }}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200 ${logo.imageUrl ? 'hidden' : ''}`}
+                  style={{ backgroundColor: logo.primaryColor }}
                 >
-                  {logo.letter}
+                  {logo.name.charAt(0)}
                 </div>
               </div>
               <div className="p-3">
                 <h4 className="font-medium text-gray-900 text-sm mb-1">
                   {logo.name}
                 </h4>
-                <p className="text-xs text-gray-500">{activeLogoType.slice(0, -1)}</p>
+                <p className="text-xs text-gray-500">{logo.type}</p>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="col-span-4 text-center py-12 text-gray-500">
+              <div className="text-lg font-medium mb-2">No {activeLogoType} logos yet</div>
+              <p className="text-sm">Upload some {activeLogoType} logos to see them here!</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -713,20 +719,7 @@ const HomePage = ({
         
         {/* Industry Tab Menu */}
         <div className="flex flex-wrap gap-2 mb-8 bg-white rounded-lg p-2 shadow-sm border border-gray-200">
-          {[
-            'Automotive',
-            'Fashion', 
-            'Food & Drinks',
-            'Restaurant',
-            'Technology',
-            'E-commerce',
-            'Electronics',
-            'Industrial',
-            'Internet',
-            'Media/TV',
-            'Sport',
-            'Other'
-          ].map((industry) => (
+          {availableIndustries.map((industry) => (
             <button
               key={industry}
               onClick={() => setActiveIndustry(industry)}
@@ -744,37 +737,53 @@ const HomePage = ({
         {/* Industry Description */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">{activeIndustry} Logos</h3>
-          <p className="text-gray-600 mb-4">{industryLogos[activeIndustry].description}</p>
+          <p className="text-gray-600 mb-4">{distributedData.industries[activeIndustry]?.description || 'Industry description'}</p>
           <div className="flex items-center text-sm text-gray-500">
             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-              {industryLogos[activeIndustry].logos.length} Featured Brands
+              {distributedData.industries[activeIndustry]?.logos?.length || 0} Featured Brands
             </span>
           </div>
         </div>
 
         {/* Industry Logos Grid */}
         <div className="grid grid-cols-4 gap-4">
-          {industryLogos[activeIndustry].logos.map((logo, index) => (
+          {distributedData.industries[activeIndustry]?.logos?.length > 0 ? distributedData.industries[activeIndustry].logos.map((logo, index) => (
             <div
               key={index}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200"
             >
               <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden">
+                {logo.imageUrl ? (
+                  <img 
+                    src={logo.imageUrl} 
+                    alt={logo.name} 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
                 <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200"
-                  style={{ backgroundColor: logo.color }}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200 ${logo.imageUrl ? 'hidden' : ''}`}
+                  style={{ backgroundColor: logo.primaryColor }}
                 >
-                  {logo.letter}
+                  {logo.name.charAt(0)}
                 </div>
               </div>
               <div className="p-3">
                 <h4 className="font-medium text-gray-900 text-sm mb-1">
                   {logo.name}
                 </h4>
-                <p className="text-xs text-gray-500">{logo.category}</p>
+                <p className="text-xs text-gray-500">{logo.industry}</p>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="col-span-4 text-center py-12 text-gray-500">
+              <div className="text-lg font-medium mb-2">No {activeIndustry} logos yet</div>
+              <p className="text-sm">Upload some {activeIndustry} logos to see them here!</p>
+            </div>
+          )}
         </div>
       </div>
 
