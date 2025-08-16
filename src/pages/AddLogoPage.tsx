@@ -16,6 +16,8 @@ const AddLogoPage = () => {
       shape: 'circle',
       imageFile: null,
       imageName: 'apple-logo.png',
+      information: 'The Apple logo is one of the most recognizable logos in the world. It represents innovation, simplicity, and premium quality. The bitten apple symbolizes knowledge and discovery.',
+      designerUrl: 'https://www.apple.com',
       createdAt: '2025-01-15',
       updatedAt: '2025-01-15',
       isPublic: true,
@@ -32,6 +34,8 @@ const AddLogoPage = () => {
       shape: 'other',
       imageFile: null,
       imageName: 'nike-logo.png',
+      information: 'The Nike Swoosh represents motion and speed. Designed by Carolyn Davidson in 1971 for just $35, it has become one of the most valuable logos in the world.',
+      designerUrl: 'https://www.nike.com',
       createdAt: '2025-01-14',
       updatedAt: '2025-01-14',
       isPublic: true,
@@ -48,6 +52,8 @@ const AddLogoPage = () => {
       shape: 'rectangle',
       imageFile: null,
       imageName: 'google-logo.png',
+      information: 'Google\'s colorful wordmark reflects the company\'s playful and innovative spirit. The multicolored letters represent diversity and creativity in technology.',
+      designerUrl: 'https://www.google.com',
       createdAt: '2025-01-13',
       updatedAt: '2025-01-13',
       isPublic: true,
@@ -64,6 +70,8 @@ const AddLogoPage = () => {
   const [secondaryLogoColor, setSecondaryLogoColor] = useState('#ffffff');
   const [logoShape, setLogoShape] = useState('');
   const [logoImageFile, setLogoImageFile] = useState<File | null>(null);
+  const [logoInformation, setLogoInformation] = useState('');
+  const [designerUrl, setDesignerUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -210,6 +218,8 @@ const AddLogoPage = () => {
     setSecondaryLogoColor('#ffffff');
     setLogoShape('');
     setLogoImageFile(null);
+    setLogoInformation('');
+    setDesignerUrl('');
     setEditingLogo(null);
   };
 
@@ -269,6 +279,8 @@ const AddLogoPage = () => {
         shape: logoShape.toLowerCase(),
         imageFile: logoImageFile,
         imageName: logoImageFile ? logoImageFile.name : (editingLogo ? editingLogo.imageName : ''),
+        information: logoInformation,
+        designerUrl: designerUrl,
         isPublic: true,
         downloads: editingLogo ? editingLogo.downloads : 0,
         likes: editingLogo ? editingLogo.likes : 0
@@ -333,6 +345,8 @@ const AddLogoPage = () => {
     setSecondaryLogoColor(logo.secondaryColor);
     setLogoShape(logo.shape);
     setLogoImageFile(null);
+    setLogoInformation(logo.information || '');
+    setDesignerUrl(logo.designerUrl || '');
     setActiveTab('add');
     setSubmitMessage(null);
   };
@@ -583,6 +597,52 @@ const AddLogoPage = () => {
                         <option key={shape} value={shape.toLowerCase()}>{shape}</option>
                       ))}
                     </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Logo Information Section */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Edit3 className="h-5 w-5 text-green-600 mr-2" />
+                  Additional Information
+                </h2>
+                
+                <div className="space-y-6">
+                  {/* Logo Information */}
+                  <div>
+                    <label htmlFor="logoInformation" className="block text-sm font-medium text-gray-700 mb-2">
+                      Logo Information
+                    </label>
+                    <textarea
+                      id="logoInformation"
+                      value={logoInformation}
+                      onChange={(e) => setLogoInformation(e.target.value)}
+                      placeholder="Enter detailed information about the logo (e.g., history, meaning, design inspiration, brand story)"
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Provide background information, design story, or any relevant details about this logo.
+                    </p>
+                  </div>
+
+                  {/* Designer/Owner URL */}
+                  <div>
+                    <label htmlFor="designerUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                      Designer/Owner URL
+                    </label>
+                    <input
+                      type="url"
+                      id="designerUrl"
+                      value={designerUrl}
+                      onChange={(e) => setDesignerUrl(e.target.value)}
+                      placeholder="https://website.com or https://portfolio.designer.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Link to the logo designer's portfolio, company website, or brand owner's site.
+                    </p>
                   </div>
                 </div>
               </div>
