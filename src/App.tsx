@@ -47,10 +47,7 @@ const App = () => {
     { name: 'Manage Fonts', icon: Folder, path: '/admin/fonts' },
   ];
 
-  // Combine sidebar items based on user role
-  const sidebarItems = user?.role === 'admin' 
-    ? [...baseSidebarItems.slice(0, 2), ...adminSidebarItems, ...baseSidebarItems.slice(2)]
-    : baseSidebarItems;
+  // Admin sections are rendered separately in the sidebar
 
   const pinnedItems = [
     { name: 'Assistant', icon: Zap },
@@ -86,9 +83,9 @@ const App = () => {
 
         {/* Main Navigation */}
         <div className="flex-1 p-4">
-          <nav className="space-y-2">
-            {sidebarItems.map((item, index) => (
-              item.path ? (
+          <nav className="space-y-4">
+            <div className="space-y-2">
+              {baseSidebarItems.map((item, index) => (
                 <Link
                   key={index}
                   to={item.path}
@@ -101,17 +98,30 @@ const App = () => {
                   <item.icon className="h-5 w-5" />
                   <span>{item.name}</span>
                 </Link>
-                ) : (
-                <a
-                  key={index}
-                  href="#"
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-100"
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </a>
-                )
-            ))}
+              ))}
+            </div>
+
+            {user?.role === 'admin' && (
+              <div className="pt-4">
+                <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
+                <div className="space-y-2">
+                  {adminSidebarItems.map((item, index) => (
+                    <Link
+                      key={index}
+                      to={item.path}
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                        location.pathname === item.path
+                          ? 'bg-purple-50 text-purple-700 font-medium' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </nav>
 
         </div>
