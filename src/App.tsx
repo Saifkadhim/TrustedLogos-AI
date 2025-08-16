@@ -12,6 +12,9 @@ import AILogoGeneratorPage from './pages/AILogoGeneratorPage';
 import AddLogoPage from './pages/AddLogoPage';
 import ColorPaletteAdminPage from './pages/ColorPaletteAdminPage';
 import FontsPage from './pages/FontsPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import FontsAdminPage from './pages/FontsAdminPage';
+import AdminRoute from './components/AdminRoute';
 
 const App = () => {
   const location = useLocation();
@@ -38,8 +41,10 @@ const App = () => {
 
   // Admin-only sidebar items
   const adminSidebarItems = [
+    { name: 'Admin Dashboard', icon: Settings, path: '/admin' },
     { name: 'Add Logo', icon: Plus, path: '/admin/add-logo' },
     { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
+    { name: 'Manage Fonts', icon: Folder, path: '/admin/fonts' },
   ];
 
   // Combine sidebar items based on user role
@@ -186,8 +191,10 @@ const App = () => {
               setActiveIndustry={setActiveIndustry}
             />} />
             <Route path="/ai-logo-generator" element={<AILogoGeneratorPage />} />
-            <Route path="/admin/add-logo" element={<AddLogoPage />} />
-            <Route path="/admin/color-palettes" element={<ColorPaletteAdminPage />} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+            <Route path="/admin/add-logo" element={<AdminRoute><AddLogoPage /></AdminRoute>} />
+            <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />
+            <Route path="/admin/fonts" element={<AdminRoute><FontsAdminPage /></AdminRoute>} />
             <Route path="/brands-logos" element={<AllImagesPage />} />
             <Route path="/ai-name-generator" element={<AINameGeneratorPage />} />
             <Route path="/color-palette" element={<ColorPalettePage />} />
