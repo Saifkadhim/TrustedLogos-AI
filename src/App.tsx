@@ -237,8 +237,8 @@ const HomePage = ({
     id: l.id,
     title: l.name,
     date: new Date(l.createdAt).toLocaleDateString(),
-    imageDataUrl: l.imageDataUrl,
-    color: l.color,
+    imageUrl: l.imageUrl,
+    color: l.primaryColor,
     letter: l.name?.charAt(0)?.toUpperCase() || 'L'
   }));
 
@@ -551,16 +551,24 @@ const HomePage = ({
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
             >
               <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                {creation.imageDataUrl ? (
-                  <img src={creation.imageDataUrl} alt={creation.title} className="w-full h-full object-contain" />
-                ) : (
-                  <div
-                    className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200"
-                    style={{ backgroundColor: creation.color }}
-                  >
-                    {creation.image || creation.letter}
-                  </div>
-                )}
+                {creation.imageUrl ? (
+                  <img 
+                    src={creation.imageUrl} 
+                    alt={creation.title} 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      // Fallback to letter if image fails to load
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div
+                  className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200 ${creation.imageUrl ? 'hidden' : ''}`}
+                  style={{ backgroundColor: creation.color }}
+                >
+                  {creation.image || creation.letter}
+                </div>
               </div>
               <div className="p-3">
                 <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">

@@ -116,39 +116,28 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Convert database row to Logo interface
-  const mapDatabaseRowToLogo = (row: any): Logo => {
-    const imageUrl = getImageUrl(row.image_path);
-    
-    // Debug logging
-    console.log('Mapping logo:', {
-      name: row.name,
-      imagePath: row.image_path,
-      imageUrl: imageUrl
-    });
-    
-    return {
-      id: row.id,
-      name: row.name,
-      type: row.type,
-      industry: row.industry,
-      primaryColor: row.primary_color,
-      secondaryColor: row.secondary_color,
-      shape: row.shape,
-      information: row.information,
-      designerUrl: row.designer_url,
-      imagePath: row.image_path,
-      imageUrl: imageUrl,
-      imageName: row.image_name,
-      fileSize: row.file_size,
-      fileType: row.file_type,
-      isPublic: row.is_public,
-      downloads: row.downloads,
-      likes: row.likes,
-      createdBy: row.created_by,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
-  };
+  const mapDatabaseRowToLogo = (row: any): Logo => ({
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    industry: row.industry,
+    primaryColor: row.primary_color,
+    secondaryColor: row.secondary_color,
+    shape: row.shape,
+    information: row.information,
+    designerUrl: row.designer_url,
+    imagePath: row.image_path,
+    imageUrl: getImageUrl(row.image_path),
+    imageName: row.image_name,
+    fileSize: row.file_size,
+    fileType: row.file_type,
+    isPublic: row.is_public,
+    downloads: row.downloads,
+    likes: row.likes,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  });
 
   // Fetch all public logos
   const fetchLogos = async (): Promise<Logo[]> => {
