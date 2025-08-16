@@ -12,6 +12,10 @@ import AILogoGeneratorPage from './pages/AILogoGeneratorPage';
 import AddLogoPage from './pages/AddLogoPage';
 import ColorPaletteAdminPage from './pages/ColorPaletteAdminPage';
 import FontsPage from './pages/FontsPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import FontsAdminPage from './pages/FontsAdminPage';
+import AdminRoute from './components/AdminRoute';
+import { useLogos } from './hooks/useLogos';
 
 const App = () => {
   const location = useLocation();
@@ -38,14 +42,13 @@ const App = () => {
 
   // Admin-only sidebar items
   const adminSidebarItems = [
+    { name: 'Admin Dashboard', icon: Settings, path: '/admin' },
     { name: 'Add Logo', icon: Plus, path: '/admin/add-logo' },
     { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
+    { name: 'Manage Fonts', icon: Folder, path: '/admin/fonts' },
   ];
 
-  // Combine sidebar items based on user role
-  const sidebarItems = user?.role === 'admin' 
-    ? [...baseSidebarItems.slice(0, 2), ...adminSidebarItems, ...baseSidebarItems.slice(2)]
-    : baseSidebarItems;
+  // Admin sections are rendered separately in the sidebar
 
   const pinnedItems = [
     { name: 'Assistant', icon: Zap },
@@ -81,9 +84,9 @@ const App = () => {
 
         {/* Main Navigation */}
         <div className="flex-1 p-4">
-          <nav className="space-y-2">
-            {sidebarItems.map((item, index) => (
-              item.path ? (
+          <nav className="space-y-4">
+            <div className="space-y-2">
+              {baseSidebarItems.map((item, index) => (
                 <Link
                   key={index}
                   to={item.path}
@@ -96,17 +99,30 @@ const App = () => {
                   <item.icon className="h-5 w-5" />
                   <span>{item.name}</span>
                 </Link>
-                ) : (
-                <a
-                  key={index}
-                  href="#"
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 text-gray-700 hover:bg-gray-100"
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </a>
-                )
-            ))}
+              ))}
+            </div>
+
+            {user?.role === 'admin' && (
+              <div className="pt-4">
+                <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
+                <div className="space-y-2">
+                  {adminSidebarItems.map((item, index) => (
+                    <Link
+                      key={index}
+                      to={item.path}
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                        location.pathname === item.path
+                          ? 'bg-purple-50 text-purple-700 font-medium' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </nav>
 
         </div>
@@ -154,21 +170,13 @@ const App = () => {
               {user ? (
                 <UserMenu />
               ) : (
-                <>
-                  <button 
-                    onClick={() => openAuthModal('signin')}
-                    className="flex items-center px-3 py-2 text-gray-700 hover:text-gray-900 transition-colors duration-200"
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Sign In
-                  </button>
-                  <button 
-                    onClick={() => openAuthModal('signup')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-                  >
-                    Sign Up
-                  </button>
-                </>
+                <button 
+                  onClick={() => openAuthModal('signin')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
+                </button>
               )}
             </div>
           </div>
@@ -186,8 +194,10 @@ const App = () => {
               setActiveIndustry={setActiveIndustry}
             />} />
             <Route path="/ai-logo-generator" element={<AILogoGeneratorPage />} />
-            <Route path="/admin/add-logo" element={<AddLogoPage />} />
-            <Route path="/admin/color-palettes" element={<ColorPaletteAdminPage />} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+            <Route path="/admin/add-logo" element={<AdminRoute><AddLogoPage /></AdminRoute>} />
+            <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />
+            <Route path="/admin/fonts" element={<AdminRoute><FontsAdminPage /></AdminRoute>} />
             <Route path="/brands-logos" element={<AllImagesPage />} />
             <Route path="/ai-name-generator" element={<AINameGeneratorPage />} />
             <Route path="/color-palette" element={<ColorPalettePage />} />
@@ -227,6 +237,7 @@ const HomePage = ({
   activeIndustry: string;
   setActiveIndustry: (industry: string) => void;
 }) => {
+  const { logos } = useLogos();
   const recentCreations = [
     { 
       id: 1, 
@@ -251,7 +262,7 @@ const HomePage = ({
     },
     { 
       id: 4, 
-      title: 'McDonald\'s Golden Arches', 
+      title: "McDonald's Golden Arches", 
       date: 'April 15, 2025',
       image: 'M',
       color: '#ffc72c'
@@ -264,6 +275,17 @@ const HomePage = ({
       color: '#cc0000'
     },
   ];
+
+  const uploaded = logos.map(l => ({
+    id: l.id,
+    title: l.name,
+    date: new Date(l.createdAt).toLocaleDateString(),
+    imageDataUrl: l.imageDataUrl,
+    color: l.color,
+    letter: l.name?.charAt(0)?.toUpperCase() || 'L'
+  }));
+
+  const combined = [...uploaded, ...recentCreations].slice(0, 10);
 
   const quickActions = [
     {
@@ -566,18 +588,22 @@ const HomePage = ({
 
         {/* Recent Creations Grid */}
         <div className="grid grid-cols-5 gap-4 mb-8">
-          {recentCreations.map((creation) => (
+          {combined.map((creation) => (
             <div
               key={creation.id}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
             >
               <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                <div
-                  className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200"
-                  style={{ backgroundColor: creation.color }}
-                >
-                  {creation.image}
-                </div>
+                {creation.imageDataUrl ? (
+                  <img src={creation.imageDataUrl} alt={creation.title} className="w-full h-full object-contain" />
+                ) : (
+                  <div
+                    className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200"
+                    style={{ backgroundColor: creation.color }}
+                  >
+                    {creation.image || creation.letter}
+                  </div>
+                )}
               </div>
               <div className="p-3">
                 <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">
