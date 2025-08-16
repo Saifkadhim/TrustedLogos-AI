@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, LogIn, Database } from 'lucide-react';
+import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, LogIn, Database, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles } from 'lucide-react';
 import DatabaseStatus from './components/DatabaseStatus';
 import AllImagesPage from './AllImagesPage';
 import AINameGeneratorPage from './AINameGeneratorPage';
