@@ -1,8 +1,9 @@
 import React from 'react';
-import { Plus, Palette, Type, LogOut } from 'lucide-react';
+import { Plus, Palette, Type, LogOut, Bug } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAdminAuth } from '../hooks/useAdminAuth';
+import { runAllDebugTests } from '../utils/debugSupabase';
 
 const AdminDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -39,6 +40,14 @@ const AdminDashboardPage: React.FC = () => {
             <p className="text-sm font-medium text-gray-900">{currentUsername}</p>
             <p className="text-xs text-gray-500">Administrator</p>
           </div>
+          
+          <button
+            onClick={() => runAllDebugTests()}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-orange-600 hover:text-orange-800 border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors"
+          >
+            <Bug className="w-4 h-4" />
+            Debug DB
+          </button>
           
           <button
             onClick={handleSignOut}
