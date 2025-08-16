@@ -14,6 +14,7 @@ import AdminRoute from './components/AdminRoute';
 import { useLogos } from './hooks/useLogos';
 import AdminSignInPage from './pages/AdminSignInPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
+import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
 
 const App = () => {
   const location = useLocation();
@@ -196,10 +197,7 @@ const HomePage = ({
 }) => {
   const { logos, loading } = useLogos();
   
-  // Import the distribution utility
-  const { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } = React.useMemo(() => {
-    return require('./utils/logoDistribution');
-  }, []);
+
   
   // Distribute logos across sections
   const distributedData = React.useMemo(() => {
