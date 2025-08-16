@@ -15,6 +15,7 @@ import FontsPage from './pages/FontsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import FontsAdminPage from './pages/FontsAdminPage';
 import AdminRoute from './components/AdminRoute';
+import { useLogos } from './hooks/useLogos';
 
 const App = () => {
   const location = useLocation();
@@ -236,6 +237,7 @@ const HomePage = ({
   activeIndustry: string;
   setActiveIndustry: (industry: string) => void;
 }) => {
+  const { logos } = useLogos();
   const recentCreations = [
     { 
       id: 1, 
@@ -260,7 +262,7 @@ const HomePage = ({
     },
     { 
       id: 4, 
-      title: 'McDonald\'s Golden Arches', 
+      title: "McDonald's Golden Arches", 
       date: 'April 15, 2025',
       image: 'M',
       color: '#ffc72c'
@@ -273,6 +275,17 @@ const HomePage = ({
       color: '#cc0000'
     },
   ];
+
+  const uploaded = logos.map(l => ({
+    id: l.id,
+    title: l.name,
+    date: new Date(l.createdAt).toLocaleDateString(),
+    imageDataUrl: l.imageDataUrl,
+    color: l.color,
+    letter: l.name?.charAt(0)?.toUpperCase() || 'L'
+  }));
+
+  const combined = [...uploaded, ...recentCreations].slice(0, 10);
 
   const quickActions = [
     {
@@ -575,18 +588,22 @@ const HomePage = ({
 
         {/* Recent Creations Grid */}
         <div className="grid grid-cols-5 gap-4 mb-8">
-          {recentCreations.map((creation) => (
+          {combined.map((creation) => (
             <div
               key={creation.id}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
             >
               <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                <div
-                  className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200"
-                  style={{ backgroundColor: creation.color }}
-                >
-                  {creation.image}
-                </div>
+                {creation.imageDataUrl ? (
+                  <img src={creation.imageDataUrl} alt={creation.title} className="w-full h-full object-contain" />
+                ) : (
+                  <div
+                    className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200"
+                    style={{ backgroundColor: creation.color }}
+                  >
+                    {creation.image || creation.letter}
+                  </div>
+                )}
               </div>
               <div className="p-3">
                 <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">

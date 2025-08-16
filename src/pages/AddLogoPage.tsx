@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shapes, Edit3, Trash2, Search, Filter, Grid, List, Eye, Download, Star, Heart } from 'lucide-react';
+import { useLogos } from '../hooks/useLogos';
 
 const AddLogoPage = () => {
+  const { addLogo } = useLogos();
   // Sample logo data - in a real app, this would come from a database
   const [logos, setLogos] = useState([
     {
@@ -244,8 +246,19 @@ const AddLogoPage = () => {
     setSubmitMessage(null);
 
     try {
+      // Convert image file to data URL for preview/storage in local store
+      let imageDataUrl: string | undefined = undefined;
+      if (logoImageFile) {
+        imageDataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error('Failed to read image'));
+          reader.readAsDataURL(logoImageFile!);
+        });
+      }
+      
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const logoData = {
         name: logoName,
@@ -273,6 +286,14 @@ const AddLogoPage = () => {
             : logo
         ));
         setSubmitMessage({ type: 'success', text: 'Logo updated successfully!' });
+
+        // Update shared store if this was in it previously
+        addLogo({
+          id: String(editingLogo.id),
+          name: logoName,
+          color: logoColor,
+          imageDataUrl
+        });
       } else {
         // Add new logo
         const newLogo = {
@@ -283,6 +304,14 @@ const AddLogoPage = () => {
         };
         setLogos(prev => [newLogo, ...prev]);
         setSubmitMessage({ type: 'success', text: 'Logo added successfully!' });
+
+        // Save a simplified version to shared store for site-wide display
+        addLogo({
+          id: String(newLogo.id),
+          name: logoName,
+          color: logoColor,
+          imageDataUrl
+        });
       }
       
       // Reset form
