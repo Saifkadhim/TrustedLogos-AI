@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "installCommand": "npm install",
+  "env": {
+    "VITE_SUPABASE_URL": "@vite_supabase_url",
+    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key", 
+    "VITE_OWNER_CODE": "@vite_owner_code",
+    "VITE_ADMIN_USERNAME": "@vite_admin_username",
+    "VITE_ADMIN_PASSWORD": "@vite_admin_password"
+  }
+}

@@ -1,183 +1,178 @@
-# TrustedLogos.com
+# TrustedLogos - Dynamic Logo Showcase Platform
 
-A modern logo discovery and AI-powered logo generation platform built with React, TypeScript, and Supabase.
+A modern, responsive logo showcase platform built with React, TypeScript, and Supabase.
 
-🌐 **Live Demo**: [Visit TrustedLogos.com](https://trustedlogos.netlify.app)
-📂 **GitHub Repository**: [https://github.com/trustedlogos/trustedlogos-website](https://github.com/trustedlogos/trustedlogos-website)
+## 🚀 Features
 
-## Features
+- **Dynamic Logo Management** - Add, edit, and organize logos through admin panel
+- **Bulk Upload** - Upload multiple logos at once with drag-and-drop
+- **Smart Categorization** - Auto-organize by logo type and industry
+- **Search & Filter** - Find logos by name, type, industry, color, and shape
+- **Responsive Design** - Works perfectly on desktop and mobile
+- **Admin Dashboard** - Complete logo management system
+- **Image Storage** - Secure cloud storage with Supabase
 
-- 🎨 **AI Logo Generator** - Create professional logos instantly with artificial intelligence
-- 🔍 **Logo Discovery** - Browse thousands of professional logos across all industries
-- 🎯 **AI Name Generator** - Generate unique business names powered by AI
-- 🎨 **Color Palettes** - Explore curated color schemes for design inspiration
-- 📝 **Font Library** - Discover and download beautiful fonts for your projects
-- 👤 **User Authentication** - Secure sign-up and sign-in with Supabase Auth
-- 🔐 **Admin Panel** - Content management system for administrators
+## 🛠️ Tech Stack
 
-## Tech Stack
-
-- **Frontend**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Build Tool**: Vite
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: Supabase Storage
+- **Authentication**: Custom admin authentication
 - **Icons**: Lucide React
-- **Backend**: Supabase (Database, Auth, Storage)
-- **Routing**: React Router DOM
-- **Deployment**: Netlify
 
-## Getting Started
+## 🚦 Quick Start
 
 ### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
 
-- Node.js 18+ and npm
-- Supabase account and project
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/trustedlogos/trustedlogos-website.git
-cd trustedlogos-website
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-Update `.env` with your Supabase credentials:
+### Environment Variables
+Create a `.env` file with:
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_OWNER_CODE=your_owner_verification_code
+VITE_ADMIN_USERNAME=your_admin_username
+VITE_ADMIN_PASSWORD=your_admin_password
 ```
 
-4. Set up the database:
-- Go to your Supabase dashboard
-- Run the SQL migration from `supabase/migrations/create_profiles_table.sql`
-
-5. Start the development server:
+### Installation
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-## Project Structure
+## 🌐 Deployment
 
-```
-src/
-├── components/          # Reusable UI components
-├── hooks/              # Custom React hooks
-├── lib/                # Utility libraries and configurations
-├── pages/              # Page components
-├── AllImagesPage.tsx   # Logo discovery page
-├── App.tsx             # Main application component
-└── main.tsx           # Application entry point
-
-supabase/
-└── migrations/         # Database migration files
-```
-
-## Features Overview
-
-### AI Logo Generator
-- Industry-specific design intelligence
-- Multiple logo types (Wordmarks, Lettermarks, Pictorial, etc.)
-- Color scheme selection
-- Style customization
-- Instant generation and download
-
-### Logo Discovery
-- Browse by industry categories
-- Filter by logo types, colors, and shapes
-- Search functionality
-- Favorites system
-- High-resolution previews
-
-### Authentication System
-- Email/password authentication
-- User profiles with company information
-- Admin role management
-- Row Level Security (RLS) policies
-
-### Admin Features
-- Logo management system
-- Color palette administration
-- User management
-- Content moderation tools
-
-## Deployment
-
-### Netlify Deployment
-
-This application is deployed on Netlify and configured for automatic deployments:
-
-1. Connect your GitHub repository to Netlify
-2. Set build command: `npm run build`
-3. Set publish directory: `dist`
-4. Add environment variables in Netlify dashboard:
+### Vercel (Recommended)
+1. **Fork/Clone** this repository to your GitHub
+2. **Connect** to [Vercel](https://vercel.com)
+3. **Import** your GitHub repository
+4. **Set Environment Variables** in Vercel dashboard:
    - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-5. Deploy!
+   - `VITE_SUPABASE_ANON_KEY` 
+   - `VITE_OWNER_CODE`
+   - `VITE_ADMIN_USERNAME`
+   - `VITE_ADMIN_PASSWORD`
+5. **Deploy** - Vercel will auto-build and deploy
+
+### Netlify
+1. **Build** the project: `npm run build`
+2. **Upload** the `dist` folder to Netlify
+3. **Set Environment Variables** in Netlify dashboard
 
 ### Manual Deployment
-
-To deploy manually:
-
 ```bash
-# Build the project
+# Build for production
 npm run build
 
-# Deploy to Netlify (requires Netlify CLI)
-npx netlify deploy --prod --dir=dist
+# Deploy the dist folder to any static hosting service
 ```
 
-## Environment Variables
+## 📊 Database Setup
 
-Required environment variables:
+### Supabase Tables
+Run these SQL commands in your Supabase SQL editor:
 
-- `VITE_SUPABASE_URL` - Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+```sql
+-- Create logos table
+CREATE TABLE logos (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL,
+  type text NOT NULL,
+  industry text NOT NULL,
+  primary_color text NOT NULL DEFAULT '#000000',
+  secondary_color text DEFAULT '#ffffff',
+  shape text NOT NULL,
+  information text,
+  designer_url text,
+  image_path text,
+  image_name text,
+  file_size integer,
+  file_type text,
+  is_public boolean DEFAULT true,
+  downloads integer DEFAULT 0,
+  likes integer DEFAULT 0,
+  created_by uuid,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
-## Database Setup
+-- Create storage bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('logos', 'logos', true)
+ON CONFLICT (id) DO NOTHING;
 
-Before deploying, make sure to:
+-- Enable RLS (optional)
+ALTER TABLE logos ENABLE ROW LEVEL SECURITY;
 
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Run the migration file in `supabase/migrations/` in your Supabase SQL editor
-3. Configure Row Level Security policies
-4. Add your Supabase credentials to environment variables
+-- Create policy for public read access
+CREATE POLICY "Public read access" ON logos
+FOR SELECT USING (is_public = true);
 
-## Contributing
+-- Create policy for authenticated write access  
+CREATE POLICY "Authenticated write access" ON logos
+FOR ALL USING (auth.role() = 'authenticated');
+```
 
-We welcome contributions from the community! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+## 🔧 Admin Access
+
+1. **Navigate** to `/console-setup`
+2. **Sign in** with your admin credentials
+3. **Access admin features**:
+   - Add single logos
+   - Bulk upload multiple logos
+   - Manage logo database
+   - View statistics
+
+## 📱 Key Pages
+
+- **Homepage** (`/`) - Logo showcase with categories
+- **All Logos** (`/brands-logos`) - Searchable logo gallery  
+- **Admin Login** (`/console-setup`) - Admin authentication
+- **Admin Dashboard** (`/admin`) - Logo management
+- **Bulk Upload** (`/admin/bulk-upload`) - Multiple logo upload
+
+## 🎨 Logo Categories
+
+### Logo Types
+- Wordmarks, Lettermarks, Pictorial Marks
+- Abstract Marks, Combination Marks
+- Emblem Logos, Mascot Logos
+
+### Industries  
+- Technology, Fashion, Food & Drinks
+- Restaurant, Automotive, E-commerce
+- Electronics, Industrial, Internet
+- Media/TV, Sport, Other
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/trustedlogos-website.git`
-3. Create a feature branch: `git checkout -b feature/amazing-feature`
-4. Make your changes and commit: `git commit -m 'Add amazing feature'`
-5. Push to the branch: `git push origin feature/amazing-feature`
-6. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-### Development Guidelines
+## 📄 License
 
-- Follow the existing code style and conventions
-- Add tests for new features when applicable
-- Update documentation as needed
-- Ensure all tests pass before submitting PR
+This project is licensed under the MIT License.
 
-## License
+## 🆘 Support
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support:
-- 📧 Email: support@trustedlogos.com
-- 💬 GitHub Discussions: [Community Forum](https://github.com/trustedlogos/trustedlogos-website/discussions)
-- 🐛 Bug Reports: [GitHub Issues](https://github.com/trustedlogos/trustedlogos-website/issues)
-- 💡 Feature Requests: [GitHub Issues](https://github.com/trustedlogos/trustedlogos-website/issues)
+For support or questions:
+- Check the [Issues](../../issues) page
+- Review the [Documentation](../../wiki)
+- Contact the development team
 
 ---
+
+Built with ❤️ for logo enthusiasts worldwide
