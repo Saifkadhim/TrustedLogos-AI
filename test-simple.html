@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Simple Test Page</h1>
+    <div id="test-results"></div>
+    
+    <script>
+        console.log('Simple test loaded');
+        
+        // Test if we can access environment variables through Vite
+        const testDiv = document.getElementById('test-results');
+        
+        // Test basic module import
+        import('/src/lib/supabase.ts')
+            .then(module => {
+                testDiv.innerHTML += '<p>✅ Supabase module loaded successfully</p>';
+                console.log('Supabase module:', module);
+            })
+            .catch(error => {
+                testDiv.innerHTML += '<p>❌ Failed to load Supabase module: ' + error.message + '</p>';
+                console.error('Supabase module error:', error);
+                
+                // Try to load industry categories instead
+                return import('/src/utils/industryCategories.ts');
+            })
+            .then(module => {
+                if (module) {
+                    testDiv.innerHTML += '<p>✅ Industry categories module loaded successfully</p>';
+                    console.log('Industry categories:', module);
+                }
+            })
+            .catch(error => {
+                testDiv.innerHTML += '<p>❌ Failed to load industry categories: ' + error.message + '</p>';
+                console.error('Industry categories error:', error);
+            });
+    </script>
+</body>
+</html>

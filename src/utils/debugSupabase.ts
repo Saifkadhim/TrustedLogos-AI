@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase-safe';
 
 /**
  * Debug utility to check Supabase connection and permissions
