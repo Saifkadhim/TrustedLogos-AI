@@ -6,6 +6,7 @@ export interface Logo {
   name: string;
   type: string;
   industry: string;
+  subcategory?: string;
   primaryColor: string;
   secondaryColor?: string;
   shape: string;
@@ -28,6 +29,7 @@ export interface CreateLogoData {
   name: string;
   type: string;
   industry: string;
+  subcategory?: string;
   primaryColor: string;
   secondaryColor?: string;
   shape: string;
@@ -133,6 +135,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: row.name,
       type: row.type,
       industry: row.industry,
+      subcategory: row.subcategory,
       primaryColor: row.primary_color,
       secondaryColor: row.secondary_color,
       shape: row.shape,
@@ -204,6 +207,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: logoData.name,
           type: logoData.type,
           industry: logoData.industry,
+          subcategory: logoData.subcategory,
           primary_color: logoData.primaryColor,
           secondary_color: logoData.secondaryColor,
           shape: logoData.shape,
@@ -265,6 +269,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (logoData.name !== undefined) updateData.name = logoData.name;
       if (logoData.type !== undefined) updateData.type = logoData.type;
       if (logoData.industry !== undefined) updateData.industry = logoData.industry;
+      if (logoData.subcategory !== undefined) updateData.subcategory = logoData.subcategory;
       if (logoData.primaryColor !== undefined) updateData.primary_color = logoData.primaryColor;
       if (logoData.secondaryColor !== undefined) updateData.secondary_color = logoData.secondaryColor;
       if (logoData.shape !== undefined) updateData.shape = logoData.shape;

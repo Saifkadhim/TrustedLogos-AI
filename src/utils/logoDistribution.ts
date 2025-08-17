@@ -1,4 +1,5 @@
 import { Logo } from '../hooks/useLogos';
+import { INDUSTRY_CATEGORIES } from './industryCategories';
 
 /**
  * Distributes logos across different homepage sections based on their properties
@@ -63,46 +64,14 @@ const LOGO_TYPE_INFO = {
 };
 
 /**
- * Industry descriptions
+ * Industry descriptions - now using the new industry categories structure
  */
-const INDUSTRY_INFO = {
-  'Automotive': {
-    description: 'Automotive logos emphasize speed, reliability, and innovation. They often feature bold typography, dynamic shapes, and colors that convey power and trust.'
-  },
-  'Fashion': {
-    description: 'Fashion logos focus on elegance, style, and brand prestige. They typically use sophisticated typography and minimalist designs to convey luxury and exclusivity.'
-  },
-  'Food & Drinks': {
-    description: 'Food and beverage logos use appetizing colors, friendly typography, and imagery that evokes taste, freshness, and satisfaction.'
-  },
-  'Restaurant': {
-    description: 'Restaurant logos combine appetite appeal with brand personality, using warm colors and inviting designs that make customers hungry and welcome.'
-  },
-  'Technology': {
-    description: 'Technology logos emphasize innovation, reliability, and forward-thinking. They often use clean, modern designs with blue and gray color schemes.'
-  },
-  'E-commerce': {
-    description: 'E-commerce logos focus on trust, convenience, and accessibility. They use friendly, approachable designs that convey reliability and ease of use.'
-  },
-  'Electronics': {
-    description: 'Electronics logos emphasize precision, innovation, and cutting-edge technology. They often feature sleek, minimalist designs with metallic or electric colors.'
-  },
-  'Industrial': {
-    description: 'Industrial logos convey strength, reliability, and engineering excellence. They typically use bold, sturdy designs with colors that suggest durability.'
-  },
-  'Internet': {
-    description: 'Internet and web service logos emphasize connectivity, innovation, and global reach. They often use modern, digital-inspired designs.'
-  },
-  'Media/TV': {
-    description: 'Media and television logos focus on entertainment, creativity, and visual appeal. They use dynamic designs that capture attention and convey excitement.'
-  },
-  'Sport': {
-    description: 'Sports logos emphasize energy, competition, and team spirit. They use bold, dynamic designs with colors that convey strength and movement.'
-  },
-  'Other': {
-    description: 'Miscellaneous logos from various industries that showcase diverse design approaches and creative solutions across different sectors.'
-  }
-};
+const INDUSTRY_INFO = Object.fromEntries(
+  INDUSTRY_CATEGORIES.map(category => [
+    category.name,
+    { description: category.description }
+  ])
+);
 
 /**
  * Distributes logos intelligently across homepage sections

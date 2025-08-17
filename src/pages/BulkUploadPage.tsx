@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, X, Check, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { useLogos } from '../hooks/useLogos';
+import { getIndustryCategoryList } from '../utils/industryCategories';
 
 interface LogoFile {
   file: File;
@@ -9,6 +10,7 @@ interface LogoFile {
   name: string;
   type: string;
   industry: string;
+  subcategory?: string;
   primaryColor: string;
   shape: string;
   information: string;
@@ -18,7 +20,7 @@ interface LogoFile {
 }
 
 const LOGO_TYPES = ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
-const INDUSTRIES = ['Technology', 'Fashion', 'Food & Drinks', 'Restaurant', 'Automotive', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
+const INDUSTRIES = getIndustryCategoryList();
 const SHAPES = ['rectangle', 'circle', 'triangle'];
 const COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
 
@@ -125,6 +127,7 @@ const BulkUploadPage: React.FC = () => {
           name: logoFile.name,
           type: logoFile.type,
           industry: logoFile.industry,
+          subcategory: logoFile.subcategory,
           primaryColor: logoFile.primaryColor,
           secondaryColor: '#ffffff',
           shape: logoFile.shape,
