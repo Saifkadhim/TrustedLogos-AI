@@ -112,6 +112,7 @@ const BulkUploadPage: React.FC = () => {
   // Upload all logos
   const uploadAllLogos = async () => {
     setIsUploading(true);
+    let successCount = 0;
     
     for (const logoFile of logoFiles) {
       if (logoFile.status !== 'pending') continue;
@@ -119,7 +120,8 @@ const BulkUploadPage: React.FC = () => {
       updateLogoFile(logoFile.id, { status: 'uploading' });
       
       try {
-        await addLogo({
+        console.log(`🚀 Uploading: ${logoFile.name}...`);
+        const result = await addLogo({
           name: logoFile.name,
           type: logoFile.type,
           industry: logoFile.industry,
@@ -128,19 +130,31 @@ const BulkUploadPage: React.FC = () => {
           shape: logoFile.shape,
           information: logoFile.information || `Bulk uploaded logo: ${logoFile.name}`,
           designerUrl: logoFile.designerUrl,
-          image: logoFile.file
+          imageFile: logoFile.file
         });
         
+        console.log(`✅ Successfully uploaded: ${logoFile.name}`, result);
         updateLogoFile(logoFile.id, { status: 'success' });
+        successCount++;
       } catch (error) {
+        console.error(`❌ Failed to upload: ${logoFile.name}`, error);
         updateLogoFile(logoFile.id, { 
           status: 'error', 
           error: error instanceof Error ? error.message : 'Upload failed' 
         });
       }
+      
+      // Small delay to avoid overwhelming the server
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
     
     setIsUploading(false);
+    
+    if (successCount > 0) {
+      console.log(`🎉 Bulk upload completed! ${successCount} logos uploaded successfully.`);
+      // Optionally clear successful uploads from the list
+      setLogoFiles(prev => prev.filter(logo => logo.status !== 'success'));
+    }
   };
 
   // Auto-fill all logos with same data
