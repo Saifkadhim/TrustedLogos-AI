@@ -16,6 +16,7 @@ import AdminSignInPage from './pages/AdminSignInPage';
 import BulkUploadPage from './pages/BulkUploadPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
+import LogoModal from './components/LogoModal';
 
 const App = () => {
   const location = useLocation();
@@ -198,7 +199,40 @@ const HomePage = ({
   activeIndustry: string;
   setActiveIndustry: (industry: string) => void;
 }) => {
-  const { logos, loading, error } = useLogos();
+  const { logos, loading, error, incrementDownloads, incrementLikes } = useLogos();
+
+  // Modal state for homepage
+  const [selectedLogo, setSelectedLogo] = React.useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  // Modal handlers
+  const openModal = (logo: any) => {
+    setSelectedLogo(logo);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedLogo(null);
+    setIsModalOpen(false);
+  };
+
+  const handleDownload = async (logoId: string) => {
+    try {
+      await incrementDownloads(logoId);
+      console.log('Download count incremented for logo:', logoId);
+    } catch (error) {
+      console.error('Failed to increment download count:', error);
+    }
+  };
+
+  const handleLike = async (logoId: string) => {
+    try {
+      await incrementLikes(logoId);
+      console.log('Like count incremented for logo:', logoId);
+    } catch (error) {
+      console.error('Failed to increment like count:', error);
+    }
+  };
   
 
   
@@ -572,6 +606,7 @@ const HomePage = ({
           {displayLogos.length > 0 ? displayLogos.map((creation) => (
             <div
               key={creation.id}
+              onClick={() => openModal(creation)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
             >
               <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
@@ -897,6 +932,15 @@ const HomePage = ({
           </div>
         </div>
       </footer>
+
+      {/* Logo Modal */}
+      <LogoModal
+        logo={selectedLogo}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onDownload={handleDownload}
+        onLike={handleLike}
+      />
     </>
   );
 };
