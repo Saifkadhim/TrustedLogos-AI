@@ -74,7 +74,7 @@ const LogoModal: React.FC<LogoModalProps> = ({
         {/* Content */}
         <div className="flex flex-col md:flex-row">
           {/* Left Side - Logo Display */}
-          <div className="md:w-1/2 p-6 bg-gray-50 flex items-center justify-center">
+          <div className="md:w-1/2 p-6 bg-gray-50 flex items-center justify-center relative">
             <div className="text-center">
               {logo.imageUrl ? (
                 <img
@@ -90,25 +90,16 @@ const LogoModal: React.FC<LogoModalProps> = ({
                   {logo.name.charAt(0).toUpperCase()}
                 </div>
               )}
-              
-              {/* Action Buttons */}
-              <div className="flex items-center justify-center space-x-4 mt-6">
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>Download</span>
-                </button>
-                <button
-                  onClick={handleLike}
-                  className="flex items-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  <Heart className="h-4 w-4" />
-                  <span>Like</span>
-                </button>
-              </div>
             </div>
+            
+            {/* Heart Icon in Bottom Left Corner */}
+            <button
+              onClick={handleLike}
+              className="absolute bottom-4 left-4 w-12 h-12 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg hover:scale-110 transform duration-200"
+              title="Like this logo"
+            >
+              <Heart className="h-6 w-6" />
+            </button>
           </div>
 
           {/* Right Side - Logo Information */}
