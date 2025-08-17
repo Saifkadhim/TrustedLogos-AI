@@ -568,7 +568,7 @@ const HomePage = ({
         </div>
 
         {/* TOP Logos Grid */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-7 gap-4 mb-8">
           {displayLogos.length > 0 ? displayLogos.map((creation) => (
             <div
               key={creation.id}
