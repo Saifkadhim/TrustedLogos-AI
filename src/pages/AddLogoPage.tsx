@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shapes, Edit3, Trash2, Search, Filter, Grid, List, Eye, Download, Star, Heart, Loader } from 'lucide-react';
-import { useLogos, type Logo, type CreateLogoData, type UpdateLogoData } from '../hooks/useLogos';
+import { useLogos, type Logo, type CreateLogoData, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList } from '../utils/industryCategories';
 
 const AddLogoPage = () => {

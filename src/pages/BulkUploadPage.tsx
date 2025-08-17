@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, X, Check, AlertCircle, Image as ImageIcon } from 'lucide-react';
-import { useLogos } from '../hooks/useLogos';
+import { useLogos } from '../hooks/useLogos-safe';
 import { getIndustryCategoryList } from '../utils/industryCategories';
 
 interface LogoFile {

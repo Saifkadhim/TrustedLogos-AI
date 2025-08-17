@@ -1,4 +1,4 @@
-import { Logo } from '../hooks/useLogos';
+import { Logo } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES } from './industryCategories';
 
 /**
