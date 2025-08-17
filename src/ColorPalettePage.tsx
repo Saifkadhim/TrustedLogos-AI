@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Palette, Copy, RefreshCw, Download, Heart, Shuffle, Lock, Unlock, Eye, EyeOff, Upload, Image as ImageIcon, X, Search } from 'lucide-react';
+import { useColorPalettes } from './hooks/useColorPalettes';
 
 interface Color {
   hex: string;

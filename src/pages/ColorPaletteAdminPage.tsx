@@ -1,48 +1,17 @@
 import React, { useState } from 'react';
 import { Plus, Save, Trash2, Edit3, Eye, Copy, Download, Upload, Palette, Grid, List, Filter, Search, Star, Heart, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { useColorPalettes, type ColorPalette, type CreateColorPaletteData, type UpdateColorPaletteData } from '../hooks/useColorPalettes';
 
 const ColorPaletteAdminPage = () => {
-  const [palettes, setPalettes] = useState([
-    {
-      id: 1,
-      name: 'Ocean Breeze',
-      description: 'Cool blues and teals inspired by ocean waves',
-      colors: ['#0077be', '#00a8cc', '#40e0d0', '#87ceeb', '#b0e0e6'],
-      category: 'Nature',
-      tags: ['blue', 'ocean', 'cool', 'calming'],
-      isPublic: true,
-      downloads: 1247,
-      likes: 89,
-      createdAt: '2025-01-15',
-      updatedAt: '2025-01-15'
-    },
-    {
-      id: 2,
-      name: 'Sunset Vibes',
-      description: 'Warm oranges and pinks of a beautiful sunset',
-      colors: ['#ff6b35', '#f7931e', '#ffb347', '#ff69b4', '#ff1493'],
-      category: 'Nature',
-      tags: ['orange', 'pink', 'warm', 'sunset'],
-      isPublic: true,
-      downloads: 892,
-      likes: 67,
-      createdAt: '2025-01-14',
-      updatedAt: '2025-01-14'
-    },
-    {
-      id: 3,
-      name: 'Corporate Professional',
-      description: 'Professional colors for business applications',
-      colors: ['#2c3e50', '#34495e', '#7f8c8d', '#95a5a6', '#bdc3c7'],
-      category: 'Business',
-      tags: ['professional', 'corporate', 'neutral', 'business'],
-      isPublic: true,
-      downloads: 2156,
-      likes: 134,
-      createdAt: '2025-01-13',
-      updatedAt: '2025-01-13'
-    }
-  ]);
+  const { 
+    palettes, 
+    loading, 
+    error, 
+    addPalette, 
+    updatePalette, 
+    deletePalette,
+    refreshPalettes 
+  } = useColorPalettes();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPalette, setEditingPalette] = useState(null);
@@ -99,20 +68,24 @@ const ColorPaletteAdminPage = () => {
     }
   }, [palettes, filterCategory, searchTerm, sortBy]);
 
-  const handleCreatePalette = () => {
-    const newPalette = {
-      id: Date.now(),
-      ...formData,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      downloads: 0,
-      likes: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
+  const handleCreatePalette = async () => {
+    try {
+      const paletteData: CreateColorPaletteData = {
+        name: formData.name,
+        description: formData.description,
+        colors: formData.colors,
+        category: formData.category,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        isPublic: formData.isPublic
+      };
 
-    setPalettes(prev => [newPalette, ...prev]);
-    setShowCreateModal(false);
-    resetForm();
+      await addPalette(paletteData);
+      setShowCreateModal(false);
+      resetForm();
+    } catch (error) {
+      console.error('Failed to create palette:', error);
+      alert('Failed to create palette: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
 
   const handleEditPalette = (palette) => {
@@ -128,25 +101,38 @@ const ColorPaletteAdminPage = () => {
     setShowCreateModal(true);
   };
 
-  const handleUpdatePalette = () => {
-    setPalettes(prev => prev.map(palette => 
-      palette.id === editingPalette.id 
-        ? {
-            ...palette,
-            ...formData,
-            tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-            updatedAt: new Date().toISOString().split('T')[0]
-          }
-        : palette
-    ));
-    setShowCreateModal(false);
-    setEditingPalette(null);
-    resetForm();
+  const handleUpdatePalette = async () => {
+    try {
+      if (!editingPalette) return;
+      
+      const paletteData: UpdateColorPaletteData = {
+        id: editingPalette.id,
+        name: formData.name,
+        description: formData.description,
+        colors: formData.colors,
+        category: formData.category,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        isPublic: formData.isPublic
+      };
+
+      await updatePalette(paletteData);
+      setShowCreateModal(false);
+      setEditingPalette(null);
+      resetForm();
+    } catch (error) {
+      console.error('Failed to update palette:', error);
+      alert('Failed to update palette: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
 
-  const handleDeletePalette = (id) => {
+  const handleDeletePalette = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this palette?')) {
-      setPalettes(prev => prev.filter(palette => palette.id !== id));
+      try {
+        await deletePalette(id);
+      } catch (error) {
+        console.error('Failed to delete palette:', error);
+        alert('Failed to delete palette: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      }
     }
   };
 
