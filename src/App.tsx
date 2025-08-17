@@ -738,10 +738,11 @@ const HomePage = ({
         </div>
 
         {/* Logo Examples Grid */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           {distributedData.logoTypes[activeLogoType]?.logos?.length > 0 ? distributedData.logoTypes[activeLogoType].logos.map((logo, index) => (
             <div
               key={index}
+              onClick={() => openModal(logo)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200"
             >
               <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden">
@@ -812,10 +813,11 @@ const HomePage = ({
         </div>
 
         {/* Industry Logos Grid */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           {distributedData.industries[activeIndustry]?.logos?.length > 0 ? distributedData.industries[activeIndustry].logos.map((logo, index) => (
             <div
               key={index}
+              onClick={() => openModal(logo)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200"
             >
               <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden">
