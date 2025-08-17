@@ -127,7 +127,7 @@ const BulkUploadPage: React.FC = () => {
           name: logoFile.name,
           type: logoFile.type,
           industry: logoFile.industry,
-          subcategory: logoFile.subcategory,
+          subcategory: logoFile.subcategory || undefined, // Only include if exists
           primaryColor: logoFile.primaryColor,
           secondaryColor: '#ffffff',
           shape: logoFile.shape,

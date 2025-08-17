@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase-safe';
+import { supabase } from '../lib/supabase';
 
 interface OldStoredLogo {
   id: string;

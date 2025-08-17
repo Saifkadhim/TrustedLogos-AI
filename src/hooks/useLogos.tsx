@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { supabase } from '../lib/supabase-safe';
+import { supabase } from '../lib/supabase';
 
 export interface Logo {
   id: string;
@@ -200,25 +200,31 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         imageUrl = uploadResult.url;
       }
 
-      // Insert logo record
+      // Insert logo record (only include subcategory if it exists)
+      const insertData: any = {
+        name: logoData.name,
+        type: logoData.type,
+        industry: logoData.industry,
+        primary_color: logoData.primaryColor,
+        secondary_color: logoData.secondaryColor,
+        shape: logoData.shape,
+        information: logoData.information,
+        designer_url: logoData.designerUrl,
+        image_path: imagePath,
+        image_name: logoData.imageFile?.name,
+        file_size: logoData.imageFile?.size,
+        file_type: logoData.imageFile?.type,
+        is_public: logoData.isPublic ?? true,
+      };
+      
+      // Only add subcategory if it exists (for backward compatibility)
+      if (logoData.subcategory) {
+        insertData.subcategory = logoData.subcategory;
+      }
+
       const { data, error } = await supabase
         .from('logos')
-        .insert({
-          name: logoData.name,
-          type: logoData.type,
-          industry: logoData.industry,
-          subcategory: logoData.subcategory,
-          primary_color: logoData.primaryColor,
-          secondary_color: logoData.secondaryColor,
-          shape: logoData.shape,
-          information: logoData.information,
-          designer_url: logoData.designerUrl,
-          image_path: imagePath,
-          image_name: logoData.imageFile?.name,
-          file_size: logoData.imageFile?.size,
-          file_type: logoData.imageFile?.type,
-          is_public: logoData.isPublic ?? true,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -269,7 +275,14 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (logoData.name !== undefined) updateData.name = logoData.name;
       if (logoData.type !== undefined) updateData.type = logoData.type;
       if (logoData.industry !== undefined) updateData.industry = logoData.industry;
-      if (logoData.subcategory !== undefined) updateData.subcategory = logoData.subcategory;
+      // Only update subcategory if the column exists in the database
+      if (logoData.subcategory !== undefined) {
+        try {
+          updateData.subcategory = logoData.subcategory;
+        } catch (e) {
+          console.warn('Subcategory column may not exist yet, skipping...');
+        }
+      }
       if (logoData.primaryColor !== undefined) updateData.primary_color = logoData.primaryColor;
       if (logoData.secondaryColor !== undefined) updateData.secondary_color = logoData.secondaryColor;
       if (logoData.shape !== undefined) updateData.shape = logoData.shape;
