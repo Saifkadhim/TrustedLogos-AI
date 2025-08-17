@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, LogIn, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles } from 'lucide-react';
+import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, Upload, LogIn, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles } from 'lucide-react';
 import AllImagesPage from './AllImagesPage';
 import AINameGeneratorPage from './AINameGeneratorPage';
 import ColorPalettePage from './ColorPalettePage';
@@ -13,6 +13,7 @@ import FontsAdminPage from './pages/FontsAdminPage';
 import AdminRoute from './components/AdminRoute';
 import { useLogos } from './hooks/useLogos';
 import AdminSignInPage from './pages/AdminSignInPage';
+import BulkUploadPage from './pages/BulkUploadPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
 
@@ -37,6 +38,7 @@ const App = () => {
   const adminSidebarItems = [
     { name: 'Admin Dashboard', icon: Settings, path: '/admin' },
     { name: 'Add Logo', icon: Plus, path: '/admin/add-logo' },
+    { name: 'Bulk Upload', icon: Upload, path: '/admin/bulk-upload' },
     { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
     { name: 'Manage Fonts', icon: Folder, path: '/admin/fonts' },
   ];
@@ -162,6 +164,7 @@ const App = () => {
             <Route path="/console-setup" element={<AdminSignInPage />} />
             <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
             <Route path="/admin/add-logo" element={<AdminRoute><AddLogoPage /></AdminRoute>} />
+            <Route path="/admin/bulk-upload" element={<AdminRoute><BulkUploadPage /></AdminRoute>} />
             <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />
             <Route path="/admin/fonts" element={<AdminRoute><FontsAdminPage /></AdminRoute>} />
             <Route path="/brands-logos" element={<AllImagesPage />} />
