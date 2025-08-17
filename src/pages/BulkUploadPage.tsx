@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, X, Check, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { useLogos } from '../hooks/useLogos-safe';
-import { getIndustryCategoryList } from '../utils/industryCategories';
+import { INDUSTRY_CATEGORIES, getIndustryCategoryList } from '../utils/industryCategories';
 
 interface LogoFile {
   file: File;
@@ -55,6 +55,7 @@ const BulkUploadPage: React.FC = () => {
           name: generateNameFromFile(file.name),
           type: LOGO_TYPES[0],
           industry: INDUSTRIES[0],
+          subcategory: '', // Initialize empty subcategory
           primaryColor: COLORS[0],
           shape: SHAPES[0],
           information: '',
@@ -165,6 +166,21 @@ const BulkUploadPage: React.FC = () => {
     setLogoFiles(prev => prev.map(logo => ({ ...logo, [field]: value })));
   };
 
+  // Get subcategories for a given industry
+  const getSubcategoriesForIndustry = (industryName: string) => {
+    const category = INDUSTRY_CATEGORIES.find(cat => cat.name === industryName);
+    return category ? category.subcategories : [];
+  };
+
+  // Auto-fill industry and reset subcategories
+  const autoFillIndustry = (industryName: string) => {
+    setLogoFiles(prev => prev.map(logo => ({ 
+      ...logo, 
+      industry: industryName,
+      subcategory: '' // Reset subcategory when industry changes
+    })));
+  };
+
   const successCount = logoFiles.filter(logo => logo.status === 'success').length;
   const errorCount = logoFiles.filter(logo => logo.status === 'error').length;
   const pendingCount = logoFiles.filter(logo => logo.status === 'pending').length;
@@ -214,7 +230,7 @@ const BulkUploadPage: React.FC = () => {
       {logoFiles.length > 0 && (
         <div className="mt-8 bg-gray-50 rounded-lg p-4">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Bulk Actions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Apply Type to All
@@ -223,6 +239,7 @@ const BulkUploadPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 onChange={(e) => autoFillAll('type', e.target.value)}
               >
+                <option value="">Select type...</option>
                 {LOGO_TYPES.map(type => (
                   <option key={type} value={type}>{type}</option>
                 ))}
@@ -234,10 +251,30 @@ const BulkUploadPage: React.FC = () => {
               </label>
               <select 
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                onChange={(e) => autoFillAll('industry', e.target.value)}
+                onChange={(e) => autoFillIndustry(e.target.value)}
               >
+                <option value="">Select industry...</option>
                 {INDUSTRIES.map(industry => (
                   <option key={industry} value={industry}>{industry}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Apply Subcategory to All
+              </label>
+              <select 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                onChange={(e) => autoFillAll('subcategory', e.target.value)}
+              >
+                <option value="">Select subcategory...</option>
+                {/* Show all subcategories from all industries */}
+                {INDUSTRY_CATEGORIES.map(category => (
+                  <optgroup key={category.id} label={category.name}>
+                    {category.subcategories.map(sub => (
+                      <option key={sub.id} value={sub.name}>{sub.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
@@ -249,6 +286,7 @@ const BulkUploadPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 onChange={(e) => autoFillAll('primaryColor', e.target.value)}
               >
+                <option value="">Select color...</option>
                 {COLORS.map(color => (
                   <option key={color} value={color} style={{ backgroundColor: color }}>
                     {color}
@@ -264,6 +302,7 @@ const BulkUploadPage: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 onChange={(e) => autoFillAll('shape', e.target.value)}
               >
+                <option value="">Select shape...</option>
                 {SHAPES.map(shape => (
                   <option key={shape} value={shape}>{shape}</option>
                 ))}
@@ -308,7 +347,7 @@ const BulkUploadPage: React.FC = () => {
                   </div>
 
                   {/* Fields */}
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                       <input
@@ -334,11 +373,29 @@ const BulkUploadPage: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
                       <select
                         value={logoFile.industry}
-                        onChange={(e) => updateLogoFile(logoFile.id, { industry: e.target.value })}
+                        onChange={(e) => {
+                          updateLogoFile(logoFile.id, { 
+                            industry: e.target.value,
+                            subcategory: '' // Reset subcategory when industry changes
+                          });
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                       >
                         {INDUSTRIES.map(industry => (
                           <option key={industry} value={industry}>{industry}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory</label>
+                      <select
+                        value={logoFile.subcategory || ''}
+                        onChange={(e) => updateLogoFile(logoFile.id, { subcategory: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      >
+                        <option value="">Select subcategory...</option>
+                        {getSubcategoriesForIndustry(logoFile.industry).map(sub => (
+                          <option key={sub.id} value={sub.name}>{sub.name}</option>
                         ))}
                       </select>
                     </div>
