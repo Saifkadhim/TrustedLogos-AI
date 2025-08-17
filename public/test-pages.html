@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test All Pages</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-link { display: block; margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; }
+        .test-link:hover { background: #e0e0e0; }
+        .working { background: #d4edda !important; }
+        .broken { background: #f8d7da !important; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test All TrustedLogos Pages</h1>
+    <p>Click each link to test if the pages are working:</p>
+    
+    <div id="links">
+        <a href="/" class="test-link" target="_blank">🏠 Home Page</a>
+        <a href="/brands-logos" class="test-link" target="_blank">📁 All Logos (brands-logos)</a>
+        <a href="/ai-logo-generator" class="test-link" target="_blank">🤖 AI Logo Generator</a>
+        <a href="/ai-name-generator" class="test-link" target="_blank">✨ AI Name Generator</a>
+        <a href="/color-palette" class="test-link" target="_blank">🎨 Color Palette</a>
+        <a href="/fonts" class="test-link" target="_blank">🔤 Fonts</a>
+        <a href="/console-setup" class="test-link" target="_blank">🔐 Admin Login</a>
+        <a href="/admin" class="test-link" target="_blank">⚙️ Admin Dashboard</a>
+        <a href="/admin/add-logo" class="test-link" target="_blank">➕ Add Logo</a>
+        <a href="/admin/bulk-upload" class="test-link" target="_blank">📤 Bulk Upload</a>
+        <a href="/admin/color-palettes" class="test-link" target="_blank">🎨 Admin Color Palettes</a>
+        <a href="/admin/fonts" class="test-link" target="_blank">🔤 Admin Fonts</a>
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 4px;">
+        <h3>🎯 Expected Results:</h3>
+        <ul>
+            <li><strong>Working Pages:</strong> Should show content (not white/blank)</li>
+            <li><strong>Admin Pages:</strong> Should redirect to login if not signed in</li>
+            <li><strong>Logo-dependent pages:</strong> Should show UI even if no logos loaded</li>
+        </ul>
+        
+        <h3>🔧 If pages are still white:</h3>
+        <ol>
+            <li>Check browser console (F12) for errors</li>
+            <li>Hard refresh (Ctrl+F5)</li>
+            <li>Try incognito mode</li>
+        </ol>
+    </div>
+</body>
+</html>

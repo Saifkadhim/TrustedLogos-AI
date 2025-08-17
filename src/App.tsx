@@ -11,7 +11,7 @@ import FontsPage from './pages/FontsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import FontsAdminPage from './pages/FontsAdminPage';
 import AdminRoute from './components/AdminRoute';
-import { useLogos } from './hooks/useLogos';
+import { useLogos } from './hooks/useLogos-safe';
 import AdminSignInPage from './pages/AdminSignInPage';
 import BulkUploadPage from './pages/BulkUploadPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
@@ -198,42 +198,72 @@ const HomePage = ({
   activeIndustry: string;
   setActiveIndustry: (industry: string) => void;
 }) => {
-  const { logos, loading } = useLogos();
+  const { logos, loading, error } = useLogos();
   
 
   
   // Distribute logos across sections
   const distributedData = React.useMemo(() => {
-    if (logos.length === 0) {
-      return distributeLogos([]);
+    try {
+      if (logos.length === 0) {
+        return distributeLogos([]);
+      }
+      return distributeLogos(logos);
+    } catch (err) {
+      console.warn('Error distributing logos:', err);
+      // Return empty structure if distribution fails
+      return {
+        topLogos: [],
+        logoTypes: {},
+        industries: {}
+      };
     }
-    return distributeLogos(logos);
-  }, [logos, distributeLogos]);
+  }, [logos]);
 
   // Get available types and industries (only show tabs that have logos)
   const availableLogoTypes = React.useMemo(() => {
-    const available = getAvailableLogoTypes(logos);
-    // Always include at least some basic types for navigation
-    const basicTypes = ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
-    return available.length > 0 ? available : basicTypes;
-  }, [logos, getAvailableLogoTypes]);
+    try {
+      const available = getAvailableLogoTypes(logos);
+      // Always include at least some basic types for navigation
+      const basicTypes = ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
+      return available.length > 0 ? available : basicTypes;
+    } catch (err) {
+      console.warn('Error getting logo types:', err);
+      return ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
+    }
+  }, [logos]);
 
   const availableIndustries = React.useMemo(() => {
-    const available = getAvailableIndustries(logos);
-    // Always include basic industries for navigation
-    const basicIndustries = ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
-    return available.length > 0 ? available : basicIndustries;
-  }, [logos, getAvailableIndustries]);
+    try {
+      const available = getAvailableIndustries(logos);
+      // Always include basic industries for navigation
+      const basicIndustries = ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
+      return available.length > 0 ? available : basicIndustries;
+    } catch (err) {
+      console.warn('Error getting industries:', err);
+      return ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
+    }
+  }, [logos]);
 
   // Use TOP logos from distributed data
-  const topLogosForDisplay = distributedData.topLogos.map(logo => ({
-    id: logo.id,
-    title: logo.name,
-    date: new Date(logo.createdAt).toLocaleDateString(),
-    imageUrl: logo.imageUrl,
-    color: logo.primaryColor,
-    letter: logo.name?.charAt(0)?.toUpperCase() || 'L'
-  }));
+  const topLogosForDisplay = React.useMemo(() => {
+    try {
+      if (!distributedData.topLogos || distributedData.topLogos.length === 0) {
+        return [];
+      }
+      return distributedData.topLogos.map(logo => ({
+        id: logo.id,
+        title: logo.name,
+        date: new Date(logo.createdAt).toLocaleDateString(),
+        imageUrl: logo.imageUrl,
+        color: logo.primaryColor,
+        letter: logo.name?.charAt(0)?.toUpperCase() || 'L'
+      }));
+    } catch (err) {
+      console.warn('Error processing top logos:', err);
+      return [];
+    }
+  }, [distributedData.topLogos]);
 
   // If we have less than 5 logos, add some placeholders to make the grid look good
   const displayLogos = topLogosForDisplay.length > 0 ? topLogosForDisplay.slice(0, 10) : [];

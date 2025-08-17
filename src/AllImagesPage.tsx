@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
-import { useLogos } from './hooks/useLogos';
+import { useLogos } from './hooks/useLogos-safe';
 
 const AllImagesPage = () => {
   const { logos, loading, error } = useLogos();
