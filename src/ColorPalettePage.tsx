@@ -18,6 +18,8 @@ interface ColorPalette {
 }
 
 const ColorPalettePage = () => {
+  const { palettes: dbPalettes, loading, error } = useColorPalettes();
+  
   const [currentPalette, setCurrentPalette] = useState<Color[]>([
     { hex: '#FF6B6B', name: 'Coral Red', locked: false },
     { hex: '#4ECDC4', name: 'Turquoise', locked: false },
@@ -54,7 +56,7 @@ const ColorPalettePage = () => {
   ]);
 
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'generator' | 'image' | 'saved'>('generator');
+  const [activeTab, setActiveTab] = useState<'generator' | 'image' | 'explore' | 'saved'>('explore');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [extractedPalette, setExtractedPalette] = useState<Color[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -63,164 +65,6 @@ const ColorPalettePage = () => {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState('Popular');
-
-  // Predefined color palettes for exploration
-  const explorePalettes: ColorPalette[] = [
-    {
-      id: 'explore-1',
-      name: 'Ocean Sunset',
-      colors: [
-        { hex: '#2C5F41', name: 'Deep Teal', locked: false },
-        { hex: '#4ECDC4', name: 'Turquoise', locked: false },
-        { hex: '#F7DC6F', name: 'Golden Sand', locked: false },
-        { hex: '#F39C12', name: 'Sunset Orange', locked: false },
-        { hex: '#E74C3C', name: 'Coral Red', locked: false }
-      ],
-      liked: false,
-      likes: 123700,
-      tags: ['warm', 'sunset', 'nature', 'summer']
-    },
-    {
-      id: 'explore-2',
-      name: 'Forest Depths',
-      colors: [
-        { hex: '#6B8E23', name: 'Olive Green', locked: false },
-        { hex: '#228B22', name: 'Forest Green', locked: false },
-        { hex: '#2F4F2F', name: 'Dark Green', locked: false },
-        { hex: '#8FBC8F', name: 'Light Green', locked: false },
-        { hex: '#ADFF2F', name: 'Green Yellow', locked: false }
-      ],
-      liked: false,
-      likes: 94600,
-      tags: ['nature', 'green', 'forest', 'monochromatic']
-    },
-    {
-      id: 'explore-3',
-      name: 'Autumn Warmth',
-      colors: [
-        { hex: '#D2691E', name: 'Chocolate', locked: false },
-        { hex: '#CD853F', name: 'Peru', locked: false },
-        { hex: '#DC143C', name: 'Crimson', locked: false },
-        { hex: '#F5F5DC', name: 'Beige', locked: false },
-        { hex: '#8B4513', name: 'Saddle Brown', locked: false }
-      ],
-      liked: false,
-      likes: 78500,
-      tags: ['warm', 'autumn', 'brown', 'cozy']
-    },
-    {
-      id: 'explore-4',
-      name: 'Electric Dreams',
-      colors: [
-        { hex: '#87CEEB', name: 'Sky Blue', locked: false },
-        { hex: '#00CED1', name: 'Dark Turquoise', locked: false },
-        { hex: '#1E3A8A', name: 'Navy Blue', locked: false },
-        { hex: '#FFD700', name: 'Gold', locked: false },
-        { hex: '#FF8C00', name: 'Dark Orange', locked: false }
-      ],
-      liked: false,
-      likes: 66300,
-      tags: ['bright', 'electric', 'blue', 'modern']
-    },
-    {
-      id: 'explore-5',
-      name: 'Pastel Dreams',
-      colors: [
-        { hex: '#DDA0DD', name: 'Plum', locked: false },
-        { hex: '#FFB6C1', name: 'Light Pink', locked: false },
-        { hex: '#E0E6FF', name: 'Lavender', locked: false },
-        { hex: '#B0E0E6', name: 'Powder Blue', locked: false },
-        { hex: '#F0E68C', name: 'Khaki', locked: false }
-      ],
-      liked: false,
-      likes: 85900,
-      tags: ['pastel', 'soft', 'dreamy', 'wedding']
-    },
-    {
-      id: 'explore-6',
-      name: 'Earth Tones',
-      colors: [
-        { hex: '#C4A484', name: 'Tan', locked: false },
-        { hex: '#DEB887', name: 'Burlywood', locked: false },
-        { hex: '#F5DEB3', name: 'Wheat', locked: false },
-        { hex: '#D2B48C', name: 'Tan', locked: false },
-        { hex: '#BC9A6A', name: 'Dark Tan', locked: false }
-      ],
-      liked: false,
-      likes: 83300,
-      tags: ['earth', 'natural', 'brown', 'vintage']
-    },
-    {
-      id: 'explore-7',
-      name: 'Ocean Blues',
-      colors: [
-        { hex: '#000080', name: 'Navy', locked: false },
-        { hex: '#4169E1', name: 'Royal Blue', locked: false },
-        { hex: '#00BFFF', name: 'Deep Sky Blue', locked: false },
-        { hex: '#87CEEB', name: 'Sky Blue', locked: false },
-        { hex: '#E0F6FF', name: 'Alice Blue', locked: false }
-      ],
-      liked: false,
-      likes: 41100,
-      tags: ['blue', 'ocean', 'monochromatic', 'cool']
-    },
-    {
-      id: 'explore-8',
-      name: 'Rose Garden',
-      colors: [
-        { hex: '#FFB6C1', name: 'Light Pink', locked: false },
-        { hex: '#FFC0CB', name: 'Pink', locked: false },
-        { hex: '#FF69B4', name: 'Hot Pink', locked: false },
-        { hex: '#C71585', name: 'Medium Violet Red', locked: false },
-        { hex: '#8B008B', name: 'Dark Magenta', locked: false }
-      ],
-      liked: false,
-      likes: 75400,
-      tags: ['pink', 'romantic', 'feminine', 'gradient']
-    },
-    {
-      id: 'explore-9',
-      name: 'Midnight Contrast',
-      colors: [
-        { hex: '#000000', name: 'Black', locked: false },
-        { hex: '#2C3E50', name: 'Dark Blue Gray', locked: false },
-        { hex: '#FF8C00', name: 'Dark Orange', locked: false },
-        { hex: '#C0C0C0', name: 'Silver', locked: false },
-        { hex: '#FFFFFF', name: 'White', locked: false }
-      ],
-      liked: false,
-      likes: 53600,
-      tags: ['dark', 'contrast', 'modern', 'bold']
-    },
-    {
-      id: 'explore-10',
-      name: 'Spring Meadow',
-      colors: [
-        { hex: '#FFFF00', name: 'Yellow', locked: false },
-        { hex: '#FF4500', name: 'Orange Red', locked: false },
-        { hex: '#FF1493', name: 'Deep Pink', locked: false },
-        { hex: '#8A2BE2', name: 'Blue Violet', locked: false },
-        { hex: '#4169E1', name: 'Royal Blue', locked: false }
-      ],
-      liked: false,
-      likes: 92800,
-      tags: ['rainbow', 'bright', 'spring', 'vibrant']
-    },
-    {
-      id: 'explore-11',
-      name: 'Desert Sunset',
-      colors: [
-        { hex: '#008080', name: 'Teal', locked: false },
-        { hex: '#20B2AA', name: 'Light Sea Green', locked: false },
-        { hex: '#AFEEEE', name: 'Pale Turquoise', locked: false },
-        { hex: '#FFA07A', name: 'Light Salmon', locked: false },
-        { hex: '#FA8072', name: 'Salmon', locked: false }
-      ],
-      liked: false,
-      likes: 65200,
-      tags: ['teal', 'salmon', 'desert', 'warm']
-    }
-  ];
 
   // Filter options
   const colorFilters = [
@@ -252,19 +96,35 @@ const ColorPalettePage = () => {
 
   const orderOptions = ['Trending', 'Latest', 'Popular'];
 
+  // Convert database palettes to explore format
+  const explorePalettes: ColorPalette[] = useMemo(() => {
+    return dbPalettes.map(dbPalette => ({
+      id: dbPalette.id,
+      name: dbPalette.name,
+      colors: dbPalette.colors.map((hex, index) => ({
+        hex,
+        name: `Color ${index + 1}`,
+        locked: false
+      })),
+      liked: false,
+      likes: dbPalette.likes,
+      tags: dbPalette.tags
+    }));
+  }, [dbPalettes]);
+
   // Filter palettes based on search and filters
   const filteredExplorePalettes = useMemo(() => {
     return explorePalettes.filter(palette => {
       // Search query filter
       if (searchQuery && !palette.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !palette.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) {
+          !palette.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) {
         return false;
       }
 
       // Color filter
       if (selectedColors.length > 0) {
         const hasMatchingColor = selectedColors.some(filterColor => 
-          palette.tags.some(tag => tag.toLowerCase().includes(filterColor.toLowerCase()))
+          palette.tags?.some(tag => tag.toLowerCase().includes(filterColor.toLowerCase()))
         );
         if (!hasMatchingColor) return false;
       }
@@ -272,7 +132,7 @@ const ColorPalettePage = () => {
       // Style filter
       if (selectedStyles.length > 0) {
         const hasMatchingStyle = selectedStyles.some(style => 
-          palette.tags.some(tag => tag.toLowerCase().includes(style.toLowerCase()))
+          palette.tags?.some(tag => tag.toLowerCase().includes(style.toLowerCase()))
         );
         if (!hasMatchingStyle) return false;
       }
@@ -280,7 +140,7 @@ const ColorPalettePage = () => {
       // Topic filter
       if (selectedTopics.length > 0) {
         const hasMatchingTopic = selectedTopics.some(topic => 
-          palette.tags.some(tag => tag.toLowerCase().includes(topic.toLowerCase()))
+          palette.tags?.some(tag => tag.toLowerCase().includes(topic.toLowerCase()))
         );
         if (!hasMatchingTopic) return false;
       }
@@ -706,33 +566,87 @@ const ColorPalettePage = () => {
     setExtractedPalette([]);
   };
 
-  // Export palette
+  // Export palette as PNG image with color values
   const exportPalette = () => {
-    const paletteData = {
-      name: `Custom Palette ${Date.now()}`,
-      colors: currentPalette.map(color => ({
-        hex: color.hex,
-        name: color.name
-      }))
+    const width = 1200;
+    const height = 630;
+    const padding = 40;
+    const stripeGap = 8;
+    const stripeHeight = 360;
+    const numColors = Math.max(1, currentPalette.length);
+    const stripeWidth = (width - padding * 2 - stripeGap * (numColors - 1)) / numColors;
+
+    const getContrastColor = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      return luminance > 0.6 ? '#111827' : '#ffffff';
     };
-    
-    const dataStr = JSON.stringify(paletteData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // Title
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 34px Inter, Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Color Palette', padding, padding);
+
+    // Draw color stripes with hex overlay
+    currentPalette.forEach((color, index) => {
+      const x = padding + index * (stripeWidth + stripeGap);
+      const y = padding + 50; // leave room for title
+
+      // Stripe
+      ctx.fillStyle = color.hex;
+      ctx.fillRect(x, y, stripeWidth, stripeHeight);
+
+      // Hex overlay
+      ctx.fillStyle = getContrastColor(color.hex);
+      ctx.font = 'bold 26px Inter, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(color.hex.toUpperCase(), x + stripeWidth / 2, y + stripeHeight / 2);
+
+      // Name label under stripe
+      if (color.name) {
+        ctx.fillStyle = '#111827';
+        ctx.font = '18px Inter, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(color.name, x + stripeWidth / 2, y + stripeHeight + 16);
+      }
+    });
+
+    // Footer note
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '14px Inter, Arial, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('trustedlogos — generated palette', width - padding, height - padding);
+
+    // Trigger download
+    const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    link.href = url;
-    link.download = `palette-${Date.now()}.json`;
+    link.href = dataUrl;
+    link.download = `palette-${Date.now()}.png`;
     link.click();
-    
-    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center">
               <Palette className="h-6 w-6 text-purple-600 mr-2" />
@@ -746,14 +660,14 @@ const ColorPalettePage = () => {
           {/* Tab Navigation */}
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
-              onClick={() => setActiveTab('generator')}
+              onClick={() => setActiveTab('explore')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                activeTab === 'generator'
+                activeTab === 'explore'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Generator
+              Explore
             </button>
             <button
               onClick={() => setActiveTab('image')}
@@ -766,14 +680,14 @@ const ColorPalettePage = () => {
               From Image
             </button>
             <button
-              onClick={() => setActiveTab('explore')}
+              onClick={() => setActiveTab('generator')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                activeTab === 'explore'
+                activeTab === 'generator'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Explore
+              Generator
             </button>
             <button
               onClick={() => setActiveTab('saved')}
@@ -790,7 +704,7 @@ const ColorPalettePage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 px-6 py-6 overflow-y-auto">
         {activeTab === 'generator' ? (
           <div className="max-w-6xl mx-auto">
             {/* Current Palette Display */}
@@ -873,7 +787,7 @@ const ColorPalettePage = () => {
                 className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
               >
                 <Download className="h-5 w-5 mr-2" />
-                Export JSON
+                Download Image
               </button>
             </div>
 
@@ -1097,7 +1011,7 @@ const ColorPalettePage = () => {
           </div>
         ) : activeTab === 'explore' ? (
           /* Explore Palettes */
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             {/* Search Bar */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
               <div className="relative">
@@ -1269,7 +1183,7 @@ const ColorPalettePage = () => {
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {palette.tags.slice(0, 3).map((tag, index) => (
+                      {palette.tags?.slice(0, 3).map((tag, index) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
@@ -1277,9 +1191,9 @@ const ColorPalettePage = () => {
                           {tag}
                         </span>
                       ))}
-                      {palette.tags.length > 3 && (
+                      {(palette.tags?.length || 0) > 3 && (
                         <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                          +{palette.tags.length - 3}
+                          +{(palette.tags?.length || 0) - 3}
                         </span>
                       )}
                     </div>

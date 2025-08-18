@@ -59,13 +59,39 @@ export const ColorPalettesProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Convert database row to ColorPalette interface
   const mapDatabaseRowToPalette = (row: any): ColorPalette => {
+    // Parse colors from JSON string if needed
+    let colors = [];
+    if (typeof row.colors === 'string') {
+      try {
+        colors = JSON.parse(row.colors);
+      } catch (e) {
+        console.warn('Failed to parse colors JSON:', row.colors);
+        colors = [];
+      }
+    } else if (Array.isArray(row.colors)) {
+      colors = row.colors;
+    }
+
+    // Parse tags from JSON string if needed
+    let tags = [];
+    if (typeof row.tags === 'string') {
+      try {
+        tags = JSON.parse(row.tags);
+      } catch (e) {
+        console.warn('Failed to parse tags JSON:', row.tags);
+        tags = [];
+      }
+    } else if (Array.isArray(row.tags)) {
+      tags = row.tags;
+    }
+
     return {
       id: row.id,
       name: row.name,
       description: row.description,
-      colors: Array.isArray(row.colors) ? row.colors : [],
+      colors: colors,
       category: row.category,
-      tags: Array.isArray(row.tags) ? row.tags : [],
+      tags: tags,
       isPublic: row.is_public,
       downloads: row.downloads,
       likes: row.likes,
