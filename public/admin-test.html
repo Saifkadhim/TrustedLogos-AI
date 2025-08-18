@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Functionality Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .test-card { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 15px 0; border-left: 4px solid #007bff; }
+        .btn { display: inline-block; padding: 12px 24px; margin: 8px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; }
+        .btn:hover { background: #0056b3; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Admin Functionality Test</h1>
+        <p>Test the admin features that should now be working:</p>
+
+        <div class="test-card success">
+            <h3>✅ Admin Login</h3>
+            <p>Sign in with your admin credentials:</p>
+            <ul>
+                <li><strong>Username:</strong> saifkadhim81</li>
+                <li><strong>Password:</strong> SecureAdmin@2024</li>
+                <li><strong>Owner Code:</strong> Safo@1981 (optional)</li>
+            </ul>
+            <a href="/console-setup" class="btn" target="_blank">🔐 Admin Login</a>
+        </div>
+
+        <div class="test-card">
+            <h3>🏠 Admin Dashboard</h3>
+            <p>Access the main admin panel (requires login first):</p>
+            <a href="/admin" class="btn" target="_blank">⚙️ Admin Dashboard</a>
+        </div>
+
+        <div class="test-card">
+            <h3>➕ Add Logo</h3>
+            <p>Test the logo upload functionality with new industry categories:</p>
+            <ul>
+                <li>✅ Industry categories with subcategories</li>
+                <li>✅ Image upload to Supabase Storage</li>
+                <li>✅ Database integration</li>
+            </ul>
+            <a href="/admin/add-logo" class="btn" target="_blank">➕ Add Single Logo</a>
+        </div>
+
+        <div class="test-card">
+            <h3>📤 Bulk Upload</h3>
+            <p>Test multiple logo upload functionality with new subcategory support:</p>
+            <ul>
+                <li>✅ Multiple file selection</li>
+                <li>✅ Industry & Subcategory bulk actions</li>
+                <li>✅ Individual subcategory dropdowns</li>
+                <li>✅ Batch processing</li>
+                <li>✅ Progress tracking</li>
+            </ul>
+            <a href="/admin/bulk-upload" class="btn" target="_blank">📤 Bulk Upload</a>
+        </div>
+
+        <div class="test-card warning">
+            <h3>🧪 Test Steps</h3>
+            <ol>
+                <li><strong>Login:</strong> Use the admin login page first</li>
+                <li><strong>Add Logo:</strong> Try adding a single logo with the new industry categories</li>
+                <li><strong>Check Subcategories:</strong> Select an industry and verify subcategory dropdown appears</li>
+                <li><strong>Bulk Upload:</strong> Upload multiple logos and use bulk actions for industry/subcategory</li>
+                <li><strong>Individual Editing:</strong> Test subcategory dropdowns on each logo in bulk upload</li>
+                <li><strong>View Results:</strong> Check if logos appear on the main site with subcategories</li>
+            </ol>
+        </div>
+
+        <div class="test-card">
+            <h3>🎯 Expected Behavior</h3>
+            <ul>
+                <li>✅ <strong>Industry Dropdown:</strong> Shows 16 new categories</li>
+                <li>✅ <strong>Subcategory Dropdown:</strong> Appears when industry is selected</li>
+                <li>✅ <strong>Image Upload:</strong> Works with Supabase Storage</li>
+                <li>✅ <strong>Database Save:</strong> Logos saved with subcategory field</li>
+                <li>✅ <strong>No Crashes:</strong> Forms work even if subcategory column doesn't exist yet</li>
+            </ul>
+        </div>
+
+        <div class="test-card">
+            <h3>🔗 Quick Links</h3>
+            <a href="/" class="btn">🏠 Main Site</a>
+            <a href="/brands-logos" class="btn">📁 Logo Gallery</a>
+            <a href="/test-pages.html" class="btn">🧪 Test All Pages</a>
+        </div>
+    </div>
+</body>
+</html>

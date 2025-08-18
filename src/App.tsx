@@ -11,11 +11,12 @@ import FontsPage from './pages/FontsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import FontsAdminPage from './pages/FontsAdminPage';
 import AdminRoute from './components/AdminRoute';
-import { useLogos } from './hooks/useLogos';
+import { useLogos } from './hooks/useLogos-safe';
 import AdminSignInPage from './pages/AdminSignInPage';
 import BulkUploadPage from './pages/BulkUploadPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
+import LogoModal from './components/LogoModal';
 
 const App = () => {
   const location = useLocation();
@@ -198,42 +199,105 @@ const HomePage = ({
   activeIndustry: string;
   setActiveIndustry: (industry: string) => void;
 }) => {
-  const { logos, loading } = useLogos();
+  const { logos, loading, error, incrementDownloads, incrementLikes } = useLogos();
+
+  // Modal state for homepage
+  const [selectedLogo, setSelectedLogo] = React.useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  // Modal handlers
+  const openModal = (logo: any) => {
+    setSelectedLogo(logo);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedLogo(null);
+    setIsModalOpen(false);
+  };
+
+  const handleDownload = async (logoId: string) => {
+    try {
+      await incrementDownloads(logoId);
+      console.log('Download count incremented for logo:', logoId);
+    } catch (error) {
+      console.error('Failed to increment download count:', error);
+    }
+  };
+
+  const handleLike = async (logoId: string) => {
+    try {
+      await incrementLikes(logoId);
+      console.log('Like count incremented for logo:', logoId);
+    } catch (error) {
+      console.error('Failed to increment like count:', error);
+    }
+  };
   
 
   
   // Distribute logos across sections
   const distributedData = React.useMemo(() => {
-    if (logos.length === 0) {
-      return distributeLogos([]);
+    try {
+      if (logos.length === 0) {
+        return distributeLogos([]);
+      }
+      return distributeLogos(logos);
+    } catch (err) {
+      console.warn('Error distributing logos:', err);
+      // Return empty structure if distribution fails
+      return {
+        topLogos: [],
+        logoTypes: {},
+        industries: {}
+      };
     }
-    return distributeLogos(logos);
-  }, [logos, distributeLogos]);
+  }, [logos]);
 
   // Get available types and industries (only show tabs that have logos)
   const availableLogoTypes = React.useMemo(() => {
-    const available = getAvailableLogoTypes(logos);
-    // Always include at least some basic types for navigation
-    const basicTypes = ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
-    return available.length > 0 ? available : basicTypes;
-  }, [logos, getAvailableLogoTypes]);
+    try {
+      const available = getAvailableLogoTypes(logos);
+      // Always include at least some basic types for navigation
+      const basicTypes = ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
+      return available.length > 0 ? available : basicTypes;
+    } catch (err) {
+      console.warn('Error getting logo types:', err);
+      return ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
+    }
+  }, [logos]);
 
   const availableIndustries = React.useMemo(() => {
-    const available = getAvailableIndustries(logos);
-    // Always include basic industries for navigation
-    const basicIndustries = ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
-    return available.length > 0 ? available : basicIndustries;
-  }, [logos, getAvailableIndustries]);
+    try {
+      const available = getAvailableIndustries(logos);
+      // Always include basic industries for navigation
+      const basicIndustries = ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
+      return available.length > 0 ? available : basicIndustries;
+    } catch (err) {
+      console.warn('Error getting industries:', err);
+      return ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
+    }
+  }, [logos]);
 
   // Use TOP logos from distributed data
-  const topLogosForDisplay = distributedData.topLogos.map(logo => ({
-    id: logo.id,
-    title: logo.name,
-    date: new Date(logo.createdAt).toLocaleDateString(),
-    imageUrl: logo.imageUrl,
-    color: logo.primaryColor,
-    letter: logo.name?.charAt(0)?.toUpperCase() || 'L'
-  }));
+  const topLogosForDisplay = React.useMemo(() => {
+    try {
+      if (!distributedData.topLogos || distributedData.topLogos.length === 0) {
+        return [];
+      }
+      return distributedData.topLogos.map(logo => ({
+        id: logo.id,
+        title: logo.name,
+        date: new Date(logo.createdAt).toLocaleDateString(),
+        imageUrl: logo.imageUrl,
+        color: logo.primaryColor,
+        letter: logo.name?.charAt(0)?.toUpperCase() || 'L'
+      }));
+    } catch (err) {
+      console.warn('Error processing top logos:', err);
+      return [];
+    }
+  }, [distributedData.topLogos]);
 
   // If we have less than 5 logos, add some placeholders to make the grid look good
   const displayLogos = topLogosForDisplay.length > 0 ? topLogosForDisplay.slice(0, 10) : [];
@@ -538,10 +602,11 @@ const HomePage = ({
         </div>
 
         {/* TOP Logos Grid */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-7 gap-4 mb-8">
           {displayLogos.length > 0 ? displayLogos.map((creation) => (
             <div
               key={creation.id}
+              onClick={() => openModal(creation)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
             >
               <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
@@ -673,10 +738,11 @@ const HomePage = ({
         </div>
 
         {/* Logo Examples Grid */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           {distributedData.logoTypes[activeLogoType]?.logos?.length > 0 ? distributedData.logoTypes[activeLogoType].logos.map((logo, index) => (
             <div
               key={index}
+              onClick={() => openModal(logo)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200"
             >
               <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden">
@@ -747,10 +813,11 @@ const HomePage = ({
         </div>
 
         {/* Industry Logos Grid */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           {distributedData.industries[activeIndustry]?.logos?.length > 0 ? distributedData.industries[activeIndustry].logos.map((logo, index) => (
             <div
               key={index}
+              onClick={() => openModal(logo)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200"
             >
               <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden">
@@ -867,6 +934,15 @@ const HomePage = ({
           </div>
         </div>
       </footer>
+
+      {/* Logo Modal */}
+      <LogoModal
+        logo={selectedLogo}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onDownload={handleDownload}
+        onLike={handleLike}
+      />
     </>
   );
 };

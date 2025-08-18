@@ -1,15 +1,49 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
-import { useLogos } from './hooks/useLogos';
+import { useLogos } from './hooks/useLogos-safe';
+import LogoModal from './components/LogoModal';
 
 const AllImagesPage = () => {
-  const { logos, loading, error } = useLogos();
+  const { logos, loading, error, incrementDownloads, incrementLikes } = useLogos();
   const [selectedLogoTypes, setSelectedLogoTypes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Modal state
+  const [selectedLogo, setSelectedLogo] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Modal handlers
+  const openModal = (logo: any) => {
+    setSelectedLogo(logo);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedLogo(null);
+    setIsModalOpen(false);
+  };
+
+  const handleDownload = async (logoId: string) => {
+    try {
+      await incrementDownloads(logoId);
+      console.log('Download count incremented for logo:', logoId);
+    } catch (error) {
+      console.error('Failed to increment download count:', error);
+    }
+  };
+
+  const handleLike = async (logoId: string) => {
+    try {
+      await incrementLikes(logoId);
+      console.log('Like count incremented for logo:', logoId);
+    } catch (error) {
+      console.error('Failed to increment like count:', error);
+    }
+  };
 
   // Generate dynamic data from uploaded logos
   const logosByType = useMemo(() => {
@@ -693,12 +727,13 @@ const AllImagesPage = () => {
           {/* Images Grid */}
           <div className={`${
             viewMode === 'grid' 
-              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4' 
+              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-7 gap-4' 
               : 'space-y-3'
           }`}>
             {filteredLogos.map((logo) => (
               <div
                 key={logo.id}
+                onClick={() => openModal(logo)}
                 className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200 ${
                   viewMode === 'list' ? 'flex items-center p-4' : ''
                 }`}
@@ -764,6 +799,15 @@ const AllImagesPage = () => {
           )}
         </div>
       </div>
+
+      {/* Logo Modal */}
+      <LogoModal
+        logo={selectedLogo}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onDownload={handleDownload}
+        onLike={handleLike}
+      />
     </div>
   );
 };

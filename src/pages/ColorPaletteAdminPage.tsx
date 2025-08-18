@@ -1,48 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Plus, Save, Trash2, Edit3, Eye, Copy, Download, Upload, Palette, Grid, List, Filter, Search, Star, Heart, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { useColorPalettes, type ColorPalette, type CreateColorPaletteData, type UpdateColorPaletteData } from '../hooks/useColorPalettes';
 
 const ColorPaletteAdminPage = () => {
-  const [palettes, setPalettes] = useState([
-    {
-      id: 1,
-      name: 'Ocean Breeze',
-      description: 'Cool blues and teals inspired by ocean waves',
-      colors: ['#0077be', '#00a8cc', '#40e0d0', '#87ceeb', '#b0e0e6'],
-      category: 'Nature',
-      tags: ['blue', 'ocean', 'cool', 'calming'],
-      isPublic: true,
-      downloads: 1247,
-      likes: 89,
-      createdAt: '2025-01-15',
-      updatedAt: '2025-01-15'
-    },
-    {
-      id: 2,
-      name: 'Sunset Vibes',
-      description: 'Warm oranges and pinks of a beautiful sunset',
-      colors: ['#ff6b35', '#f7931e', '#ffb347', '#ff69b4', '#ff1493'],
-      category: 'Nature',
-      tags: ['orange', 'pink', 'warm', 'sunset'],
-      isPublic: true,
-      downloads: 892,
-      likes: 67,
-      createdAt: '2025-01-14',
-      updatedAt: '2025-01-14'
-    },
-    {
-      id: 3,
-      name: 'Corporate Professional',
-      description: 'Professional colors for business applications',
-      colors: ['#2c3e50', '#34495e', '#7f8c8d', '#95a5a6', '#bdc3c7'],
-      category: 'Business',
-      tags: ['professional', 'corporate', 'neutral', 'business'],
-      isPublic: true,
-      downloads: 2156,
-      likes: 134,
-      createdAt: '2025-01-13',
-      updatedAt: '2025-01-13'
-    }
-  ]);
+  const { 
+    palettes, 
+    loading, 
+    error, 
+    addPalette, 
+    updatePalette, 
+    deletePalette,
+    refreshPalettes 
+  } = useColorPalettes();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPalette, setEditingPalette] = useState(null);
@@ -50,6 +19,7 @@ const ColorPaletteAdminPage = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Form states for creating/editing palettes
   const [formData, setFormData] = useState({
@@ -99,20 +69,24 @@ const ColorPaletteAdminPage = () => {
     }
   }, [palettes, filterCategory, searchTerm, sortBy]);
 
-  const handleCreatePalette = () => {
-    const newPalette = {
-      id: Date.now(),
-      ...formData,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      downloads: 0,
-      likes: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
+  const handleCreatePalette = async () => {
+    try {
+      const paletteData: CreateColorPaletteData = {
+        name: formData.name,
+        description: formData.description,
+        colors: formData.colors,
+        category: formData.category,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        isPublic: formData.isPublic
+      };
 
-    setPalettes(prev => [newPalette, ...prev]);
-    setShowCreateModal(false);
-    resetForm();
+      await addPalette(paletteData);
+      setShowCreateModal(false);
+      resetForm();
+    } catch (error) {
+      console.error('Failed to create palette:', error);
+      alert('Failed to create palette: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
 
   const handleEditPalette = (palette) => {
@@ -128,25 +102,38 @@ const ColorPaletteAdminPage = () => {
     setShowCreateModal(true);
   };
 
-  const handleUpdatePalette = () => {
-    setPalettes(prev => prev.map(palette => 
-      palette.id === editingPalette.id 
-        ? {
-            ...palette,
-            ...formData,
-            tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-            updatedAt: new Date().toISOString().split('T')[0]
-          }
-        : palette
-    ));
-    setShowCreateModal(false);
-    setEditingPalette(null);
-    resetForm();
+  const handleUpdatePalette = async () => {
+    try {
+      if (!editingPalette) return;
+      
+      const paletteData: UpdateColorPaletteData = {
+        id: editingPalette.id,
+        name: formData.name,
+        description: formData.description,
+        colors: formData.colors,
+        category: formData.category,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        isPublic: formData.isPublic
+      };
+
+      await updatePalette(paletteData);
+      setShowCreateModal(false);
+      setEditingPalette(null);
+      resetForm();
+    } catch (error) {
+      console.error('Failed to update palette:', error);
+      alert('Failed to update palette: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
 
-  const handleDeletePalette = (id) => {
+  const handleDeletePalette = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this palette?')) {
-      setPalettes(prev => prev.filter(palette => palette.id !== id));
+      try {
+        await deletePalette(id);
+      } catch (error) {
+        console.error('Failed to delete palette:', error);
+        alert('Failed to delete palette: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      }
     }
   };
 
@@ -188,21 +175,7 @@ const ColorPaletteAdminPage = () => {
     navigator.clipboard.writeText(colorString);
   };
 
-  const exportPalettes = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      "Name,Description,Colors,Category,Tags,Public,Downloads,Likes,Created,Updated\n" +
-      filteredPalettes.map(p => 
-        `"${p.name}","${p.description}","${p.colors.join(';')}","${p.category}","${p.tags.join(';')}",${p.isPublic},${p.downloads},${p.likes},${p.createdAt},${p.updatedAt}`
-      ).join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "color_palettes.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // Removed CSV export per request
 
   return (
     <div className="flex flex-col h-full">
@@ -219,13 +192,7 @@ const ColorPaletteAdminPage = () => {
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <button
-              onClick={exportPalettes}
-              className="flex items-center px-3 py-2 text-sm text-green-600 hover:text-green-700 border border-green-200 rounded-lg hover:bg-green-50 transition-colors duration-200"
-            >
-              <Download className="h-4 w-4 mr-1" />
-              Export CSV
-            </button>
+            {/* Export CSV removed per request */}
             <button
               onClick={() => setShowCreateModal(true)}
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors duration-200 flex items-center"
@@ -551,13 +518,101 @@ const ColorPaletteAdminPage = () => {
                     <label className="block text-sm font-medium text-gray-700">
                       Colors ({formData.colors.length})
                     </label>
-                    <button
-                      onClick={addColor}
-                      disabled={formData.colors.length >= 10}
-                      className="text-sm text-purple-600 hover:text-purple-700 disabled:text-gray-400"
-                    >
-                      + Add Color
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={addColor}
+                        disabled={formData.colors.length >= 10}
+                        className="text-sm text-purple-600 hover:text-purple-700 disabled:text-gray-400"
+                      >
+                        + Add Color
+                      </button>
+                      {/* Create from image (fast) */}
+                      <button
+                        type="button"
+                        className="text-sm px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                        onClick={() => imageInputRef.current?.click()}
+                      >
+                        Create from image
+                      </button>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const url = URL.createObjectURL(file);
+                          try {
+                            // Draw image to canvas
+                            const img = new Image();
+                            await new Promise((resolve, reject) => {
+                              img.onload = resolve;
+                              img.onerror = reject;
+                              img.src = url;
+                            });
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const targetW = 320;
+                            const targetH = Math.max(1, Math.round((img.height / img.width) * targetW));
+                            canvas.width = targetW;
+                            canvas.height = targetH;
+                            if (!ctx) return;
+                            ctx.drawImage(img, 0, 0, targetW, targetH);
+                            const imageData = ctx.getImageData(0, 0, targetW, targetH);
+                            const pixels = [] as [number, number, number][];
+                            for (let i = 0; i < imageData.data.length; i += 16) {
+                              const r = imageData.data[i];
+                              const g = imageData.data[i + 1];
+                              const b = imageData.data[i + 2];
+                              const a = imageData.data[i + 3];
+                              if (a > 200) pixels.push([r, g, b]);
+                            }
+                            if (pixels.length === 0) return;
+                            // Simple k-means (k=5)
+                            const k = 5;
+                            const centroids: [number, number, number][] = [];
+                            for (let i = 0; i < k; i++) {
+                              const p = pixels[Math.floor(Math.random() * pixels.length)];
+                              centroids.push([p[0], p[1], p[2]]);
+                            }
+                            const distance = (a: [number, number, number], b: [number, number, number]) => {
+                              const dr = a[0] - b[0];
+                              const dg = a[1] - b[1];
+                              const db = a[2] - b[2];
+                              return dr * dr + dg * dg + db * db;
+                            };
+                            for (let iter = 0; iter < 6; iter++) {
+                              const clusters: [number, number, number][][] = Array.from({ length: k }, () => []);
+                              for (const p of pixels) {
+                                let best = 0, bestD = Infinity;
+                                for (let c = 0; c < k; c++) {
+                                  const d = distance(p, centroids[c]);
+                                  if (d < bestD) { bestD = d; best = c; }
+                                }
+                                clusters[best].push(p);
+                              }
+                              for (let c = 0; c < k; c++) {
+                                const cluster = clusters[c];
+                                if (cluster.length === 0) continue;
+                                let r = 0, g = 0, b = 0;
+                                for (const p of cluster) { r += p[0]; g += p[1]; b += p[2]; }
+                                centroids[c] = [Math.round(r / cluster.length), Math.round(g / cluster.length), Math.round(b / cluster.length)];
+                              }
+                            }
+                            // Convert to hex
+                            const toHex = (n: number) => n.toString(16).padStart(2, '0');
+                            const hexColors = centroids.map(([r, g, b]) => `#${toHex(r)}${toHex(g)}${toHex(b)}`);
+                            // Update form colors (unique and first 5)
+                            const unique = Array.from(new Set(hexColors)).slice(0, 5);
+                            setFormData(prev => ({ ...prev, colors: unique.length >= 5 ? unique : [...unique, ...prev.colors].slice(0, 5) }));
+                          } finally {
+                            URL.revokeObjectURL(url);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-5 gap-3">
                     {formData.colors.map((color, index) => (
