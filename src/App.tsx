@@ -21,7 +21,12 @@ import LogoModal from './components/LogoModal';
 const App = () => {
   const location = useLocation();
   const { isAuthenticated } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState('Restaurant');
+  
+  // Debug: Log to confirm component is loading with new tabs
+  React.useEffect(() => {
+    console.log('🔥 TrustedLogos App loaded - NEW TABS:', ['Restaurant', 'Car Brands', 'Clothing & Apparel', 'Social Networks', 'Packaged Food', 'Apps & SaaS']);
+  }, []);
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -308,8 +313,30 @@ const HomePage = ({
     }
   }, [distributedData.topLogos]);
 
-  // If we have less than 5 logos, add some placeholders to make the grid look good
-  const displayLogos = topLogosForDisplay.length > 0 ? topLogosForDisplay.slice(0, 10) : [];
+  // Map UI tabs to industry filters
+  const TAB_TO_INDUSTRY_MAP: Record<string, string | null> = {
+    'Restaurant': 'Restaurant',
+    'Car Brands': 'Automotive',
+    'Clothing & Apparel': 'Fashion',
+    'Social Networks': 'Internet',
+    'Packaged Food': 'Food & Drinks',
+    'Apps & SaaS': 'Technology',
+  };
+
+  // Filter TOP logos by selected tab/industry
+  const filteredTopLogos = React.useMemo(() => {
+    try {
+      const targetIndustry = TAB_TO_INDUSTRY_MAP[activeTab] ?? null;
+      if (!targetIndustry) return topLogosForDisplay;
+      return topLogosForDisplay.filter((logo: any) => logo.industry === targetIndustry);
+    } catch (err) {
+      console.warn('Error filtering top logos:', err);
+      return topLogosForDisplay;
+    }
+  }, [topLogosForDisplay, activeTab]);
+
+  // Limit displayed logos to keep grid tidy
+  const displayLogos = filteredTopLogos.length > 0 ? filteredTopLogos.slice(0, 10) : [];
 
   const quickActions = [
     {
@@ -586,7 +613,7 @@ const HomePage = ({
       {/* Recent Creations Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">TOP Logos</h2>
+          <h2 className="text-2xl font-bold text-red-600">🔥 UPDATED TOP Logos 🔥</h2>
           <a href="#" className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
             Explore the World's Most Iconic Logos
             <ChevronRight className="h-4 w-4 ml-1" />
@@ -594,8 +621,8 @@ const HomePage = ({
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
-          {['All', 'Fashion Logos', 'Food Logos', 'Restaurant Logos', 'Technology', 'Automotive'].map((tab) => (
+        <div className="flex space-x-1 mb-6 bg-red-500 rounded-lg p-1 w-fit">
+          {['Restaurant', 'Car Brands', 'Clothing & Apparel', 'Social Networks', 'Packaged Food', 'Apps & SaaS'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
