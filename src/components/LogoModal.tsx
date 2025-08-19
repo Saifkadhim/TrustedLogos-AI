@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Download, Heart, Tag, Palette, Shapes, Globe } from 'lucide-react';
+import { X, Heart, Tag, Palette, Shapes, Globe } from 'lucide-react';
 
 interface Logo {
   id: string;
@@ -41,12 +41,7 @@ const LogoModal: React.FC<LogoModalProps> = ({
     }
   };
 
-  const handleDownload = () => {
-    if (onDownload) {
-      onDownload(logo.id);
-    }
-    // You can also trigger actual download here if needed
-  };
+  // Download removed per request
 
   const [liked, setLiked] = React.useState(false);
   const handleLike = () => {
@@ -171,16 +166,7 @@ const LogoModal: React.FC<LogoModalProps> = ({
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="mt-6 flex items-center space-x-3">
-                <button
-                  onClick={handleDownload}
-                  className="inline-flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </button>
-              </div>
+              {/* Actions removed: Download button */}
             </div>
           </div>
         </div>
