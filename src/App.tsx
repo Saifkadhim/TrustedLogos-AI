@@ -279,20 +279,13 @@ const HomePage = ({
     }
   }, [logos]);
 
-  // Use TOP logos from distributed data
+  // Use TOP logos from distributed data (preserve full logo objects for modal)
   const topLogosForDisplay = React.useMemo(() => {
     try {
       if (!distributedData.topLogos || distributedData.topLogos.length === 0) {
         return [];
       }
-      return distributedData.topLogos.map(logo => ({
-        id: logo.id,
-        title: logo.name,
-        date: new Date(logo.createdAt).toLocaleDateString(),
-        imageUrl: logo.imageUrl,
-        color: logo.primaryColor,
-        letter: logo.name?.charAt(0)?.toUpperCase() || 'L'
-      }));
+      return distributedData.topLogos;
     } catch (err) {
       console.warn('Error processing top logos:', err);
       return [];
@@ -603,17 +596,17 @@ const HomePage = ({
 
         {/* TOP Logos Grid */}
         <div className="grid grid-cols-7 gap-4 mb-8">
-          {displayLogos.length > 0 ? displayLogos.map((creation) => (
+          {displayLogos.length > 0 ? displayLogos.map((logo) => (
             <div
-              key={creation.id}
-              onClick={() => openModal(creation)}
+              key={logo.id}
+              onClick={() => openModal(logo)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
             >
               <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                {creation.imageUrl ? (
+                {logo.imageUrl ? (
                   <img 
-                    src={creation.imageUrl} 
-                    alt={creation.title} 
+                    src={logo.imageUrl} 
+                    alt={logo.name} 
                     className="w-full h-full object-contain"
                     onError={(e) => {
                       // Fallback to letter if image fails to load
@@ -623,17 +616,17 @@ const HomePage = ({
                   />
                 ) : null}
                 <div
-                  className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200 ${creation.imageUrl ? 'hidden' : ''}`}
-                  style={{ backgroundColor: creation.color }}
+                  className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200 ${logo.imageUrl ? 'hidden' : ''}`}
+                  style={{ backgroundColor: logo.primaryColor }}
                 >
-                  {creation.image || creation.letter}
+                  {logo.name?.charAt(0)?.toUpperCase()}
                 </div>
               </div>
               <div className="p-3">
                 <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">
-                  {creation.title}
+                  {logo.name}
                 </h3>
-                <p className="text-xs text-gray-500">{creation.date}</p>
+                <p className="text-xs text-gray-500">{new Date(logo.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
           )) : (
