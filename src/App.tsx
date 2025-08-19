@@ -68,7 +68,7 @@ const App = () => {
         <div onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-black/40 z-40 md:hidden" />
       )}
       {/* Left Sidebar */}
-      <div className={`w-64 bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 h-screen z-50 transform transition-transform duration-200 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:static md:transform-none`}>
+      <div className={`w-64 bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 h-screen z-50 transform transition-transform duration-200 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-xl font-black text-blue-600">
