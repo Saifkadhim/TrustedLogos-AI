@@ -2,13 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
 import { useLogos } from './hooks/useLogos-safe';
 import LogoModal from './components/LogoModal';
+import { INDUSTRY_CATEGORIES } from './utils/industryCategories';
 
 const AllImagesPage = () => {
   const { logos, loading, error, incrementDownloads, incrementLikes } = useLogos();
   const [selectedLogoTypes, setSelectedLogoTypes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [activeSubcategory, setActiveSubcategory] = useState<string>('All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -478,6 +480,7 @@ const AllImagesPage = () => {
       letter: logo.name.charAt(0),
       type: logo.type,
       category: logo.industry,
+      subcategory: logo.subcategory,
       shape: logo.shape,
       imageUrl: logo.imageUrl,
       industry: logo.industry,
@@ -523,14 +526,16 @@ const AllImagesPage = () => {
       const typeMatch = selectedLogoTypes.length === 0 || selectedLogoTypes.includes(logo.type);
       const colorMatch = selectedColors.length === 0 || selectedColors.includes(logo.primaryColor);
       const shapeMatch = selectedShapes.length === 0 || selectedShapes.includes(logo.shape);
+      const categoryMatch = activeCategory === 'All' || logo.category === activeCategory;
+      const subcategoryMatch = activeSubcategory === 'All' || !activeSubcategory || logo.subcategory === activeSubcategory;
       const searchMatch = searchQuery === '' || 
         logo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         logo.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
         logo.industry.toLowerCase().includes(searchQuery.toLowerCase());
       
-      return typeMatch && colorMatch && shapeMatch && searchMatch;
+      return typeMatch && colorMatch && shapeMatch && categoryMatch && subcategoryMatch && searchMatch;
     });
-  }, [allLogos, selectedLogoTypes, selectedColors, selectedShapes, searchQuery]);
+  }, [allLogos, selectedLogoTypes, selectedColors, selectedShapes, activeCategory, activeSubcategory, searchQuery]);
 
   // Handle filter changes
   const handleFilterChange = (filterType: 'type' | 'color' | 'shape', value: string) => {
@@ -563,11 +568,16 @@ const AllImagesPage = () => {
     setSelectedLogoTypes([]);
     setSelectedColors([]);
     setSelectedShapes([]);
+    setActiveCategory('All');
+    setActiveSubcategory('All');
   };
 
-  const quickActionTabs = [
-    'All', 'Airlines', 'Automotive', 'Cosmetics', 'E-commerce', 'Education', 'Electronics', 'Energy companies', 'Fashion', 'Finance / Bank', 'Fitness', 'Food & Drinks', 'Games', 'Hotels', 'Industrial', 'Insurance', 'Internet', 'Media / TV', 'Motorcycles', 'Music', 'Organizations', 'Pets', 'Pharma', 'Retailers', 'Restaurant', 'Software', 'Technology', 'Sports', 'Other'
-  ];
+  const categoryTabs = useMemo(() => ['All', ...INDUSTRY_CATEGORIES.map(c => c.name)], []);
+  const subcategoryTabs = useMemo(() => {
+    if (activeCategory === 'All') return [] as string[];
+    const cat = INDUSTRY_CATEGORIES.find(c => c.name === activeCategory);
+    return cat ? ['All', ...cat.subcategories.map(s => s.name)] : [];
+  }, [activeCategory]);
 
   if (loading) {
     return (
@@ -622,14 +632,14 @@ const AllImagesPage = () => {
 
         {/* Content Area */}
         <div className="flex-1 p-6 overflow-y-auto">
-          {/* Category Tabs */}
-          <div className="flex flex-wrap gap-2 mb-6 bg-gray-100 rounded-lg p-2">
-            {quickActionTabs.map((tab) => (
+          {/* Category Tabs (connected to INDUSTRY_CATEGORIES) */}
+          <div className="flex flex-wrap gap-2 mb-3 bg-gray-100 rounded-lg p-2">
+            {categoryTabs.map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => { setActiveCategory(tab); setActiveSubcategory('All'); }}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  activeTab === tab
+                  activeCategory === tab
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -638,6 +648,23 @@ const AllImagesPage = () => {
               </button>
             ))}
           </div>
+          {subcategoryTabs.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6 bg-gray-50 rounded-lg p-2 border border-gray-200">
+              {subcategoryTabs.map((sub) => (
+                <button
+                  key={sub}
+                  onClick={() => setActiveSubcategory(sub)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
+                    activeSubcategory === sub
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Filters Section */}
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
