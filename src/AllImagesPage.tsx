@@ -729,7 +729,8 @@ const AllImagesPage = () => {
             {filteredLogos.map((logo) => (
               <div
                 key={logo.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-3"
+                onClick={() => openModal(logo)}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-3 cursor-pointer"
               >
                 <div className="flex items-start gap-3">
                   <div className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
