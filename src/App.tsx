@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, Upload, LogIn, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles } from 'lucide-react';
+import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, Upload, LogIn, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles, Menu } from 'lucide-react';
 import AllImagesPage from './AllImagesPage';
 import AINameGeneratorPage from './AINameGeneratorPage';
 import ColorPalettePage from './ColorPalettePage';
@@ -24,6 +24,7 @@ const App = () => {
   const [activeTab, setActiveTab] = useState('All');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Base sidebar items available to all users
   const baseSidebarItems = [
@@ -62,8 +63,12 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-black/40 z-40 md:hidden" />
+      )}
       {/* Left Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 h-screen">
+      <div className={`w-64 bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 h-screen z-50 transform transition-transform duration-200 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:static md:transform-none`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-xl font-black text-blue-600">
@@ -79,6 +84,7 @@ const App = () => {
                 <Link
                   key={index}
                   to={item.path}
+                  onClick={() => setIsSidebarOpen(false)}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
                     location.pathname === item.path
                       ? 'bg-blue-50 text-blue-600 font-medium' 
@@ -100,6 +106,7 @@ const App = () => {
                     <Link
                       key={index}
                       to={item.path}
+                      onClick={() => setIsSidebarOpen(false)}
                       className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
                         location.pathname === item.path
                           ? 'bg-purple-50 text-purple-700 font-medium'
@@ -128,21 +135,30 @@ const App = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col md:ml-64 ml-0">
         {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+            {/* Left: Mobile menu + Search */}
+            <div className="flex items-center gap-3 flex-1 max-w-2xl">
+              <button
+                className="md:hidden p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                onClick={() => setIsSidebarOpen(true)}
+                aria-label="Open sidebar"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div className="flex-1">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search assets or start creating"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search assets or start creating"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                />
               </div>
             </div>
 
@@ -417,7 +433,7 @@ const HomePage = ({
         { name: 'Toyota', color: '#eb0a1e', letter: 'T', category: 'Reliable Transport' },
         { name: 'Audi', color: '#bb0a30', letter: 'A', category: 'German Engineering' },
         { name: 'Honda', color: '#e60012', letter: 'H', category: 'Innovation' },
-        { name: 'Volkswagen', color: '#001e50', letter: 'V', category: 'People\'s Car' }
+        { name: 'Volkswagen', color: '#001e50', letter: 'V', category: "People's Car" }
       ]
     },
     'Fashion': {
@@ -449,14 +465,14 @@ const HomePage = ({
     'Restaurant': {
       description: 'Restaurant logos combine appetite appeal with brand personality, using warm colors and inviting designs that make customers hungry and welcome.',
       logos: [
-        { name: 'McDonald\'s', color: '#ffc72c', letter: 'M', category: 'Fast Food' },
+        { name: "McDonald's", color: '#ffc72c', letter: 'M', category: 'Fast Food' },
         { name: 'KFC', color: '#f40027', letter: 'K', category: 'Fried Chicken' },
         { name: 'Burger King', color: '#d62300', letter: 'B', category: 'Burgers' },
         { name: 'Subway', color: '#00543d', letter: 'S', category: 'Sandwiches' },
         { name: 'Pizza Hut', color: '#ee3124', letter: 'P', category: 'Pizza Chain' },
-        { name: 'Domino\'s', color: '#0078ae', letter: 'D', category: 'Pizza Delivery' },
+        { name: "Domino's", color: '#0078ae', letter: 'D', category: 'Pizza Delivery' },
         { name: 'Taco Bell', color: '#702f8a', letter: 'T', category: 'Mexican Fast Food' },
-        { name: 'Dunkin\'', color: '#ff671f', letter: 'D', category: 'Coffee & Donuts' }
+        { name: "Dunkin'", color: '#ff671f', letter: 'D', category: 'Coffee & Donuts' }
       ]
     },
     'Technology': {
