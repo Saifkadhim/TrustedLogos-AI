@@ -308,8 +308,30 @@ const HomePage = ({
     }
   }, [distributedData.topLogos]);
 
-  // If we have less than 5 logos, add some placeholders to make the grid look good
-  const displayLogos = topLogosForDisplay.length > 0 ? topLogosForDisplay.slice(0, 10) : [];
+  // Map UI tabs to industry filters
+  const TAB_TO_INDUSTRY_MAP: Record<string, string | null> = {
+    'All': null,
+    'Fashion Logos': 'Fashion',
+    'Food Logos': 'Food & Drinks',
+    'Restaurant Logos': 'Restaurant',
+    'Technology': 'Technology',
+    'Automotive': 'Automotive',
+  };
+
+  // Filter TOP logos by selected tab/industry
+  const filteredTopLogos = React.useMemo(() => {
+    try {
+      const targetIndustry = TAB_TO_INDUSTRY_MAP[activeTab] ?? null;
+      if (!targetIndustry) return topLogosForDisplay;
+      return topLogosForDisplay.filter((logo: any) => logo.industry === targetIndustry);
+    } catch (err) {
+      console.warn('Error filtering top logos:', err);
+      return topLogosForDisplay;
+    }
+  }, [topLogosForDisplay, activeTab]);
+
+  // Limit displayed logos to keep grid tidy
+  const displayLogos = filteredTopLogos.length > 0 ? filteredTopLogos.slice(0, 10) : [];
 
   const quickActions = [
     {
