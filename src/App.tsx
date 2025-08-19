@@ -613,7 +613,7 @@ const HomePage = ({
       {/* Recent Creations Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">TOP Logos</h2>
+          <h2 className="text-2xl font-bold text-red-600">🔥 UPDATED TOP Logos 🔥</h2>
           <a href="#" className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
             Explore the World's Most Iconic Logos
             <ChevronRight className="h-4 w-4 ml-1" />
