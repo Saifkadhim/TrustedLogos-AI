@@ -724,59 +724,58 @@ const AllImagesPage = () => {
             </div>
           </div>
 
-          {/* Images Grid */}
-          <div className={`${
-            viewMode === 'grid' 
-              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-7 gap-4' 
-              : 'space-y-3'
-          }`}>
+          {/* Unified Logo List Layout: image left, details right */}
+          <div className="space-y-3">
             {filteredLogos.map((logo) => (
               <div
                 key={logo.id}
-                onClick={() => openModal(logo)}
-                className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group border border-gray-200 ${
-                  viewMode === 'list' ? 'flex items-center p-4' : ''
-                }`}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-3"
               >
-                <div className={`${
-                  viewMode === 'grid' 
-                    ? 'aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden' 
-                    : 'w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center mr-4 flex-shrink-0'
-                }`}>
-                  {logo.imageUrl ? (
-                    <img 
-                      src={logo.imageUrl} 
-                      alt={logo.name} 
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className={`${logo.imageUrl ? 'hidden' : ''} ${
-                      viewMode === 'grid' 
-                        ? 'w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200'
-                        : 'w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm'
-                    }`}
-                    style={{ backgroundColor: logo.color }}
-                  >
-                    {logo.letter}
-                  </div>
-                </div>
-                <div className={viewMode === 'grid' ? 'p-3' : 'flex-1'}>
-                  <h4 className="font-medium text-gray-900 text-sm mb-1 truncate">
-                    {logo.name}
-                  </h4>
-                  <p className="text-xs text-gray-500 mb-1">{logo.type}</p>
-                  {viewMode === 'list' && (
-                    <div className="flex items-center space-x-2 text-xs text-gray-400">
-                      <span className="capitalize">{logo.shape}</span>
-                      <span>•</span>
-                      <span>{logo.category}</span>
+                <div className="flex items-start gap-3">
+                  <div className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {logo.imageUrl ? (
+                      <img
+                        src={logo.imageUrl}
+                        alt={logo.name}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                          const fallback = (e.currentTarget.nextElementSibling as HTMLElement);
+                          if (fallback) fallback.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className={`${logo.imageUrl ? 'hidden' : ''} w-10 h-10 rounded flex items-center justify-center text-white font-bold text-sm`}
+                      style={{ backgroundColor: logo.color }}
+                    >
+                      {logo.letter}
                     </div>
-                  )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-gray-900 truncate">{logo.name}</h4>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {logo.type} • {logo.industry || logo.category}
+                    </p>
+                    {logo.information && (
+                      <p className="text-sm text-gray-700 mt-2 line-clamp-2">{logo.information}</p>
+                    )}
+                    {logo.designerUrl && (
+                      <div className="mt-2 text-xs">
+                        <a
+                          href={logo.designerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline break-all"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Website
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

@@ -567,21 +567,21 @@ const AddLogoPage = () => {
                     </p>
                   </div>
 
-                  {/* Designer/Owner URL */}
+                  {/* Website URL */}
                   <div>
                     <label htmlFor="designerUrl" className="block text-sm font-medium text-gray-700 mb-2">
-                      Designer/Owner URL
+                      Website
                     </label>
                     <input
                       type="url"
                       id="designerUrl"
                       value={designerUrl}
                       onChange={(e) => setDesignerUrl(e.target.value)}
-                      placeholder="https://website.com or https://portfolio.designer.com"
+                      placeholder="https://company-website.com"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-sm text-gray-500 mt-1">
-                      Link to the logo designer's portfolio, company website, or brand owner's site.
+                      Link to the brand/company website.
                     </p>
                   </div>
                 </div>
