@@ -178,18 +178,18 @@ const LogoModal: React.FC<LogoModalProps> = ({
                 </div>
               )}
 
-              {/* Designer URL */}
+              {/* Website URL */}
               {logo.designerUrl && (
                 <div>
                   <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center">
                     <Globe className="h-4 w-4 mr-2" />
-                    Designer
+                    Website
                   </h4>
                   <a 
                     href={logo.designerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 text-sm underline"
+                    className="text-blue-600 hover:text-blue-800 text-sm underline break-all"
                   >
                     {logo.designerUrl}
                   </a>
