@@ -79,17 +79,17 @@ const LogoModal: React.FC<LogoModalProps> = ({
         {/* Content */}
         <div className="flex flex-col md:flex-row">
           {/* Left Side - Fixed square image without shadow */}
-          <div className="md:w-1/2 p-6 bg-gray-50 flex items-center justify-center relative">
-            <div className="w-80 h-80 flex items-center justify-center">
+          <div className="md:w-3/5 p-6 bg-gray-50 flex items-center justify-center relative">
+            <div className="w-[20rem] h-[20rem] md:w-[36rem] md:h-[36rem] flex items-center justify-center">
               {logo.imageUrl ? (
                 <img
                   src={logo.imageUrl}
                   alt={logo.name}
-                  className="w-80 h-80 object-contain"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <div 
-                  className="w-80 h-80 flex items-center justify-center text-white text-4xl font-bold"
+                  className="w-full h-full flex items-center justify-center text-white text-4xl font-bold"
                   style={{ backgroundColor: logo.primaryColor }}
                 >
                   {logo.name.charAt(0).toUpperCase()}
@@ -103,12 +103,12 @@ const LogoModal: React.FC<LogoModalProps> = ({
               className="absolute bottom-4 left-4 p-2"
               title="Like this logo"
             >
-              <Heart className={`h-7 w-7 transition-colors ${liked ? 'text-red-500 fill-current' : 'text-white'}`} />
+              <Heart className={`h-7 w-7 transition-colors ${liked ? 'text-red-500 fill-red-500' : 'text-gray-400 fill-transparent'}`} />
             </button>
           </div>
 
           {/* Right Side - Details */}
-          <div className="md:w-1/2 p-6 overflow-y-auto max-h-[92vh]">
+          <div className="md:w-2/5 p-6 overflow-y-auto max-h-[92vh]">
             {/* Name */}
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{logo.name}</h2>
 
