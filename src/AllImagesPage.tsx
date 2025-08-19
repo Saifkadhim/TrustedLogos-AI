@@ -55,7 +55,7 @@ const AllImagesPage = () => {
       }
       grouped[logo.type].push({
         name: logo.name,
-        color: logo.primaryColor,
+        primaryColor: logo.primaryColor,
         letter: logo.name.charAt(0),
         imageUrl: logo.imageUrl,
         industry: logo.industry,
@@ -64,7 +64,10 @@ const AllImagesPage = () => {
         downloads: logo.downloads,
         likes: logo.likes,
         information: logo.information,
-        designerUrl: logo.designerUrl
+        designerUrl: logo.designerUrl,
+        secondaryColor: logo.secondaryColor,
+        createdAt: logo.createdAt,
+        updatedAt: logo.updatedAt
       });
     });
     
@@ -470,7 +473,8 @@ const AllImagesPage = () => {
     return logos.map((logo) => ({
       id: logo.id,
       name: logo.name,
-      color: logo.primaryColor,
+      primaryColor: logo.primaryColor,
+      secondaryColor: logo.secondaryColor,
       letter: logo.name.charAt(0),
       type: logo.type,
       category: logo.industry,
@@ -480,7 +484,9 @@ const AllImagesPage = () => {
       information: logo.information,
       designerUrl: logo.designerUrl,
       downloads: logo.downloads,
-      likes: logo.likes
+      likes: logo.likes,
+      createdAt: logo.createdAt,
+      updatedAt: logo.updatedAt
     }));
   }, [logos]);
 
@@ -515,7 +521,7 @@ const AllImagesPage = () => {
   const filteredLogos = useMemo(() => {
     return allLogos.filter(logo => {
       const typeMatch = selectedLogoTypes.length === 0 || selectedLogoTypes.includes(logo.type);
-      const colorMatch = selectedColors.length === 0 || selectedColors.includes(logo.color);
+      const colorMatch = selectedColors.length === 0 || selectedColors.includes(logo.primaryColor);
       const shapeMatch = selectedShapes.length === 0 || selectedShapes.includes(logo.shape);
       const searchMatch = searchQuery === '' || 
         logo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -760,7 +766,7 @@ const AllImagesPage = () => {
                         ? 'w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200'
                         : 'w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm'
                     }`}
-                    style={{ backgroundColor: logo.color }}
+                    style={{ backgroundColor: logo.primaryColor }}
                   >
                     {logo.letter}
                   </div>
