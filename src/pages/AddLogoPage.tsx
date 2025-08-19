@@ -637,6 +637,28 @@ const AddLogoPage = () => {
                       />
                     </div>
                   </div>
+                  {/* Live Preview */}
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold"
+                      style={{ backgroundColor: logoColor }}
+                      title={`Primary: ${logoColor}`}
+                    >
+                      {logoName ? logoName.charAt(0) : 'A'}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div
+                        className="w-3 h-3 rounded-full border border-gray-200"
+                        style={{ backgroundColor: logoColor }}
+                        title={`Primary: ${logoColor}`}
+                      />
+                      <div
+                        className="w-3 h-3 rounded-full border border-gray-200"
+                        style={{ backgroundColor: secondaryLogoColor }}
+                        title={`Secondary: ${secondaryLogoColor}`}
+                      />
+                    </div>
+                  </div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-600">
                       Select the primary and secondary colors of the logo. The primary color will be used for filtering and display purposes.
