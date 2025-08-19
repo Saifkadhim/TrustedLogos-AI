@@ -22,6 +22,11 @@ const App = () => {
   const location = useLocation();
   const { isAuthenticated } = useAdminAuth();
   const [activeTab, setActiveTab] = useState('Restaurant');
+  
+  // Debug: Log to confirm component is loading with new tabs
+  React.useEffect(() => {
+    console.log('🔥 TrustedLogos App loaded - NEW TABS:', ['Restaurant', 'Car Brands', 'Clothing & Apparel', 'Social Networks', 'Packaged Food', 'Apps & SaaS']);
+  }, []);
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
