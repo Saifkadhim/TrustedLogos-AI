@@ -621,7 +621,7 @@ const HomePage = ({
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+        <div className="flex space-x-1 mb-6 bg-red-500 rounded-lg p-1 w-fit">
           {['Restaurant', 'Car Brands', 'Clothing & Apparel', 'Social Networks', 'Packaged Food', 'Apps & SaaS'].map((tab) => (
             <button
               key={tab}
