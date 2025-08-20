@@ -1,26 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { Plus, Save, Trash2, Edit3, Eye, Upload, Grid, List, Filter, Search, Type, Tag, Download, Heart, CheckCircle, AlertCircle } from 'lucide-react';
+import { useFonts } from '../hooks/useFonts';
 
 const FontsAdminPage: React.FC = () => {
-  const [fonts, setFonts] = useState<any[]>([
-    {
-      id: 1,
-      name: 'Black North',
-      designer: 'Letterhand Studio',
-      category: 'Display',
-      style: 'Bold',
-      tags: ['modern', 'bold', 'display', 'headlines'],
-      license: 'Personal Use Free',
-      downloads: 15420,
-      likes: 892,
-      rating: 4.8,
-      formats: ['TTF', 'OTF', 'WOFF'],
-      weights: ['Regular', 'Bold'],
-      featured: true,
-      createdAt: '2025-01-10',
-      updatedAt: '2025-01-10'
-    }
-  ]);
+  const { fonts, addFont, updateFont, deleteFont } = useFonts();
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,31 +63,37 @@ const FontsAdminPage: React.FC = () => {
     });
   };
 
-  const handleCreate = () => {
-    const newFont = {
-      id: Date.now(),
-      ...formData,
+  const handleCreate = async () => {
+    await addFont({
+      name: formData.name,
+      designer: formData.designer,
+      category: formData.category,
+      style: formData.style,
       tags: formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t),
-      downloads: 0,
-      likes: 0,
-      rating: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
-    setFonts((prev) => [newFont, ...prev]);
+      license: formData.license,
+      formats: formData.formats,
+      weights: formData.weights,
+      featured: formData.featured,
+      isPublic: true,
+    });
     setShowCreate(false);
     resetForm();
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!editingFont) return;
-    const updated = {
-      ...editingFont,
-      ...formData,
+    await updateFont({
+      id: editingFont.id,
+      name: formData.name,
+      designer: formData.designer,
+      category: formData.category,
+      style: formData.style,
       tags: formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t),
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
-    setFonts((prev) => prev.map((f) => (f.id === editingFont.id ? updated : f)));
+      license: formData.license,
+      formats: formData.formats,
+      weights: formData.weights,
+      featured: formData.featured,
+    });
     setEditingFont(null);
     resetForm();
   };
@@ -124,8 +113,8 @@ const FontsAdminPage: React.FC = () => {
     });
   };
 
-  const handleDelete = (fontId: number) => {
-    setFonts((prev) => prev.filter((f) => f.id !== fontId));
+  const handleDelete = async (fontId: string) => {
+    await deleteFont(fontId);
   };
 
   return (

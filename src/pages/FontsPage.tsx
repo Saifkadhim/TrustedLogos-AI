@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Search, Filter, Grid, List, Download, Heart, Eye, Star, Type, Palette, Tag, Copy, Share2, Bookmark, Zap, Sparkles, Clock, TrendingUp, Award } from 'lucide-react';
+import { useFonts } from '../hooks/useFonts';
 
 const FontsPage = () => {
   const [viewMode, setViewMode] = useState('list');
+  const { fonts, loading } = useFonts();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStyle, setSelectedStyle] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,153 +14,7 @@ const FontsPage = () => {
   const [favoritesFonts, setFavoritesFonts] = useState<string[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
-  // Sample font data - in a real app, this would come from an API
-  const fonts = [
-    {
-      id: 1,
-      name: 'Black North',
-      designer: 'Letterhand Studio',
-      category: 'Display',
-      style: 'Bold',
-      tags: ['modern', 'bold', 'display', 'headlines'],
-      license: 'Personal Use Free',
-      downloads: 15420,
-      likes: 892,
-      rating: 4.8,
-      preview: 'BLACK NORTH',
-      description: 'A bold, modern display font perfect for headlines and branding',
-      formats: ['TTF', 'OTF', 'WOFF'],
-      weights: ['Regular', 'Bold'],
-      characters: 'A-Z, a-z, 0-9, punctuation',
-      featured: true
-    },
-    {
-      id: 2,
-      name: 'Creamy Sugar',
-      designer: 'Aesthetica Studio',
-      category: 'Script',
-      style: 'Handwritten',
-      tags: ['script', 'handwritten', 'elegant', 'feminine'],
-      license: 'Personal Use Free',
-      downloads: 12350,
-      likes: 756,
-      rating: 4.6,
-      preview: 'Creamy Sugar',
-      description: 'An elegant handwritten script font with flowing curves',
-      formats: ['TTF', 'OTF'],
-      weights: ['Regular'],
-      characters: 'A-Z, a-z, 0-9, punctuation',
-      featured: false
-    },
-    {
-      id: 3,
-      name: 'Coffee Healing',
-      designer: 'Isolotype',
-      category: 'Script',
-      style: 'Brush',
-      tags: ['brush', 'casual', 'organic', 'natural'],
-      license: 'Personal Use Free',
-      downloads: 9876,
-      likes: 543,
-      rating: 4.5,
-      preview: 'Coffee Healing',
-      description: 'A casual brush script font with organic, natural feel',
-      formats: ['TTF', 'WOFF'],
-      weights: ['Regular'],
-      characters: 'A-Z, a-z, 0-9, punctuation',
-      featured: false
-    },
-    {
-      id: 4,
-      name: 'Sellena Brush',
-      designer: 'Muksaicreative',
-      category: 'Script',
-      style: 'Brush',
-      tags: ['brush', 'artistic', 'expressive', 'creative'],
-      license: 'Personal Use Free',
-      downloads: 8765,
-      likes: 432,
-      rating: 4.4,
-      preview: 'Sellena Brush',
-      description: 'An artistic brush script with expressive strokes',
-      formats: ['TTF', 'OTF'],
-      weights: ['Regular'],
-      characters: 'A-Z, a-z, 0-9, punctuation',
-      featured: false
-    },
-    {
-      id: 5,
-      name: 'Drip October',
-      designer: 'Creativetacos',
-      category: 'Display',
-      style: 'Decorative',
-      tags: ['decorative', 'drip', 'unique', 'artistic'],
-      license: 'Personal Use Free',
-      downloads: 7654,
-      likes: 321,
-      rating: 4.3,
-      preview: 'Drip October',
-      description: 'A unique decorative font with dripping effect',
-      formats: ['TTF'],
-      weights: ['Regular'],
-      characters: 'A-Z, a-z, 0-9, punctuation',
-      featured: false
-    },
-    {
-      id: 6,
-      name: 'Modern Sans Pro',
-      designer: 'Type Foundry',
-      category: 'Sans Serif',
-      style: 'Modern',
-      tags: ['sans-serif', 'modern', 'clean', 'professional'],
-      license: 'Commercial License',
-      downloads: 25430,
-      likes: 1234,
-      rating: 4.9,
-      preview: 'Modern Sans Pro',
-      description: 'A clean, modern sans-serif font family for professional use',
-      formats: ['TTF', 'OTF', 'WOFF', 'WOFF2'],
-      weights: ['Light', 'Regular', 'Medium', 'Bold', 'Black'],
-      characters: 'A-Z, a-z, 0-9, punctuation, symbols',
-      featured: true
-    },
-    {
-      id: 7,
-      name: 'Vintage Serif',
-      designer: 'Classic Types',
-      category: 'Serif',
-      style: 'Vintage',
-      tags: ['serif', 'vintage', 'classic', 'elegant'],
-      license: 'Personal Use Free',
-      downloads: 11200,
-      likes: 678,
-      rating: 4.7,
-      preview: 'Vintage Serif',
-      description: 'A classic vintage serif font with timeless elegance',
-      formats: ['TTF', 'OTF'],
-      weights: ['Regular', 'Bold'],
-      characters: 'A-Z, a-z, 0-9, punctuation',
-      featured: false
-    },
-    {
-      id: 8,
-      name: 'Tech Mono',
-      designer: 'Code Fonts',
-      category: 'Monospace',
-      style: 'Technical',
-      tags: ['monospace', 'code', 'technical', 'programming'],
-      license: 'Open Source',
-      downloads: 18900,
-      likes: 945,
-      rating: 4.8,
-      preview: 'Tech Mono',
-      description: 'A technical monospace font perfect for coding and development',
-      formats: ['TTF', 'OTF', 'WOFF'],
-      weights: ['Light', 'Regular', 'Bold'],
-      characters: 'A-Z, a-z, 0-9, punctuation, symbols',
-      featured: true
-    }
-  ];
+  // Fonts now come from database via useFonts
 
   const categories = [
     'All', 'Sans Serif', 'Serif', 'Script', 'Display', 'Monospace', 'Handwritten', 'Decorative'
