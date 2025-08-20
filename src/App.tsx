@@ -308,17 +308,17 @@ const HomePage = ({
     }
   }, [distributedData.topLogos]);
 
-  // Map homepage tabs to subcategory/industry filters
-  const topTabFilters: Record<string, { subcategory?: string; industry?: string }> = React.useMemo(() => ({
-    'Social media': { subcategory: 'Social media', industry: 'Internet' },
-    'Fashion Logos': { industry: 'Fashion' },
-    'Supermarkets & Grocery': { subcategory: 'Supermarkets & Grocery', industry: 'Food & Drinks' },
-    'Restaurant Logos': { industry: 'Restaurant' },
-    'Apps & SaaS': { subcategory: 'Apps & SaaS', industry: 'Technology' },
-    'Car Brands': { industry: 'Automotive' },
+  // Map homepage tabs to exact Category and Subcategory filters
+  const topTabFilters: Record<string, { category: string; subcategory: string }> = React.useMemo(() => ({
+    'Social media': { category: 'Social Media & Internet', subcategory: 'Social Networks' },
+    'Fashion Logos': { category: 'Fashion & Beauty', subcategory: 'Clothing & Apparel' },
+    'Supermarkets & Grocery': { category: 'Retail & E-Commerce', subcategory: 'Supermarkets & Grocery' },
+    'Restaurant Logos': { category: 'Food & Drinks', subcategory: 'Restaurants' },
+    'Apps & SaaS': { category: 'Technology & Software', subcategory: 'Apps & SaaS' },
+    'Car Brands': { category: 'Automotive & Transport', subcategory: 'Car Brands' },
   }), []);
 
-  // Filter all logos by active tab using subcategory when available, falling back to industry
+  // Filter all logos by active tab using Subcategory first, then fall back to Category
   const filteredTopLogos = React.useMemo(() => {
     try {
       const filter = topTabFilters[activeTab];
@@ -327,15 +327,22 @@ const HomePage = ({
       }
 
       let candidates = logos;
-      if (filter.subcategory) {
-        const bySub = candidates.filter(l => (l.subcategory || '').toLowerCase() === filter.subcategory!.toLowerCase());
-        if (bySub.length > 0) {
-          candidates = bySub;
-        } else if (filter.industry) {
-          candidates = candidates.filter(l => (l.industry || '').toLowerCase() === filter.industry!.toLowerCase());
+      // Try matching both Category and Subcategory
+      const byBoth = candidates.filter(l => 
+        (l.industry || '').toLowerCase() === filter.category.toLowerCase() &&
+        (l.subcategory || '').toLowerCase() === filter.subcategory.toLowerCase()
+      );
+      if (byBoth.length > 0) {
+        candidates = byBoth;
+      } else {
+        // Fallback to Subcategory only
+        const bySubOnly = candidates.filter(l => (l.subcategory || '').toLowerCase() === filter.subcategory.toLowerCase());
+        if (bySubOnly.length > 0) {
+          candidates = bySubOnly;
+        } else {
+          // Final fallback to Category only
+          candidates = candidates.filter(l => (l.industry || '').toLowerCase() === filter.category.toLowerCase());
         }
-      } else if (filter.industry) {
-        candidates = candidates.filter(l => (l.industry || '').toLowerCase() === filter.industry!.toLowerCase());
       }
 
       return [...candidates].sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes));
