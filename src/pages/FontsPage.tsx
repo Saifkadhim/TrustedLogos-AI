@@ -122,25 +122,40 @@ const FontsPage = () => {
         a.click();
         a.remove();
       } else {
-        // Multiple files - download each one
+        // Multiple files - create ZIP
+        const JSZip = (await import('https://cdn.skypack.dev/jszip')).default;
+        const zip = new JSZip();
+        
+        // Fetch all files and add to zip
         for (let i = 0; i < font.fileUrls.length; i++) {
           const url = font.fileUrls[i];
-          const filename = url.split('/').pop() || `${font.name}-${i + 1}`;
+          const filename = url.split('/').pop() || `file-${i + 1}`;
           
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          a.target = '_blank';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          
-          // Small delay between downloads to avoid browser blocking
-          if (i < font.fileUrls.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+          try {
+            const response = await fetch(url);
+            if (response.ok) {
+              const blob = await response.blob();
+              zip.file(filename, blob);
+            }
+          } catch (err) {
+            console.warn('Failed to fetch file for ZIP:', filename, err);
           }
         }
-        alert(`Downloaded ${font.fileUrls.length} font files for ${font.name}`);
+        
+        // Generate and download ZIP
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const zipUrl = URL.createObjectURL(zipBlob);
+        
+        const a = document.createElement('a');
+        a.href = zipUrl;
+        a.download = `${font.name}-fonts.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        
+        // Clean up
+        URL.revokeObjectURL(zipUrl);
+        alert(`Downloaded ${font.name} with ${font.fileUrls.length} files as ZIP`);
       }
       
       // Update download counter
