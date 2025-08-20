@@ -21,7 +21,8 @@ const FontsAdminPage: React.FC = () => {
     license: 'Personal Use Free',
     formats: ['TTF'],
     weights: ['Regular'],
-    featured: false
+    featured: false,
+    files: [] as File[],
   });
 
   const categories = ['Display', 'Script', 'Sans Serif', 'Serif', 'Monospace', 'Handwritten', 'Decorative', 'Other'];
@@ -59,7 +60,8 @@ const FontsAdminPage: React.FC = () => {
       license: 'Personal Use Free',
       formats: ['TTF'],
       weights: ['Regular'],
-      featured: false
+      featured: false,
+      files: [] as File[],
     });
   };
 
@@ -109,7 +111,8 @@ const FontsAdminPage: React.FC = () => {
       license: font.license,
       formats: font.formats,
       weights: font.weights,
-      featured: font.featured
+      featured: font.featured,
+      files: [] as File[],
     });
   };
 
@@ -303,6 +306,18 @@ const FontsAdminPage: React.FC = () => {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Font Files (TTF/OTF/WOFF)</label>
+                <input
+                  type="file"
+                  accept=".ttf,.otf,.woff,.woff2,.zip"
+                  multiple
+                  onChange={(e) => setFormData({ ...formData, files: Array.from(e.target.files || []) })}
+                  className="w-full border rounded p-2"
+                />
+                <p className="text-xs text-gray-500 mt-1">Tip: Upload to Supabase Storage bucket 'fonts' for hosting.</p>
+              </div>
+
               <div className="flex items-center justify-between">
                 <label className="inline-flex items-center gap-2 text-sm text-gray-700">
                   <input type="checkbox" checked={formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} />
@@ -323,7 +338,7 @@ const FontsAdminPage: React.FC = () => {
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-800">
-                This is an in-memory admin. Connect to your database later to persist fonts.
+                Files are not uploaded via this form yet. Upload them to the Supabase Storage bucket 'fonts' and store references in your records if needed.
               </div>
             </div>
           </div>

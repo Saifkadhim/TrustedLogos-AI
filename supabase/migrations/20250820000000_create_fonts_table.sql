@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS fonts (
   license text DEFAULT 'Personal Use Free',
   formats jsonb DEFAULT '[]'::jsonb,
   weights jsonb DEFAULT '[]'::jsonb,
+  file_paths jsonb DEFAULT '[]'::jsonb,
   featured boolean DEFAULT false,
   is_public boolean DEFAULT true,
   downloads integer DEFAULT 0,

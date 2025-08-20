@@ -11,6 +11,7 @@ export interface FontItem {
   license: string;
   formats: string[];
   weights: string[];
+  fileUrls?: string[];
   featured: boolean;
   isPublic: boolean;
   downloads: number;
@@ -84,6 +85,7 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       license: row.license,
       formats: parseMaybeJsonArray(row.formats),
       weights: parseMaybeJsonArray(row.weights),
+      fileUrls: parseMaybeJsonArray(row.file_paths),
       featured: !!row.featured,
       isPublic: !!row.is_public,
       downloads: row.downloads ?? 0,
