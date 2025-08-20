@@ -308,8 +308,45 @@ const HomePage = ({
     }
   }, [distributedData.topLogos]);
 
-  // If we have less than 5 logos, add some placeholders to make the grid look good
-  const displayLogos = topLogosForDisplay.length > 0 ? topLogosForDisplay.slice(0, 10) : [];
+  // Map homepage tabs to subcategory/industry filters
+  const topTabFilters: Record<string, { subcategory?: string; industry?: string }> = React.useMemo(() => ({
+    'Social media': { subcategory: 'Social media', industry: 'Internet' },
+    'Fashion Logos': { industry: 'Fashion' },
+    'Supermarkets & Grocery': { subcategory: 'Supermarkets & Grocery', industry: 'Food & Drinks' },
+    'Restaurant Logos': { industry: 'Restaurant' },
+    'Apps & SaaS': { subcategory: 'Apps & SaaS', industry: 'Technology' },
+    'Car Brands': { industry: 'Automotive' },
+  }), []);
+
+  // Filter all logos by active tab using subcategory when available, falling back to industry
+  const filteredTopLogos = React.useMemo(() => {
+    try {
+      const filter = topTabFilters[activeTab];
+      if (!filter) {
+        return [...logos].sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes));
+      }
+
+      let candidates = logos;
+      if (filter.subcategory) {
+        const bySub = candidates.filter(l => (l.subcategory || '').toLowerCase() === filter.subcategory!.toLowerCase());
+        if (bySub.length > 0) {
+          candidates = bySub;
+        } else if (filter.industry) {
+          candidates = candidates.filter(l => (l.industry || '').toLowerCase() === filter.industry!.toLowerCase());
+        }
+      } else if (filter.industry) {
+        candidates = candidates.filter(l => (l.industry || '').toLowerCase() === filter.industry!.toLowerCase());
+      }
+
+      return [...candidates].sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes));
+    } catch (err) {
+      console.warn('Error filtering logos for tab', activeTab, err);
+      return topLogosForDisplay;
+    }
+  }, [logos, activeTab, topTabFilters, topLogosForDisplay]);
+
+  // Display top 10 filtered logos
+  const displayLogos = filteredTopLogos.slice(0, 10);
 
   const quickActions = [
     {
