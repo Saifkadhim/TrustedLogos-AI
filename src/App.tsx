@@ -21,7 +21,7 @@ import LogoModal from './components/LogoModal';
 const App = () => {
   const location = useLocation();
   const { isAuthenticated } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState('Social media');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -595,7 +595,7 @@ const HomePage = ({
 
         {/* Filter Tabs */}
         <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
-          {['All', 'Fashion Logos', 'Food & Drinks', 'Restaurant Logos', 'Technology', 'Automotive'].map((tab) => (
+          {['Social media', 'Fashion Logos', 'Food & Drinks', 'Restaurant Logos', 'Technology', 'Automotive'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
