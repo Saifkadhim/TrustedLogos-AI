@@ -3,7 +3,7 @@ import { Search, Filter, Grid, List, Download, Heart, Eye, Star, Type, Palette, 
 import { useFonts } from '../hooks/useFonts';
 
 const FontsPage = () => {
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('grid');
   const { fonts, loading, incrementDownloads } = useFonts();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStyle, setSelectedStyle] = useState('all');
