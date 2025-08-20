@@ -325,7 +325,7 @@ const FontsAdminPage: React.FC = () => {
                   <input className="w-full border rounded p-2" value={formData.license} onChange={(e) => setFormData({ ...formData, license: e.target.value })} />
                 </div>
                 <div>
-                  <label className="block text sm text-gray-700 mb-1">Formats</label>
+                  <label className="block text-sm text-gray-700 mb-1">Formats</label>
                   <input className="w-full border rounded p-2" value={formData.formats.join(', ')} onChange={(e) => setFormData({ ...formData, formats: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })} />
                 </div>
                 <div>
