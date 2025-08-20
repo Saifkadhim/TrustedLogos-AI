@@ -1011,26 +1011,54 @@ const ColorPalettePage = () => {
           </div>
         ) : activeTab === 'explore' ? (
           /* Explore Palettes */
-          <div className="max-w-6xl mx-auto">
-            {/* Search Bar */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+          <div className="w-full">
+            {/* Search Bar - Full Width to Match Header */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+              <div className="p-6">
+                <div className="flex items-center gap-4">
+                  {/* Search Input - Takes most space */}
+                  <div className="flex-1 relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Search className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search with colors, topics, styles or hex values..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-colors"
+                    />
+                  </div>
+                  
+                  {/* Order Selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Sort by:</span>
+                    <select
+                      value={selectedOrder}
+                      onChange={(e) => setSelectedOrder(e.target.value)}
+                      className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm bg-white min-w-[120px]"
+                    >
+                      {orderOptions.map((order) => (
+                        <option key={order} value={order}>{order}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Clear Filters Button */}
+                  {(searchQuery || selectedColors.length > 0 || selectedStyles.length > 0 || selectedTopics.length > 0) && (
+                    <button
+                      onClick={clearAllFilters}
+                      className="px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200 whitespace-nowrap border border-red-200"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search with colors, topics, styles or hex values..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                />
               </div>
-            </div>
-
-            {/* Filters */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              
+              {/* Filters Row - Collapsible */}
+              <div className="border-t border-gray-200 p-6 pt-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Colors Filter */}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-3">Colors</h3>
@@ -1095,38 +1123,8 @@ const ColorPalettePage = () => {
                   </div>
                 </div>
 
-                {/* Order Filter */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Order</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {orderOptions.map((order) => (
-                      <button
-                        key={order}
-                        onClick={() => setSelectedOrder(order)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
-                          selectedOrder === order
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {order}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               </div>
-
-              {/* Clear Filters */}
-              {(searchQuery || selectedColors.length > 0 || selectedStyles.length > 0 || selectedTopics.length > 0) && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-sm text-red-600 hover:text-red-700 font-medium"
-                  >
-                    Clear all filters
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Results Header */}
