@@ -595,7 +595,7 @@ const HomePage = ({
 
         {/* Filter Tabs */}
         <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
-          {['Social media', 'Fashion Logos', 'Food & Drinks', 'Restaurant Logos', 'Technology', 'Automotive'].map((tab) => (
+          {['Social media', 'Fashion Logos', 'Supermarkets & Grocery', 'Restaurant Logos', 'Apps & SaaS', 'Car Brands'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
