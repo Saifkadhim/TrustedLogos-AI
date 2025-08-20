@@ -107,22 +107,47 @@ const FontsPage = () => {
 
   const downloadFont = async (font: any) => {
     try {
-      const url = getPreferredFontUrl(font.fileUrls);
-      if (!url) {
-        alert('No downloadable font file attached to this font yet.');
+      if (!font.fileUrls || font.fileUrls.length === 0) {
+        alert('No downloadable font files attached to this font yet.');
         return;
       }
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${font.name}`;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      // best-effort counter update
+
+      if (font.fileUrls.length === 1) {
+        // Single file - direct download
+        const a = document.createElement('a');
+        a.href = font.fileUrls[0];
+        a.download = `${font.name}`;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        // Multiple files - download each one
+        for (let i = 0; i < font.fileUrls.length; i++) {
+          const url = font.fileUrls[i];
+          const filename = url.split('/').pop() || `${font.name}-${i + 1}`;
+          
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          
+          // Small delay between downloads to avoid browser blocking
+          if (i < font.fileUrls.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }
+        alert(`Downloaded ${font.fileUrls.length} font files for ${font.name}`);
+      }
+      
+      // Update download counter
       incrementDownloads(font.id).catch(() => {});
     } catch (e) {
       console.warn('Failed to download font', e);
+      alert('Download failed. Please try again.');
     }
   };
 
