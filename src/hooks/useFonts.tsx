@@ -49,6 +49,7 @@ interface FontsContextType {
   incrementDownloads: (id: string) => Promise<void>;
   incrementLikes: (id: string) => Promise<void>;
   refreshFonts: () => Promise<void>;
+  uploadFontFiles: (id: string, files: File[]) => Promise<string[]>;
 }
 
 const FontsContext = createContext<FontsContextType | undefined>(undefined);
@@ -60,6 +61,7 @@ export const useFonts = (): FontsContextType => {
 };
 
 const TABLE_NAME = 'fonts';
+const STORAGE_BUCKET = 'fonts';
 
 export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [fonts, setFonts] = useState<FontItem[]>([]);
@@ -166,6 +168,44 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const uploadFontFiles: FontsContextType['uploadFontFiles'] = async (id, files) => {
+    if (!files || files.length === 0) return [];
+    const uploadedUrls: string[] = [];
+    for (const file of files) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
+      const path = `uploads/${id}/${Date.now()}-${safeName}`;
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, file, { upsert: false, cacheControl: '3600' });
+      if (uploadError) {
+        console.warn('Upload failed for', safeName, uploadError.message);
+        continue;
+      }
+      const { data: pub } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(path);
+      if (pub?.publicUrl) uploadedUrls.push(pub.publicUrl);
+    }
+
+    if (uploadedUrls.length > 0) {
+      // merge with existing file urls if present
+      const existing = fonts.find(f => f.id === id)?.fileUrls || [];
+      const merged = [...existing, ...uploadedUrls];
+      const { error: updateError, data } = await supabase
+        .from(TABLE_NAME)
+        .update({ file_paths: JSON.stringify(merged) })
+        .eq('id', id)
+        .select()
+        .single();
+      if (!updateError && data) {
+        const updated = mapRowToFont(data);
+        setFonts(prev => prev.map(f => f.id === id ? updated : f));
+      }
+    }
+
+    return uploadedUrls;
+  };
+
   const updateFont: FontsContextType['updateFont'] = async (fontData) => {
     try {
       setError(null);
@@ -248,6 +288,7 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     incrementDownloads,
     incrementLikes,
     refreshFonts,
+    uploadFontFiles,
   };
 
   return (

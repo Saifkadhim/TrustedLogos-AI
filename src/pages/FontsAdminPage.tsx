@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, Save, Trash2, Edit3, Eye, Upload, Grid, List, Filter, Search, Type, Tag, Download, Heart, CheckCircle, AlertCircle } from 'lucide-react';
+import { Plus, Save, Trash2, Edit3, Grid, List, Filter, Search, Type, Tag, Download, Heart } from 'lucide-react';
 import { useFonts } from '../hooks/useFonts';
 
 const FontsAdminPage: React.FC = () => {
-  const { fonts, addFont, updateFont, deleteFont } = useFonts();
+  const { fonts, addFont, updateFont, deleteFont, uploadFontFiles } = useFonts();
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,7 +66,7 @@ const FontsAdminPage: React.FC = () => {
   };
 
   const handleCreate = async () => {
-    await addFont({
+    const created = await addFont({
       name: formData.name,
       designer: formData.designer,
       category: formData.category,
@@ -78,6 +78,9 @@ const FontsAdminPage: React.FC = () => {
       featured: formData.featured,
       isPublic: true,
     });
+    if (formData.files && formData.files.length > 0) {
+      await uploadFontFiles(created.id, formData.files);
+    }
     setShowCreate(false);
     resetForm();
   };
@@ -96,6 +99,9 @@ const FontsAdminPage: React.FC = () => {
       weights: formData.weights,
       featured: formData.featured,
     });
+    if (formData.files && formData.files.length > 0) {
+      await uploadFontFiles(editingFont.id, formData.files);
+    }
     setEditingFont(null);
     resetForm();
   };
@@ -297,7 +303,7 @@ const FontsAdminPage: React.FC = () => {
                   <input className="w-full border rounded p-2" value={formData.license} onChange={(e) => setFormData({ ...formData, license: e.target.value })} />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-700 mb-1">Formats</label>
+                  <label className="block text sm text-gray-700 mb-1">Formats</label>
                   <input className="w-full border rounded p-2" value={formData.formats.join(', ')} onChange={(e) => setFormData({ ...formData, formats: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })} />
                 </div>
                 <div>
@@ -315,7 +321,7 @@ const FontsAdminPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, files: Array.from(e.target.files || []) })}
                   className="w-full border rounded p-2"
                 />
-                <p className="text-xs text-gray-500 mt-1">Tip: Upload to Supabase Storage bucket 'fonts' for hosting.</p>
+                <p className="text-xs text-gray-500 mt-1">Selected: {formData.files.length} file(s)</p>
               </div>
 
               <div className="flex items-center justify-between">
@@ -335,10 +341,6 @@ const FontsAdminPage: React.FC = () => {
                     </button>
                   )}
                 </div>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-800">
-                Files are not uploaded via this form yet. Upload them to the Supabase Storage bucket 'fonts' and store references in your records if needed.
               </div>
             </div>
           </div>
