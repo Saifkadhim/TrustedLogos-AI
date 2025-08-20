@@ -171,6 +171,7 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const uploadFontFiles: FontsContextType['uploadFontFiles'] = async (id, files) => {
     if (!files || files.length === 0) return [];
     const uploadedUrls: string[] = [];
+    const errors: string[] = [];
     for (const file of files) {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
       const path = `uploads/${id}/${Date.now()}-${safeName}`;
@@ -179,6 +180,7 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .upload(path, file, { upsert: false, cacheControl: '3600' });
       if (uploadError) {
         console.warn('Upload failed for', safeName, uploadError.message);
+        errors.push(`${safeName}: ${uploadError.message}`);
         continue;
       }
       const { data: pub } = supabase.storage
@@ -201,6 +203,10 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const updated = mapRowToFont(data);
         setFonts(prev => prev.map(f => f.id === id ? updated : f));
       }
+    }
+
+    if (uploadedUrls.length === 0 && errors.length > 0) {
+      throw new Error(`All uploads failed: ${errors.join('; ')}`);
     }
 
     return uploadedUrls;
