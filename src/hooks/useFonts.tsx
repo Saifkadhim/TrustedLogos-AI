@@ -247,8 +247,35 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const deleteFont: FontsContextType['deleteFont'] = async (id) => {
     try {
       setError(null);
+      
+      // Get the font to find its file URLs before deleting
+      const fontToDelete = fonts.find(f => f.id === id);
+      
+      // Delete from database first
       const { error } = await supabase.from(TABLE_NAME).delete().eq('id', id);
       if (error) throw error;
+      
+      // Delete associated files from storage
+      if (fontToDelete?.fileUrls && fontToDelete.fileUrls.length > 0) {
+        const filePaths = fontToDelete.fileUrls.map(url => {
+          // Extract path from public URL
+          // URL format: https://project.supabase.co/storage/v1/object/public/fonts/path/to/file
+          const match = url.match(/\/storage\/v1\/object\/public\/fonts\/(.+)$/);
+          return match ? match[1] : null;
+        }).filter(Boolean);
+        
+        if (filePaths.length > 0) {
+          const { error: storageError } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .remove(filePaths);
+          
+          if (storageError) {
+            console.warn('Failed to delete some storage files:', storageError);
+            // Don't throw here - database deletion succeeded
+          }
+        }
+      }
+      
       setFonts(prev => prev.filter(f => f.id !== id));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to delete font';
