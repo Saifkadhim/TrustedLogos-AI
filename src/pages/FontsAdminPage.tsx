@@ -66,44 +66,66 @@ const FontsAdminPage: React.FC = () => {
   };
 
   const handleCreate = async () => {
-    const created = await addFont({
-      name: formData.name,
-      designer: formData.designer,
-      category: formData.category,
-      style: formData.style,
-      tags: formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t),
-      license: formData.license,
-      formats: formData.formats,
-      weights: formData.weights,
-      featured: formData.featured,
-      isPublic: true,
-    });
-    if (formData.files && formData.files.length > 0) {
-      await uploadFontFiles(created.id, formData.files);
+    try {
+      const created = await addFont({
+        name: formData.name,
+        designer: formData.designer,
+        category: formData.category,
+        style: formData.style,
+        tags: formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t),
+        license: formData.license,
+        formats: formData.formats,
+        weights: formData.weights,
+        featured: formData.featured,
+        isPublic: true,
+      });
+      console.log('Font created:', created.id);
+      if (formData.files && formData.files.length > 0) {
+        console.log('Uploading', formData.files.length, 'files...');
+        const urls = await uploadFontFiles(created.id, formData.files);
+        console.log('Upload result:', urls);
+        alert(`Font created! Uploaded ${urls.length} files.`);
+      } else {
+        alert('Font created (no files selected)');
+      }
+      setShowCreate(false);
+      resetForm();
+    } catch (error) {
+      console.error('Create failed:', error);
+      alert(`Failed: ${error.message || error}`);
     }
-    setShowCreate(false);
-    resetForm();
   };
 
   const handleUpdate = async () => {
     if (!editingFont) return;
-    await updateFont({
-      id: editingFont.id,
-      name: formData.name,
-      designer: formData.designer,
-      category: formData.category,
-      style: formData.style,
-      tags: formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t),
-      license: formData.license,
-      formats: formData.formats,
-      weights: formData.weights,
-      featured: formData.featured,
-    });
-    if (formData.files && formData.files.length > 0) {
-      await uploadFontFiles(editingFont.id, formData.files);
+    try {
+      await updateFont({
+        id: editingFont.id,
+        name: formData.name,
+        designer: formData.designer,
+        category: formData.category,
+        style: formData.style,
+        tags: formData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t),
+        license: formData.license,
+        formats: formData.formats,
+        weights: formData.weights,
+        featured: formData.featured,
+      });
+      console.log('Font updated:', editingFont.id);
+      if (formData.files && formData.files.length > 0) {
+        console.log('Uploading', formData.files.length, 'files...');
+        const urls = await uploadFontFiles(editingFont.id, formData.files);
+        console.log('Upload result:', urls);
+        alert(`Font updated! Uploaded ${urls.length} files.`);
+      } else {
+        alert('Font updated (no new files)');
+      }
+      setEditingFont(null);
+      resetForm();
+    } catch (error) {
+      console.error('Update failed:', error);
+      alert(`Failed: ${error.message || error}`);
     }
-    setEditingFont(null);
-    resetForm();
   };
 
   const handleEditClick = (font: any) => {
