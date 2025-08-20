@@ -13,6 +13,7 @@ const FontsPage = () => {
   const [fontSize, setFontSize] = useState(32);
   const [favoritesFonts, setFavoritesFonts] = useState<string[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [loadedFonts, setLoadedFonts] = useState<Set<string>>(new Set());
 
   // Fonts now come from database via useFonts
 
@@ -82,6 +83,28 @@ const FontsPage = () => {
     return urls[0];
   };
 
+  const loadFont = React.useCallback((font: any) => {
+    const fontUrl = getPreferredFontUrl(font.fileUrls);
+    if (!fontUrl || loadedFonts.has(font.id)) return;
+
+    const fontFace = new FontFace(font.name, `url(${fontUrl})`);
+    fontFace.load().then(() => {
+      document.fonts.add(fontFace);
+      setLoadedFonts(prev => new Set([...prev, font.id]));
+    }).catch(err => {
+      console.warn('Failed to load font:', font.name, err);
+    });
+  }, [loadedFonts]);
+
+  // Load fonts when they become available
+  React.useEffect(() => {
+    filteredFonts.forEach(font => {
+      if (font.fileUrls && font.fileUrls.length > 0) {
+        loadFont(font);
+      }
+    });
+  }, [filteredFonts, loadFont]);
+
   const downloadFont = async (font: any) => {
     try {
       const url = getPreferredFontUrl(font.fileUrls);
@@ -135,8 +158,13 @@ const FontsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {featuredFonts.slice(0, 3).map((font) => (
               <div key={font.id} className="bg-white bg-opacity-10 rounded-lg p-4 backdrop-blur-sm">
-                <div className="text-3xl font-bold mb-2" style={{ fontFamily: 'serif' }}>
-                  {font.preview}
+                <div 
+                  className="text-3xl font-bold mb-2" 
+                  style={{ 
+                    fontFamily: loadedFonts.has(font.id) ? `"${font.name}", serif` : 'serif' 
+                  }}
+                >
+                  {font.name}
                 </div>
                 <h3 className="font-semibold">{font.name}</h3>
                 <p className="text-sm opacity-90">by {font.designer}</p>
@@ -295,7 +323,7 @@ const FontsPage = () => {
                       className="text-center text-gray-900 font-bold leading-tight"
                       style={{ 
                         fontSize: `${fontSize}px`,
-                        fontFamily: 'serif' // In a real app, this would be the actual font
+                        fontFamily: loadedFonts.has(font.id) ? `"${font.name}", serif` : 'serif'
                       }}
                     >
                       {previewText}
@@ -391,7 +419,10 @@ const FontsPage = () => {
                     <div className="w-32 h-16 bg-gray-50 rounded flex items-center justify-center">
                       <span 
                         className="font-bold text-gray-900"
-                        style={{ fontFamily: 'serif', fontSize: '18px' }}
+                        style={{ 
+                          fontFamily: loadedFonts.has(font.id) ? `"${font.name}", serif` : 'serif', 
+                          fontSize: '18px' 
+                        }}
                       >
                         Aa
                       </span>
