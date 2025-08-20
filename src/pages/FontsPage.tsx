@@ -4,7 +4,7 @@ import { useFonts } from '../hooks/useFonts';
 
 const FontsPage = () => {
   const [viewMode, setViewMode] = useState('list');
-  const { fonts, loading } = useFonts();
+  const { fonts, loading, incrementDownloads } = useFonts();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStyle, setSelectedStyle] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,9 +72,35 @@ const FontsPage = () => {
     navigator.clipboard.writeText(fontName);
   };
 
-  const downloadFont = (font: any) => {
-    // In a real app, this would trigger the actual download
-    console.log(`Downloading ${font.name}`);
+  const getPreferredFontUrl = (urls: string[] | undefined): string | undefined => {
+    if (!urls || urls.length === 0) return undefined;
+    const priorities = ['.woff2', '.woff', '.otf', '.ttf'];
+    for (const ext of priorities) {
+      const match = urls.find(u => u.toLowerCase().endsWith(ext));
+      if (match) return match;
+    }
+    return urls[0];
+  };
+
+  const downloadFont = async (font: any) => {
+    try {
+      const url = getPreferredFontUrl(font.fileUrls);
+      if (!url) {
+        alert('No downloadable font file attached to this font yet.');
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${font.name}`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // best-effort counter update
+      incrementDownloads(font.id).catch(() => {});
+    } catch (e) {
+      console.warn('Failed to download font', e);
+    }
   };
 
   const featuredFonts = fonts.filter(font => font.featured);
