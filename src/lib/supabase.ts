@@ -1,19 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const rawSupabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Validate that we have proper Supabase credentials
-if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+let supabaseUrl = typeof rawSupabaseUrl === 'string' ? rawSupabaseUrl.trim() : ''
+let supabaseAnonKey = typeof rawSupabaseAnonKey === 'string' ? rawSupabaseAnonKey.trim() : ''
+
+if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Missing Supabase environment variables. Using placeholder values. Please update your .env file with actual Supabase credentials.')
 }
 
-// Validate URL format
-try {
-  new URL(supabaseUrl)
-} catch (error) {
-  console.error('Invalid VITE_SUPABASE_URL format. Please ensure it is a valid URL (e.g., https://your-project-id.supabase.co)')
-  throw new Error('Invalid Supabase URL format')
+const isValidUrl = /^https?:\/\/[\w.-]+\.supabase\.co\/?$/i.test(supabaseUrl)
+
+if (!isValidUrl) {
+  console.warn('Invalid VITE_SUPABASE_URL format. Falling back to placeholder URL (https://placeholder.supabase.co).')
+  supabaseUrl = 'https://placeholder.supabase.co'
+}
+
+if (!supabaseAnonKey || supabaseAnonKey === 'your_supabase_anon_key') {
+  console.warn('Invalid VITE_SUPABASE_ANON_KEY. Using placeholder key.')
+  supabaseAnonKey = 'placeholder-key'
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
