@@ -708,7 +708,7 @@ const ColorPalettePage = () => {
         {activeTab === 'generator' ? (
           <div className="max-w-6xl mx-auto">
             {/* Current Palette Display */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
               <div className="flex h-64">
                 {currentPalette.map((color, index) => (
                   <div
@@ -792,7 +792,7 @@ const ColorPalettePage = () => {
             </div>
 
             {/* Color Details */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Color Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {currentPalette.map((color, index) => (
@@ -829,7 +829,7 @@ const ColorPalettePage = () => {
           <div className="max-w-6xl mx-auto">
             {!uploadedImage ? (
               /* Upload Area */
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
                 <div className="max-w-md mx-auto">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <ImageIcon className="h-8 w-8 text-blue-600" />
@@ -863,7 +863,7 @@ const ColorPalettePage = () => {
               /* Image Analysis */
               <div className="space-y-6">
                 {/* Image Preview */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   <div className="flex items-center justify-between p-4 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900">Uploaded Image</h3>
                     <button
@@ -894,7 +894,7 @@ const ColorPalettePage = () => {
 
                 {/* Extracted Palette */}
                 {extractedPalette.length > 0 && (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="p-4 border-b border-gray-200">
                       <h3 className="text-lg font-semibold text-gray-900">Extracted Color Palette</h3>
                       <p className="text-gray-600 text-sm mt-1">
