@@ -308,49 +308,28 @@ const HomePage = ({
     }
   }, [distributedData.topLogos]);
 
-  // Map homepage tabs to exact Category and Subcategory filters
-  const topTabFilters: Record<string, { category: string; subcategory: string }> = React.useMemo(() => ({
-    'Social media': { category: 'Social Media & Internet', subcategory: 'Social Networks' },
-    'Fashion Logos': { category: 'Fashion & Beauty', subcategory: 'Clothing & Apparel' },
-    'Supermarkets & Grocery': { category: 'Retail & E-Commerce', subcategory: 'Supermarkets & Grocery' },
-    'Restaurant Logos': { category: 'Food & Drinks', subcategory: 'Restaurants' },
-    'Apps & SaaS': { category: 'Technology & Software', subcategory: 'Apps & SaaS' },
-    'Car Brands': { category: 'Automotive & Transport', subcategory: 'Car Brands' },
+  // Map homepage tabs to Subcategory only
+  const topTabSubcategories: Record<string, string> = React.useMemo(() => ({
+    'Social media': 'Social Networks',
+    'Fashion Logos': 'Clothing & Apparel',
+    'Supermarkets & Grocery': 'Supermarkets & Grocery',
+    'Restaurant Logos': 'Restaurants',
+    'Apps & SaaS': 'Apps & SaaS',
+    'Car Brands': 'Car Brands',
   }), []);
 
-  // Filter all logos by active tab using Subcategory first, then fall back to Category
+  // Filter all logos by active tab using Subcategory only
   const filteredTopLogos = React.useMemo(() => {
     try {
-      const filter = topTabFilters[activeTab];
-      if (!filter) {
-        return [...logos].sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes));
-      }
-
-      let candidates = logos;
-      // Try matching both Category and Subcategory
-      const byBoth = candidates.filter(l => 
-        (l.industry || '').toLowerCase() === filter.category.toLowerCase() &&
-        (l.subcategory || '').toLowerCase() === filter.subcategory.toLowerCase()
-      );
-      if (byBoth.length > 0) {
-        candidates = byBoth;
-      } else {
-        // Fallback to Subcategory only
-        const bySubOnly = candidates.filter(l => (l.subcategory || '').toLowerCase() === filter.subcategory.toLowerCase());
-        if (bySubOnly.length > 0) {
-          candidates = bySubOnly;
-        } else {
-          // Final fallback to Category only
-          candidates = candidates.filter(l => (l.industry || '').toLowerCase() === filter.category.toLowerCase());
-        }
-      }
-
+      const sub = topTabSubcategories[activeTab];
+      if (!sub) return [];
+      const candidates = logos.filter(l => (l.subcategory || '').toLowerCase() === sub.toLowerCase());
       return [...candidates].sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes));
     } catch (err) {
       console.warn('Error filtering logos for tab', activeTab, err);
       return topLogosForDisplay;
     }
-  }, [logos, activeTab, topTabFilters, topLogosForDisplay]);
+  }, [logos, activeTab, topTabSubcategories, topLogosForDisplay]);
 
   // Display top 10 filtered logos
   const displayLogos = filteredTopLogos.slice(0, 10);
