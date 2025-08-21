@@ -29,11 +29,15 @@ const App = () => {
   // Base sidebar items available to all users
   const baseSidebarItems = [
     { name: 'Home', icon: Home, path: '/' },
-    { name: 'AI Logo Generator', icon: Zap, path: '/ai-logo-generator' },
     { name: 'All Logos', icon: HandMetal, path: '/brands-logos' },
-    { name: 'AI Name Generator', icon: Zap, path: '/ai-name-generator' },
     { name: 'Color Palette', icon: Star, path: '/color-palette' },
     { name: 'Fonts', icon: Folder, path: '/fonts' },
+  ];
+
+  // AI Tools section items
+  const aiToolsItems = [
+    { name: 'AI Logo Generator', icon: Zap, path: '/ai-logo-generator' },
+    { name: 'AI Name Generator', icon: Sparkles, path: '/ai-name-generator' },
   ];
 
   // Admin-only sidebar items
@@ -95,6 +99,28 @@ const App = () => {
                   <span>{item.name}</span>
                 </Link>
               ))}
+            </div>
+
+            {/* AI Tools section */}
+            <div className="pt-4">
+              <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Tools</div>
+              <div className="space-y-2">
+                {aiToolsItems.map((item, index) => (
+                  <Link
+                    key={index}
+                    to={item.path}
+                    onClick={() => setIsSidebarOpen(false)}
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                      location.pathname === item.path
+                        ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {/* Admin section - only visible to authenticated admins */}
