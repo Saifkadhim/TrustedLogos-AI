@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL ?? 'https://placeholder.supabase.co') as string
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'placeholder-key') as string
 
 // Validate that we have proper Supabase credentials
 if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
