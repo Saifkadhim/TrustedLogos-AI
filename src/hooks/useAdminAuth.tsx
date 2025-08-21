@@ -24,9 +24,9 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [ownerVerified, setOwnerVerified] = useState<boolean>(false);
 
-  // Get admin credentials from environment (robust against undefined)
-  const adminUsername = (import.meta.env.VITE_ADMIN_USERNAME ?? '').toString().trim();
-  const adminPassword = (import.meta.env.VITE_ADMIN_PASSWORD ?? '').toString().trim();
+  // Get admin credentials from environment
+  const adminUsername = import.meta.env.VITE_ADMIN_USERNAME?.toString().trim() || '';
+  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD?.toString().trim() || '';
 
   useEffect(() => {
     try {
