@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, Upload, LogIn, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles, Menu } from 'lucide-react';
+import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, Upload, LogIn, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles, Menu, BookOpen } from 'lucide-react';
 import AllImagesPage from './AllImagesPage';
 import AINameGeneratorPage from './AINameGeneratorPage';
 import ColorPalettePage from './ColorPalettePage';
@@ -10,6 +10,7 @@ import ColorPaletteAdminPage from './pages/ColorPaletteAdminPage';
 import FontsPage from './pages/FontsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import FontsAdminPage from './pages/FontsAdminPage';
+import LearnPage from './pages/LearnPage';
 import AdminRoute from './components/AdminRoute';
 import { useLogos } from './hooks/useLogos-safe';
 import AdminSignInPage from './pages/AdminSignInPage';
@@ -30,6 +31,7 @@ const App = () => {
   const baseSidebarItems = [
     { name: 'Home', icon: Home, path: '/' },
     { name: 'All Logos', icon: HandMetal, path: '/brands-logos' },
+    { name: 'Learn', icon: BookOpen, path: '/learn' },
     { name: 'Color Palette', icon: Star, path: '/color-palette' },
     { name: 'Fonts', icon: Folder, path: '/fonts' },
   ];
@@ -211,6 +213,7 @@ const App = () => {
             <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />
             <Route path="/admin/fonts" element={<AdminRoute><FontsAdminPage /></AdminRoute>} />
             <Route path="/brands-logos" element={<AllImagesPage />} />
+            <Route path="/learn" element={<LearnPage />} />
             <Route path="/ai-name-generator" element={<AINameGeneratorPage />} />
             <Route path="/color-palette" element={<ColorPalettePage />} />
             <Route path="/fonts" element={<FontsPage />} />
