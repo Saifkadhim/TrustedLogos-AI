@@ -79,23 +79,9 @@ const App = () => {
       <div className={`w-64 bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 h-screen z-50 transform transition-transform duration-200 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center">
-            <img 
-              src="/logo/Asset 1@4x.png" 
-              alt="TrustedLogos" 
-              className="h-14 w-auto max-w-full object-contain"
-              style={{ height: '57.6px' }}
-              onError={(e) => {
-                // Fallback to text logo if image fails to load
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-            <h1 className="text-xl font-black text-blue-600 hidden">
-              TRUSTEDLOGOS
-            </h1>
-          </div>
+          <h1 className="text-xl font-black text-blue-600">
+            TRUSTEDLOGOS
+          </h1>
         </div>
 
         {/* Main Navigation */}
