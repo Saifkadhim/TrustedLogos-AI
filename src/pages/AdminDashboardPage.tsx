@@ -24,6 +24,7 @@ import { useLogos } from '../hooks/useLogos-safe';
 import { useBooks } from '../hooks/useBooks';
 import { useColorPalettes } from '../hooks/useColorPalettes';
 import { useFonts } from '../hooks/useFonts';
+import { useAIVisibility } from '../hooks/useAIVisibility';
 import { runAllDebugTests } from '../utils/debugSupabase';
 
 const AdminDashboardPage: React.FC = () => {
@@ -33,6 +34,7 @@ const AdminDashboardPage: React.FC = () => {
   const { books } = useBooks();
   const { palettes } = useColorPalettes();
   const { fonts } = useFonts();
+  const { isAIVisible, toggleAIVisibility } = useAIVisibility();
 
   // Main admin tools organized by category
   const contentManagementTools = [
@@ -394,10 +396,67 @@ const AdminDashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Platform Controls */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <Settings className="h-5 w-5 mr-2" />
+          Platform Controls
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* AI Tools Visibility Control */}
+          <div className="bg-white rounded-lg border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 rounded-lg mr-3">
+                  <Zap className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">AI Tools Section</h3>
+                  <p className="text-sm text-gray-600">Control visibility of AI tools in sidebar</p>
+                </div>
+              </div>
+              <button
+                onClick={toggleAIVisibility}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                  isAIVisible ? 'bg-purple-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    isAIVisible ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500">
+                Status: {isAIVisible ? 'Visible to Public' : 'Hidden (Development Mode)'}
+              </span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                isAIVisible 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {isAIVisible ? 'Public' : 'Private'}
+              </span>
+            </div>
+          </div>
+
+          {/* Future Controls Placeholder */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-dashed border-gray-300 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <Settings className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 font-medium">More Controls</p>
+              <p className="text-xs text-gray-400">Additional platform controls will appear here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* System Status */}
       <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">System Status</h3>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-4 gap-4">
           <div className="flex items-center">
             <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
             <span className="text-sm text-gray-700">Database Connected</span>
@@ -409,6 +468,10 @@ const AdminDashboardPage: React.FC = () => {
           <div className="flex items-center">
             <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
             <span className="text-sm text-gray-700">Admin Access Active</span>
+          </div>
+          <div className="flex items-center">
+            <div className={`w-3 h-3 rounded-full mr-3 ${isAIVisible ? 'bg-purple-500' : 'bg-yellow-500'}`}></div>
+            <span className="text-sm text-gray-700">AI Tools {isAIVisible ? 'Public' : 'Private'}</span>
           </div>
         </div>
       </div>

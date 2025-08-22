@@ -6,6 +6,7 @@ import { LogoProvider } from './hooks/useLogos-safe';
 import { AdminAuthProvider } from './hooks/useAdminAuth';
 import { ColorPalettesProvider } from './hooks/useColorPalettes';
 import { FontsProvider } from './hooks/useFonts';
+import { AIVisibilityProvider } from './hooks/useAIVisibility';
 import App from './App.tsx';
 import './index.css';
 
@@ -16,9 +17,11 @@ createRoot(document.getElementById('root')!).render(
         <LogoProvider>
           <ColorPalettesProvider>
             <FontsProvider>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
+              <AIVisibilityProvider>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </AIVisibilityProvider>
             </FontsProvider>
           </ColorPalettesProvider>
         </LogoProvider>

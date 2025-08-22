@@ -17,12 +17,14 @@ import { useLogos } from './hooks/useLogos-safe';
 import AdminSignInPage from './pages/AdminSignInPage';
 import BulkUploadPage from './pages/BulkUploadPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
+import { useAIVisibility } from './hooks/useAIVisibility';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
 import LogoModal from './components/LogoModal';
 
 const App = () => {
   const location = useLocation();
   const { isAuthenticated } = useAdminAuth();
+  const { isAIVisible } = useAIVisibility();
   const [activeTab, setActiveTab] = useState('Social media');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Automotive');
@@ -105,27 +107,29 @@ const App = () => {
               ))}
             </div>
 
-            {/* AI Tools section */}
-            <div className="pt-4">
-              <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Tools</div>
-              <div className="space-y-2">
-                {aiToolsItems.map((item, index) => (
-                  <Link
-                    key={index}
-                    to={item.path}
-                    onClick={() => setIsSidebarOpen(false)}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
-                      location.pathname === item.path
-                        ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-medium'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </Link>
-                ))}
+            {/* AI Tools section - conditionally rendered */}
+            {isAIVisible && (
+              <div className="pt-4">
+                <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Tools</div>
+                <div className="space-y-2">
+                  {aiToolsItems.map((item, index) => (
+                    <Link
+                      key={index}
+                      to={item.path}
+                      onClick={() => setIsSidebarOpen(false)}
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                        location.pathname === item.path
+                          ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Admin section - only visible to authenticated admins */}
             {isAuthenticated && (
