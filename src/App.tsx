@@ -11,6 +11,7 @@ import FontsPage from './pages/FontsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import FontsAdminPage from './pages/FontsAdminPage';
 import LearnPage from './pages/LearnPage';
+import BooksAdminPage from './pages/BooksAdminPage';
 import AdminRoute from './components/AdminRoute';
 import { useLogos } from './hooks/useLogos-safe';
 import AdminSignInPage from './pages/AdminSignInPage';
@@ -47,6 +48,7 @@ const App = () => {
     { name: 'Admin Dashboard', icon: Settings, path: '/admin' },
     { name: 'Add Logo', icon: Plus, path: '/admin/add-logo' },
     { name: 'Bulk Upload', icon: Upload, path: '/admin/bulk-upload' },
+    { name: 'Manage Books', icon: BookOpen, path: '/admin/books' },
     { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
     { name: 'Manage Fonts', icon: Folder, path: '/admin/fonts' },
   ];
@@ -210,6 +212,7 @@ const App = () => {
             <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
             <Route path="/admin/add-logo" element={<AdminRoute><AddLogoPage /></AdminRoute>} />
             <Route path="/admin/bulk-upload" element={<AdminRoute><BulkUploadPage /></AdminRoute>} />
+            <Route path="/admin/books" element={<AdminRoute><BooksAdminPage /></AdminRoute>} />
             <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />
             <Route path="/admin/fonts" element={<AdminRoute><FontsAdminPage /></AdminRoute>} />
             <Route path="/brands-logos" element={<AllImagesPage />} />
