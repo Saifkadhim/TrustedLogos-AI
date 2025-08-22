@@ -1,201 +1,34 @@
-import React, { useState } from 'react';
-import { BookOpen, Star, ExternalLink, Search } from 'lucide-react';
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  description: string;
-  rating: number;
-  coverUrl: string;
-  amazonUrl?: string;
-  category: string;
-}
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Star, ExternalLink, Search, AlertCircle } from 'lucide-react';
+import { useBooks, Book, BookCategory } from '../hooks/useBooks';
 
 const LearnPage = () => {
+  const { books, categories, loading, error } = useBooks();
   const [activeCategory, setActiveCategory] = useState('Logo Books');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
 
-  const bookCategories = [
-    'Logo Books',
-    'Brand Identity Books', 
-    'Typography Books',
-    'Business Books',
-    'Other Graphic Design Books'
-  ];
+  // Update active category when categories load
+  useEffect(() => {
+    if (categories.length > 0 && !categories.find(c => c.name === activeCategory)) {
+      setActiveCategory(categories[0].name);
+    }
+  }, [categories, activeCategory]);
 
-  // Sample books data - you can expand this with real book data
-  const books: Book[] = [
-    // Logo Books
-    {
-      id: '1',
-      title: 'Logo Design Love',
-      author: 'David Airey',
-      description: 'A guide to creating iconic brand identities with practical advice and real-world examples.',
-      rating: 4.8,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Logo Books'
-    },
-    {
-      id: '2',
-      title: 'Marks of Excellence',
-      author: 'Per Mollerup',
-      description: 'The history and taxonomy of trademarks, exploring what makes a logo truly memorable.',
-      rating: 4.6,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Logo Books'
-    },
-    {
-      id: '3',
-      title: 'Symbol',
-      author: 'Angus Hyland',
-      description: 'A comprehensive look at the art of logo design and corporate identity.',
-      rating: 4.7,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Logo Books'
-    },
+  // Filter books based on active category and search term
+  useEffect(() => {
+    const filtered = books.filter(book => {
+      const matchesCategory = book.category?.name === activeCategory;
+      const matchesSearch = 
+        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (book.description && book.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      return matchesCategory && matchesSearch && book.is_published;
+    });
     
-    // Brand Identity Books
-    {
-      id: '4',
-      title: 'Designing Brand Identity',
-      author: 'Alina Wheeler',
-      description: 'An essential handbook for the entire branding team with proven methodologies.',
-      rating: 4.9,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Brand Identity Books'
-    },
-    {
-      id: '5',
-      title: 'Brand Identity Essentials',
-      author: 'Kevin Budelmann',
-      description: '100 principles for designing logos and building brands.',
-      rating: 4.5,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Brand Identity Books'
-    },
-    
-    // Typography Books
-    {
-      id: '6',
-      title: 'Thinking with Type',
-      author: 'Ellen Lupton',
-      description: 'A critical guide for designers, writers, editors, and students.',
-      rating: 4.7,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Typography Books'
-    },
-    {
-      id: '7',
-      title: 'The Elements of Typographic Style',
-      author: 'Robert Bringhurst',
-      description: 'The definitive guide to typography and type design.',
-      rating: 4.8,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Typography Books'
-    },
-    
-    // Business Books
-    {
-      id: '8',
-      title: 'Building a StoryBrand',
-      author: 'Donald Miller',
-      description: 'Clarify your message so customers will listen and buy.',
-      rating: 4.6,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Business Books'
-    },
-    {
-      id: '9',
-      title: 'The Brand Gap',
-      author: 'Marty Neumeier',
-      description: 'How to bridge the distance between business strategy and design.',
-      rating: 4.5,
-      coverUrl: '/api/placeholder/200/300',
-      amazonUrl: '#',
-      category: 'Business Books'
-    },
-    
-         // Typography Books (additional)
-     {
-       id: '12',
-       title: 'Typography Sketchbooks',
-       author: 'Steven Heller',
-       description: 'Behind-the-scenes look at how type designers work and think.',
-       rating: 4.4,
-       coverUrl: '/api/placeholder/200/300',
-       amazonUrl: '#',
-       category: 'Typography Books'
-     },
-     
-     // Business Books (additional)
-     {
-       id: '13',
-       title: 'Purple Cow',
-       author: 'Seth Godin',
-       description: 'Transform your business by being remarkable.',
-       rating: 4.3,
-       coverUrl: '/api/placeholder/200/300',
-       amazonUrl: '#',
-       category: 'Business Books'
-     },
-     {
-       id: '14',
-       title: 'Made to Stick',
-       author: 'Chip Heath & Dan Heath',
-       description: 'Why some ideas survive and others die.',
-       rating: 4.5,
-       coverUrl: '/api/placeholder/200/300',
-       amazonUrl: '#',
-       category: 'Business Books'
-     },
-     
-     // Other Graphic Design Books
-     {
-       id: '10',
-       title: 'The Design of Everyday Things',
-       author: 'Don Norman',
-       description: 'Fundamental principles of good design and user experience.',
-       rating: 4.7,
-       coverUrl: '/api/placeholder/200/300',
-       amazonUrl: '#',
-       category: 'Other Graphic Design Books'
-     },
-     {
-       id: '11',
-       title: 'Grid Systems in Graphic Design',
-       author: 'Josef Müller-Brockmann',
-       description: 'A visual communication manual for graphic designers.',
-       rating: 4.8,
-       coverUrl: '/api/placeholder/200/300',
-       amazonUrl: '#',
-       category: 'Other Graphic Design Books'
-     },
-     {
-       id: '15',
-       title: 'Graphic Design: The New Basics',
-       author: 'Ellen Lupton',
-       description: 'Updated fundamentals for the digital age.',
-       rating: 4.6,
-       coverUrl: '/api/placeholder/200/300',
-       amazonUrl: '#',
-       category: 'Other Graphic Design Books'
-     }
-  ];
-
-  const filteredBooks = books.filter(book => 
-    book.category === activeCategory &&
-    (book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     book.author.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+    setFilteredBooks(filtered);
+  }, [books, activeCategory, searchTerm]);
 
   const renderStars = (rating: number) => {
     return (
@@ -212,6 +45,18 @@ const LearnPage = () => {
       </div>
     );
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <BookOpen className="h-12 w-12 text-blue-600 mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600">Loading books...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -231,6 +76,21 @@ const LearnPage = () => {
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-red-700 font-medium">Unable to load books</p>
+              <p className="text-red-600 text-sm mt-1">
+                {error} - Please make sure the database is set up correctly.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search Bar */}
         <div className="mb-8">
@@ -247,23 +107,25 @@ const LearnPage = () => {
         </div>
 
         {/* Category Tabs */}
-        <div className="mb-8">
-          <div className="flex flex-wrap justify-center gap-2">
-            {bookCategories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  activeCategory === category
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
+        {categories.length > 0 && (
+          <div className="mb-8">
+            <div className="flex flex-wrap justify-center gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.name)}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    activeCategory === category.name
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Books Grid */}
         <div className="mb-8">
@@ -275,8 +137,15 @@ const LearnPage = () => {
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg">
-                {searchTerm ? 'No books found matching your search.' : 'No books available in this category yet.'}
+                {searchTerm ? 'No books found matching your search.' : 
+                 categories.length === 0 ? 'Database not set up yet. Please run the Supabase migrations.' :
+                 'No books available in this category yet.'}
               </p>
+              {categories.length === 0 && (
+                <p className="text-gray-400 text-sm mt-2">
+                  See BOOKS_SETUP.md for database setup instructions.
+                </p>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -284,10 +153,27 @@ const LearnPage = () => {
                 <div key={book.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
                   {/* Book Cover */}
                   <div className="aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    {book.cover_image_url ? (
+                      <img 
+                        src={book.cover_image_url} 
+                        alt={book.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`absolute inset-0 flex items-center justify-center ${book.cover_image_url ? 'hidden' : ''}`}>
                       <BookOpen className="h-16 w-16 text-blue-400 opacity-50" />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {book.is_featured && (
+                      <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold">
+                        Featured
+                      </div>
+                    )}
                   </div>
                   
                   {/* Book Info */}
@@ -298,9 +184,21 @@ const LearnPage = () => {
                     <p className="text-blue-600 font-medium mb-3">
                       by {book.author}
                     </p>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {book.description}
-                    </p>
+                    {book.description && (
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                        {book.description}
+                      </p>
+                    )}
+                    
+                    {/* Additional Info */}
+                    {(book.publisher || book.publication_year) && (
+                      <p className="text-xs text-gray-500 mb-3">
+                        {book.publisher && book.publication_year 
+                          ? `${book.publisher} • ${book.publication_year}`
+                          : book.publisher || book.publication_year}
+                        {book.page_count && ` • ${book.page_count} pages`}
+                      </p>
+                    )}
                     
                     {/* Rating */}
                     <div className="mb-4">
@@ -309,10 +207,22 @@ const LearnPage = () => {
                     
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-                      <button className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2">
-                        <ExternalLink className="h-4 w-4" />
-                        View Book
-                      </button>
+                      {book.amazon_url ? (
+                        <a
+                          href={book.amazon_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          View Book
+                        </a>
+                      ) : (
+                        <button className="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed flex items-center justify-center gap-2">
+                          <BookOpen className="h-4 w-4" />
+                          No Link
+                        </button>
+                      )}
                       <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                         <Star className="h-4 w-4 text-gray-600" />
                       </button>
