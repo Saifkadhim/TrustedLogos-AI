@@ -734,7 +734,7 @@ const HomePage = ({
         {/* AI Logo Generator CTA */}
         <div className="mb-8">
           <Link
-            to="/ai-logo-generator"
+            to="/brands-logos"
             className="block bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-xl p-8 text-white hover:scale-105 transition-transform duration-200 shadow-lg hover:shadow-xl"
           >
             <div className="flex items-center justify-between">
