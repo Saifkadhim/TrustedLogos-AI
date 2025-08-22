@@ -744,18 +744,18 @@ const HomePage = ({
                     <Zap className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-2xl">AI Logo Generator</h3>
-                    <p className="text-lg opacity-90">Create professional logos instantly</p>
+                    <h3 className="font-bold text-2xl">Logo Inspiration Gallery</h3>
+                    <p className="text-lg opacity-90">Discover popular logos for inspiration and learning</p>
                   </div>
                 </div>
                 <p className="text-sm opacity-80 max-w-2xl">
-                  Harness the power of artificial intelligence to generate unique, professional logos for your business. 
-                  Simply enter your company details and let our AI create stunning logo designs in seconds.
+                  Explore our curated collection of popular logos from renowned brands and companies. All logos are showcased 
+                  for educational and inspirational purposes only. We respect and acknowledge the original designers and trademark owners.
                 </p>
                 <div className="flex items-center mt-4 space-x-4">
-                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">✨ AI Powered</span>
-                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">🚀 Instant Results</span>
-                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">🎨 Multiple Styles</span>
+                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">🎨 For Inspiration</span>
+                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">📚 Educational Use</span>
+                  <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">© Rights Reserved</span>
                 </div>
               </div>
               <div className="hidden lg:block">
