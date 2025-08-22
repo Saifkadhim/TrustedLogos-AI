@@ -83,7 +83,8 @@ const App = () => {
             <img 
               src="/logo/Asset 1@4x.png" 
               alt="TrustedLogos" 
-              className="h-8 w-auto max-w-full object-contain"
+              className="h-14 w-auto max-w-full object-contain"
+              style={{ height: '57.6px' }}
               onError={(e) => {
                 // Fallback to text logo if image fails to load
                 const target = e.target as HTMLImageElement;
