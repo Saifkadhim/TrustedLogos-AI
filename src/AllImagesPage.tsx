@@ -537,8 +537,18 @@ const AllImagesPage = () => {
   }, []);
 
   const uniqueShapes = useMemo(() => {
-    return [...new Set(allLogos.map(logo => logo.shape))];
-  }, [allLogos]);
+    // Use same static shape options as AddLogoPage and ManageLogosPage
+    return [
+      'Circular',
+      'Square', 
+      'Rectangular',
+      'Triangular',
+      'Organic',
+      'Geometric',
+      'Script',
+      'Other'
+    ];
+  }, []);
 
   // Filter logos based on selected filters and search query
   const filteredLogos = useMemo(() => {
