@@ -13,7 +13,7 @@ try {
   new URL(supabaseUrl)
 } catch (error) {
   console.error('Invalid VITE_SUPABASE_URL format. Please ensure it is a valid URL (e.g., https://your-project-id.supabase.co)')
-  throw new Error('Invalid Supabase URL format')
+  console.warn('Using placeholder URL - some features may not work until you configure proper Supabase credentials')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
