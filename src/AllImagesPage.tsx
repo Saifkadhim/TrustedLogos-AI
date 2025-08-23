@@ -14,6 +14,10 @@ const AllImagesPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 84;
+  
   // Modal state
   const [selectedLogo, setSelectedLogo] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -536,6 +540,17 @@ const AllImagesPage = () => {
     });
   }, [allLogos, selectedLogoTypes, selectedColors, selectedShapes, activeCategory, activeSubcategory, searchQuery]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredLogos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedLogos = filteredLogos.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedLogoTypes, selectedColors, selectedShapes, activeCategory, activeSubcategory, searchQuery]);
+
   // Handle filter changes
   const handleFilterChange = (filterType: 'type' | 'color' | 'shape', value: string) => {
     switch (filterType) {
@@ -569,6 +584,7 @@ const AllImagesPage = () => {
     setSelectedShapes([]);
     setActiveCategory('All');
     setActiveSubcategory('All');
+    setCurrentPage(1);
   };
 
   const categoryTabs = useMemo(() => ['All', ...INDUSTRY_CATEGORIES.map(c => c.name)], []);
@@ -762,7 +778,7 @@ const AllImagesPage = () => {
               ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-7 gap-4' 
               : 'space-y-3'
           }`}>
-            {filteredLogos.map((logo) => (
+            {paginatedLogos.map((logo) => (
               <div
                 key={logo.id}
                 onClick={() => openModal(logo)}
@@ -813,6 +829,75 @@ const AllImagesPage = () => {
               </div>
             ))}
           </div>
+
+          {/* Pagination */}
+          {filteredLogos.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between mt-8 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center text-sm text-gray-600">
+                <span>
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredLogos.length)} of {filteredLogos.length} logos
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPages <= 7) {
+                      pageNumber = i + 1;
+                    } else if (currentPage <= 4) {
+                      pageNumber = i + 1;
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNumber = totalPages - 6 + i;
+                    } else {
+                      pageNumber = currentPage - 3 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                          currentPage === pageNumber
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
 
           {filteredLogos.length === 0 && (
             <div className="text-center py-12">
