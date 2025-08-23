@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, Download, Heart, Loader, Trash2, Edit3, X, Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLogos, type Logo, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
+import ColorSwatch from '../components/ColorSwatch';
 const ManageLogosPage = () => {
   const { 
     logos: allLogos, 
@@ -757,25 +758,20 @@ const ManageLogosPage = () => {
                 </div>
 
                 {/* Colors */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
-                    <input
-                      type="color"
-                      value={editForm.primary_color}
-                      onChange={(e) => setEditForm({...editForm, primary_color: e.target.value})}
-                      className="w-full h-10 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Color</label>
-                    <input
-                      type="color"
-                      value={editForm.secondary_color}
-                      onChange={(e) => setEditForm({...editForm, secondary_color: e.target.value})}
-                      className="w-full h-10 border border-gray-300 rounded-lg"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ColorSwatch
+                    selectedColor={editForm.primary_color}
+                    onChange={(color) => setEditForm({...editForm, primary_color: color})}
+                    label="Primary Color"
+                    allowCustom={true}
+                  />
+                  
+                  <ColorSwatch
+                    selectedColor={editForm.secondary_color}
+                    onChange={(color) => setEditForm({...editForm, secondary_color: color})}
+                    label="Secondary Color"
+                    allowCustom={true}
+                  />
                 </div>
 
                 {/* Description */}

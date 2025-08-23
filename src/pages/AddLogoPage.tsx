@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shapes, Edit3, Loader } from 'lucide-react';
 import { useLogos, type Logo, type CreateLogoData, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
+import ColorSwatch from '../components/ColorSwatch';
 const AddLogoPage = () => {
   const { 
     logos: allLogos, 
@@ -446,55 +447,25 @@ const AddLogoPage = () => {
 
             {/* Color Section */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                 <Palette className="h-5 w-5 text-pink-600 mr-2" />
                 Logo Colors
               </h2>
               
-              <div className="flex items-center space-x-4">
-                <div>
-                  <label htmlFor="logoColor" className="block text-sm font-medium text-gray-700 mb-2">
-                    Primary Color
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="color"
-                      id="logoColor"
-                      value={logoColor}
-                      onChange={(e) => setLogoColor(e.target.value)}
-                      className="h-12 w-16 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={logoColor}
-                      onChange={(e) => setLogoColor(e.target.value)}
-                      className="w-24 px-2 py-1 text-sm border border-gray-300 rounded"
-                      placeholder="#000000"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="secondaryLogoColor" className="block text-sm font-medium text-gray-700 mb-2">
-                    Secondary Color (Optional)
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="color"
-                      id="secondaryLogoColor"
-                      value={secondaryLogoColor}
-                      onChange={(e) => setSecondaryLogoColor(e.target.value)}
-                      className="h-12 w-16 border border-gray-300 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={secondaryLogoColor}
-                      onChange={(e) => setSecondaryLogoColor(e.target.value)}
-                      className="w-24 px-2 py-1 text-sm border border-gray-300 rounded"
-                      placeholder="#ffffff"
-                    />
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <ColorSwatch
+                  selectedColor={logoColor}
+                  onChange={setLogoColor}
+                  label="Primary Color"
+                  allowCustom={true}
+                />
+                
+                <ColorSwatch
+                  selectedColor={secondaryLogoColor}
+                  onChange={setSecondaryLogoColor}
+                  label="Secondary Color (Optional)"
+                  allowCustom={true}
+                />
               </div>
             </div>
 
