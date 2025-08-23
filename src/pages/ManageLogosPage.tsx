@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Grid, List, Download, Heart, Loader, Trash2, Edit3, X, Save } from 'lucide-react';
+import { Search, Filter, Grid, List, Download, Heart, Loader, Trash2, Edit3, X, Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLogos, type Logo, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
 const ManageLogosPage = () => {
@@ -26,6 +26,10 @@ const ManageLogosPage = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterIndustry, setFilterIndustry] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
   
   // Editing states
   const [editingLogo, setEditingLogo] = useState<Logo | null>(null);
@@ -80,7 +84,7 @@ const ManageLogosPage = () => {
   ];
 
   // Filter and sort logos
-  const filteredLogos = logos
+  const allFilteredLogos = logos
     .filter(logo => {
       const matchesSearch = logo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            logo.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,11 +114,23 @@ const ManageLogosPage = () => {
       }
     });
 
-  // Export logos to CSV
+  // Pagination calculations
+  const totalItems = allFilteredLogos.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const filteredLogos = allFilteredLogos.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterIndustry, sortBy]);
+
+  // Export logos to CSV (exports all filtered results, not just current page)
   const exportLogos = () => {
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Name,Type,Industry,Primary Color,Secondary Color,Shape,Downloads,Likes,Created\n"
-      + filteredLogos.map(logo => 
+      + allFilteredLogos.map(logo => 
           `"${logo.name}","${logo.type}","${logo.industry}","${logo.primaryColor}","${logo.secondaryColor || ''}","${logo.shape}","${logo.downloads || 0}","${logo.likes || 0}","${new Date(logo.createdAt).toLocaleDateString()}"`
         ).join("\n");
 
@@ -322,10 +338,11 @@ const ManageLogosPage = () => {
           </div>
         </div>
 
-        {/* Results count */}
-        <div className="mt-4 text-sm text-gray-600">
-          Showing {filteredLogos.length} of {logos.length} logos
-        </div>
+                      {/* Results count */}
+              <div className="mt-4 text-sm text-gray-600">
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} logos
+                {totalItems !== logos.length && ` (filtered from ${logos.length} total)`}
+              </div>
       </div>
 
       {/* Loading State */}
@@ -516,6 +533,135 @@ const ManageLogosPage = () => {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {/* Previous Button */}
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-1">
+              {(() => {
+                const pages = [];
+                const showEllipsis = totalPages > 7;
+                
+                if (!showEllipsis) {
+                  // Show all pages if 7 or fewer
+                  for (let i = 1; i <= totalPages; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`px-3 py-2 text-sm rounded-lg ${
+                          currentPage === i
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+                } else {
+                  // Show ellipsis for many pages
+                  // Always show first page
+                  pages.push(
+                    <button
+                      key={1}
+                      onClick={() => setCurrentPage(1)}
+                      className={`px-3 py-2 text-sm rounded-lg ${
+                        currentPage === 1
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      1
+                    </button>
+                  );
+
+                  // Show ellipsis if needed
+                  if (currentPage > 3) {
+                    pages.push(
+                      <span key="ellipsis1" className="px-2 text-gray-500">...</span>
+                    );
+                  }
+
+                  // Show pages around current page
+                  const start = Math.max(2, currentPage - 1);
+                  const end = Math.min(totalPages - 1, currentPage + 1);
+                  
+                  for (let i = start; i <= end; i++) {
+                    if (i !== 1 && i !== totalPages) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`px-3 py-2 text-sm rounded-lg ${
+                            currentPage === i
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                  }
+
+                  // Show ellipsis if needed
+                  if (currentPage < totalPages - 2) {
+                    pages.push(
+                      <span key="ellipsis2" className="px-2 text-gray-500">...</span>
+                    );
+                  }
+
+                  // Always show last page
+                  if (totalPages > 1) {
+                    pages.push(
+                      <button
+                        key={totalPages}
+                        onClick={() => setCurrentPage(totalPages)}
+                        className={`px-3 py-2 text-sm rounded-lg ${
+                          currentPage === totalPages
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {totalPages}
+                      </button>
+                    );
+                  }
+                }
+                
+                return pages;
+              })()}
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </button>
+          </div>
         </div>
       )}
 
