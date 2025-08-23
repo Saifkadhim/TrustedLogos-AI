@@ -367,8 +367,8 @@ const HomePage = ({
     }
   }, [logos, activeTab, topTabSubcategories, topLogosForDisplay]);
 
-  // Display top 10 filtered logos
-  const displayLogos = filteredTopLogos.slice(0, 10);
+  // Display top 14 filtered logos
+  const displayLogos = filteredTopLogos.slice(0, 14);
 
   const quickActions = [
     {
