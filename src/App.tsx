@@ -881,7 +881,7 @@ const HomePage = ({
         </div>
 
         {/* Industry Logos Grid */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-7 gap-4">
           {distributedData.industries[activeIndustry]?.logos?.length > 0 ? distributedData.industries[activeIndustry].logos.map((logo, index) => (
             <div
               key={index}

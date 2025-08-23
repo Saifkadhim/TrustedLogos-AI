@@ -144,11 +144,11 @@ export function distributeLogos(allLogos: Logo[]): DistributedLogos {
     }
   });
 
-  // Assign logos to each industry (limit to 8 per industry for display)
+  // Assign logos to each industry (limit to 14 per industry for display)
   Object.keys(industries).forEach(industry => {
     industries[industry].logos = logosByIndustry[industry]
       ?.sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes))
-      .slice(0, 8) || [];
+      .slice(0, 14) || [];
   });
 
   return {
