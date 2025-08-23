@@ -6,6 +6,7 @@ import AINameGeneratorPage from './AINameGeneratorPage';
 import ColorPalettePage from './ColorPalettePage';
 import AILogoGeneratorPage from './pages/AILogoGeneratorPage';
 import AddLogoPage from './pages/AddLogoPage';
+import ManageLogosPage from './pages/ManageLogosPage';
 import ColorPaletteAdminPage from './pages/ColorPaletteAdminPage';
 import FontsPage from './pages/FontsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
@@ -50,6 +51,7 @@ const App = () => {
   const adminSidebarItems = [
     { name: 'Admin Dashboard', icon: Settings, path: '/admin' },
     { name: 'Add Logo', icon: Plus, path: '/admin/add-logo' },
+    { name: 'Manage Logos', icon: HandMetal, path: '/admin/manage-logos' },
     { name: 'Bulk Upload', icon: Upload, path: '/admin/bulk-upload' },
     { name: 'Manage Books', icon: BookOpen, path: '/admin/books' },
     { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
@@ -216,6 +218,7 @@ const App = () => {
             <Route path="/console-setup" element={<AdminSignInPage />} />
             <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
             <Route path="/admin/add-logo" element={<AdminRoute><AddLogoPage /></AdminRoute>} />
+            <Route path="/admin/manage-logos" element={<AdminRoute><ManageLogosPage /></AdminRoute>} />
             <Route path="/admin/bulk-upload" element={<AdminRoute><BulkUploadPage /></AdminRoute>} />
             <Route path="/admin/books" element={<AdminRoute><BooksAdminPage /></AdminRoute>} />
             <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />

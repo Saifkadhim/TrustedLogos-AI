@@ -40,10 +40,18 @@ const AdminDashboardPage: React.FC = () => {
   const contentManagementTools = [
     { 
       title: 'Add Logo', 
-      description: 'Upload and manage brand logos', 
+      description: 'Upload new brand logos', 
       icon: Plus, 
       to: '/admin/add-logo', 
       color: 'from-blue-500 to-indigo-600',
+      stats: 'Add new logos'
+    },
+    { 
+      title: 'Manage Logos', 
+      description: 'View, search and manage existing logos', 
+      icon: HandMetal, 
+      to: '/admin/manage-logos', 
+      color: 'from-orange-500 to-red-600',
       stats: `${logos?.length || 0} logos`
     },
     { 
