@@ -988,11 +988,46 @@ const HomePage = ({
             <div>
               <h4 className="font-semibold text-gray-900 mb-4">Industries</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Technology</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Fashion</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Food & Drinks</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Automotive</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">View All Industries</a></li>
+                <li>
+                  <Link 
+                    to="/brands-logos?category=Technology & Software" 
+                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                  >
+                    Technology
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/brands-logos?category=Fashion & Beauty" 
+                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                  >
+                    Fashion
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/brands-logos?category=Food & Drinks" 
+                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                  >
+                    Food & Drinks
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/brands-logos?category=Automotive & Transport" 
+                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                  >
+                    Automotive
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/brands-logos" 
+                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                  >
+                    View All Industries
+                  </Link>
+                </li>
               </ul>
             </div>
 

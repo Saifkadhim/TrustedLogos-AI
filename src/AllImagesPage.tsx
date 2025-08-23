@@ -1,12 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
 import { useLogos } from './hooks/useLogos-safe';
 import LogoModal from './components/LogoModal';
 import { INDUSTRY_CATEGORIES } from './utils/industryCategories';
 import SEO from './components/SEO';
+import { useSearchParams } from 'react-router-dom';
 
 const AllImagesPage = () => {
   const { logos, loading, error, incrementDownloads, incrementLikes } = useLogos();
+  const [searchParams] = useSearchParams();
   const [selectedLogoTypes, setSelectedLogoTypes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
@@ -18,6 +20,20 @@ const AllImagesPage = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 84;
+
+  // Handle URL parameters for category selection
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      // Decode URL parameter and check if it's a valid category
+      const decodedCategory = decodeURIComponent(categoryParam);
+      const validCategories = INDUSTRY_CATEGORIES.map(c => c.name);
+      if (validCategories.includes(decodedCategory)) {
+        setActiveCategory(decodedCategory);
+        setActiveSubcategory('All');
+      }
+    }
+  }, [searchParams]);
   
   // Modal state
   const [selectedLogo, setSelectedLogo] = useState<any>(null);
