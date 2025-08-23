@@ -651,7 +651,8 @@ const AllImagesPage = () => {
 
           {/* Filters Section */}
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex flex-wrap items-center gap-4">
               {/* Search */}
               <div className="flex-1 min-w-64">
                 <div className="relative">
@@ -708,7 +709,40 @@ const AllImagesPage = () => {
                 </div>
               </div>
 
-              {/* View Mode Toggle */}
+
+
+              {/* Shape Filter */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Shape:</span>
+                <div className="flex gap-1">
+                  {uniqueShapes.map((shape) => (
+                    <button
+                      key={shape}
+                      onClick={() => handleFilterChange('shape', shape)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
+                        selectedShapes.includes(shape)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {shape.charAt(0).toUpperCase() + shape.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+                {/* Clear All Button */}
+                {(selectedLogoTypes.length > 0 || selectedColors.length > 0 || selectedShapes.length > 0) && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="px-3 py-1 text-xs font-medium text-red-600 hover:text-red-700 border border-red-200 rounded-full hover:bg-red-50 transition-colors duration-200"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              {/* View Mode Toggle - Right Side */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">View:</span>
                 <div className="flex items-center space-x-2">
@@ -734,36 +768,6 @@ const AllImagesPage = () => {
                   </button>
                 </div>
               </div>
-
-              {/* Shape Filter */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Shape:</span>
-                <div className="flex gap-1">
-                  {uniqueShapes.map((shape) => (
-                    <button
-                      key={shape}
-                      onClick={() => handleFilterChange('shape', shape)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
-                        selectedShapes.includes(shape)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {shape.charAt(0).toUpperCase() + shape.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Clear All Button */}
-              {(selectedLogoTypes.length > 0 || selectedColors.length > 0 || selectedShapes.length > 0) && (
-                <button
-                  onClick={clearAllFilters}
-                  className="px-3 py-1 text-xs font-medium text-red-600 hover:text-red-700 border border-red-200 rounded-full hover:bg-red-50 transition-colors duration-200"
-                >
-                  Clear All
-                </button>
-              )}
             </div>
           </div>
 
