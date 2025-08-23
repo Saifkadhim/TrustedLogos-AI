@@ -181,27 +181,44 @@ const ManageLogosPage = () => {
 
   // Save edited logo
   const handleSaveLogo = async () => {
-    if (!editingLogo) return;
+    if (!editingLogo) {
+      console.error('No logo selected for editing');
+      return;
+    }
 
     try {
+      console.log('Starting logo update...');
+      console.log('Editing logo:', editingLogo);
+      console.log('Form data:', editForm);
+      
       const updateData: UpdateLogoData = {
+        id: editingLogo.id,
         name: editForm.name,
         type: editForm.type,
         industry: editForm.industry_category,
         subcategory: editForm.subcategory || null,
         shape: editForm.logo_shape,
-        description: editForm.description || null,
-        websiteUrl: editForm.website_url || null,
+        information: editForm.description || null,
+        designerUrl: editForm.website_url || null,
         primaryColor: editForm.primary_color,
         secondaryColor: editForm.secondary_color
       };
 
-      await updateLogo(editingLogo.id, updateData);
+      console.log('Update data prepared:', updateData);
+      
+      const result = await updateLogo(updateData);
+      console.log('Update result:', result);
+      
       await refreshLogos();
+      console.log('Logos refreshed successfully');
+      
       handleCancelEdit();
+      console.log('Logo update completed successfully');
     } catch (error) {
-      console.error('Error updating logo:', error);
-      alert('Failed to update logo. Please try again.');
+      console.error('Error updating logo - Full error details:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      alert(`Failed to update logo. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -504,9 +521,7 @@ const ManageLogosPage = () => {
 
       {/* Edit Modal */}
       {editingLogo && (
-        <>
-          {console.log('Rendering edit modal for logo:', editingLogo)}
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -658,10 +673,9 @@ const ManageLogosPage = () => {
                   Save Changes
                 </button>
               </div>
-                         </div>
+                                      </div>
            </div>
          </div>
-         </>
        )}
     </div>
   );
