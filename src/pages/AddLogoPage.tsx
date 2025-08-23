@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shapes, Edit3, Loader } from 'lucide-react';
 import { useLogos, type Logo, type CreateLogoData, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
-import ErrorBoundary from '../components/ErrorBoundary';
-
 const AddLogoPage = () => {
   const { 
     logos: allLogos, 
@@ -170,8 +168,7 @@ const AddLogoPage = () => {
   };
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -541,8 +538,7 @@ const AddLogoPage = () => {
           </form>
         </div>
       </div>
-      </div>
-    </ErrorBoundary>
+    </div>
   );
 };
 

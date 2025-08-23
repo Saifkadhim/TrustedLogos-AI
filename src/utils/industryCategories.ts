@@ -244,6 +244,14 @@ export function findSubcategoryByName(name: string): { category: IndustryCategor
 }
 
 /**
+ * Get subcategories for a specific industry category
+ */
+export function getSubcategoriesForIndustry(industryName: string): IndustrySubcategory[] {
+  const category = INDUSTRY_CATEGORIES.find(cat => cat.name === industryName);
+  return category ? category.subcategories : [];
+}
+
+/**
  * Get category and subcategory options for form selects
  */
 export function getCategorySelectOptions(): Array<{ value: string; label: string; subcategories?: Array<{ value: string; label: string }> }> {
