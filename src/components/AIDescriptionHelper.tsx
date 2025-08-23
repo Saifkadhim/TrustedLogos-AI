@@ -98,7 +98,7 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
           ) : (
             <Sparkles className="h-4 w-4" />
           )}
-          {isGenerating ? 'Generating...' : 'AI Generate'}
+          {isGenerating ? 'Researching Company...' : 'Research Company & Logo'}
         </button>
 
         {currentDescription && (
@@ -108,14 +108,14 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
             className="flex items-center gap-2 px-3 py-2 text-sm bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:from-green-600 hover:to-teal-600 transition-all duration-200"
           >
             <RefreshCw className="h-4 w-4" />
-            Enhance
+            Analyze & Enhance
           </button>
         )}
       </div>
 
       {!logoName || !logoType || !industry ? (
         <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-          💡 Fill in Logo Name, Type, and Industry first to generate AI descriptions
+          💡 Fill in Company Name, Logo Type, and Industry first to research company info and analyze logo
         </p>
       ) : null}
 
@@ -131,7 +131,7 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-purple-500" />
-              Gemini AI Generated Suggestions
+              Company Research & Logo Analysis
             </h4>
             <button
               onClick={() => setShowSuggestions(false)}

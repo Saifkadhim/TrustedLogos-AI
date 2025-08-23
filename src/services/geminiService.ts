@@ -46,25 +46,29 @@ export class GeminiService {
     }
 
     const prompt = `
-You are a professional brand consultant and copywriter. Please enhance and improve the following logo description to make it more compelling, professional, and informative.
+You are a professional brand analyst and logo expert. Please enhance and expand the following logo description with comprehensive company information, logo history, and detailed analysis.
 
 Current Description:
 "${currentDescription}"
 
-Logo Details:
-- Logo Name: ${logoInfo.logoName}
+Company/Logo Details:
+- Company Name: ${logoInfo.logoName}
 - Logo Type: ${logoInfo.logoType}
 - Industry: ${logoInfo.industry}
 - Shape: ${logoInfo.shape}
 
 Instructions:
-1. Keep the core message but make it more engaging and professional
-2. Add relevant details about the logo type and industry context
-3. Make it sound more polished and marketing-ready
-4. Keep it concise but informative (2-3 sentences max)
-5. Focus on brand value and visual impact
+1. Research and add brief company background information
+2. Include logo history and evolution details when available
+3. Provide detailed visual description of logo elements
+4. Highlight the logo's strongest design points and strategic advantages
+5. Explain what makes this logo effective and memorable
+6. Keep professional tone suitable for brand documentation
+7. Aim for 4-5 sentences with comprehensive information
 
-Enhanced Description:`;
+If the company is not widely known, provide analysis based on the logo type, industry, and shape.
+
+Enhanced Analysis:`;
 
     try {
       const result = await this.model.generateContent(prompt);
@@ -78,46 +82,55 @@ Enhanced Description:`;
 
   private buildDescriptionPrompt(request: LogoDescriptionRequest): string {
     return `
-You are a professional brand strategist and copywriter specializing in logo descriptions. Generate 4 different professional logo descriptions for the following logo details:
+You are a professional brand analyst and logo expert. For the company "${request.logoName}", provide comprehensive information including company background, logo history, and detailed logo analysis.
 
 Logo Information:
-- Name: ${request.logoName}
+- Company/Logo Name: ${request.logoName}
 - Logo Type: ${request.logoType}
 - Industry: ${request.industry}
 - Shape: ${request.shape}
 
-Requirements for each description:
-1. Professional tone suitable for marketing materials
-2. 2-3 sentences each
-3. Focus on brand value, visual impact, and industry relevance
-4. Mention the logo type and shape naturally
-5. Each description should have a different focus/angle
+Please provide 4 different comprehensive analyses with the following structure for each:
 
-Please provide 4 distinct descriptions with the following focuses:
-1. Brand Identity & Recognition
-2. Design Elements & Visual Impact  
-3. Industry-Specific Value
-4. Professional & Versatile Application
+ANALYSIS 1: Company Background & Logo History
+[Provide company information, founding details, logo evolution history, and key milestones]
 
-Format your response as:
-DESCRIPTION 1:
+ANALYSIS 2: Logo Design Analysis & Visual Elements
+[Detailed description of the logo design, visual elements, color choices, typography, and overall composition]
+
+ANALYSIS 3: Logo Strengths & Strategic Advantages
+[Analyze what makes this logo effective, its strong points, psychological impact, and competitive advantages]
+
+ANALYSIS 4: Brand Recognition & Market Impact
+[Discuss brand recognition, memorability, market positioning, and how the logo supports business objectives]
+
+For each analysis:
+1. Start with brief company information and context
+2. Include logo history and evolution when available
+3. Provide detailed visual description of the logo
+4. Highlight the logo's strongest design elements and strategic advantages
+5. Keep professional tone suitable for brand documentation
+6. Each analysis should be 3-4 sentences long
+
+If the company is not widely known, provide general analysis based on the logo type, industry, and shape provided.
+
+Format your response exactly as:
+ANALYSIS 1:
 [content]
 
-DESCRIPTION 2:
+ANALYSIS 2:
 [content]
 
-DESCRIPTION 3:
+ANALYSIS 3:
 [content]
 
-DESCRIPTION 4:
-[content]
-
-Generate compelling, unique descriptions that would appeal to business professionals and marketing teams.`;
+ANALYSIS 4:
+[content]`;
   }
 
   private parseDescriptionResponse(text: string): string[] {
-    // Split by "DESCRIPTION" markers and clean up
-    const sections = text.split(/DESCRIPTION \d+:/i);
+    // Split by "ANALYSIS" markers and clean up
+    const sections = text.split(/ANALYSIS \d+:/i);
     
     const descriptions = sections
       .slice(1) // Remove first empty section
@@ -136,7 +149,7 @@ Generate compelling, unique descriptions that would appeal to business professio
     if (descriptions.length < 2) {
       const lines = text.split('\n')
         .map(line => line.trim())
-        .filter(line => line.length > 50 && !line.match(/^(description|focus|format)/i));
+        .filter(line => line.length > 50 && !line.match(/^(analysis|focus|format)/i));
       
       if (lines.length >= 2) {
         return lines.slice(0, 4);

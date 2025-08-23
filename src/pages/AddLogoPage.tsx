@@ -411,18 +411,18 @@ const AddLogoPage = () => {
                 {/* Logo Information */}
                 <div>
                   <label htmlFor="logoInformation" className="block text-sm font-medium text-gray-700 mb-2">
-                    Logo Information
+                    Company Background & Logo Description
                   </label>
                   <textarea
                     id="logoInformation"
                     value={logoInformation}
                     onChange={(e) => setLogoInformation(e.target.value)}
-                    placeholder="Enter detailed information about the logo (e.g., history, meaning, design inspiration, brand story)"
+                    placeholder="Company information, logo history, design analysis, and strengths. Use AI Research below to auto-generate this content."
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    Provide background information, design story, or any relevant details about this logo.
+                    Use the AI Research tool below to automatically generate company background, logo history, and detailed analysis.
                   </p>
                   
                   {/* AI Description Helper */}
