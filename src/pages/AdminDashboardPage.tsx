@@ -26,7 +26,6 @@ import { useColorPalettes } from '../hooks/useColorPalettes';
 import { useFonts } from '../hooks/useFonts';
 import { useAIVisibility } from '../hooks/useAIVisibility';
 import { runAllDebugTests } from '../utils/debugSupabase';
-import LogoManagementPanel from '../components/LogoManagementPanel';
 
 const AdminDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -37,16 +36,13 @@ const AdminDashboardPage: React.FC = () => {
   const { fonts } = useFonts();
   const { isAIVisible, toggleAIVisibility } = useAIVisibility();
 
-  // State for managing dashboard sections
-  const [activeSection, setActiveSection] = useState('overview');
-
   // Main admin tools organized by category
   const contentManagementTools = [
     { 
-      title: 'Manage Logos', 
+      title: 'Add Logo', 
       description: 'Upload and manage brand logos', 
-      icon: HandMetal, 
-      action: () => setActiveSection('logos'),
+      icon: Plus, 
+      to: '/admin/add-logo', 
       color: 'from-blue-500 to-indigo-600',
       stats: `${logos?.length || 0} logos`
     },
@@ -103,11 +99,6 @@ const AdminDashboardPage: React.FC = () => {
     totalViews: logos?.reduce((sum, logo) => sum + (logo.downloads || 0), 0) || 0,
     totalLikes: logos?.reduce((sum, logo) => sum + (logo.likes || 0), 0) || 0
   };
-
-  // Render logo management panel if active
-  if (activeSection === 'logos') {
-    return <LogoManagementPanel onBack={() => setActiveSection('overview')} />;
-  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -206,8 +197,8 @@ const AdminDashboardPage: React.FC = () => {
           Content Management
         </h2>
         <div className="grid md:grid-cols-3 gap-6">
-          {contentManagementTools.map((tool) => {
-            const CardContent = (
+          {contentManagementTools.map((tool) => (
+            <Link key={tool.title} to={tool.to} className="group block">
               <div className={`relative overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-105`}>
                 <div className={`absolute inset-0 opacity-10 bg-gradient-to-r ${tool.color}`} />
                 <div className="relative p-6">
@@ -223,18 +214,8 @@ const AdminDashboardPage: React.FC = () => {
                   <p className="text-sm text-gray-600">{tool.description}</p>
                 </div>
               </div>
-            );
-
-            return tool.action ? (
-              <button key={tool.title} onClick={tool.action} className="group block text-left w-full">
-                {CardContent}
-              </button>
-            ) : (
-              <Link key={tool.title} to={tool.to} className="group block">
-                {CardContent}
-              </Link>
-            );
-          })}
+            </Link>
+          ))}
         </div>
       </div>
 
