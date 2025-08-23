@@ -613,13 +613,7 @@ const AllImagesPage = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">All Images</h1>
-              <p className="text-gray-600 mt-1">
-                {filteredLogos.length} logos found
-              </p>
-            </div>
+          <div className="flex items-center justify-end">
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setViewMode('grid')}
