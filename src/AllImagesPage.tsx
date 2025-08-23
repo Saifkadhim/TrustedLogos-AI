@@ -499,20 +499,19 @@ const AllImagesPage = () => {
   }, [allLogos]);
 
   const uniqueColors = useMemo(() => {
-    // Curated set of 12 main colors for better filtering
+    // Curated set of 11 main colors for better filtering (left to right order)
     return [
       '#000000', // Black
-      '#ffffff', // White  
-      '#dc2626', // Red
-      '#2563eb', // Blue
-      '#16a34a', // Green
-      '#ca8a04', // Yellow/Gold
-      '#9333ea', // Purple
-      '#ea580c', // Orange
-      '#0891b2', // Cyan
-      '#be185d', // Pink
-      '#6b7280', // Gray
-      '#92400e'  // Brown
+      '#A66037', // Brown
+      '#E88C30', // Orange
+      '#E8E230', // Yellow
+      '#16C72E', // Green
+      '#30C9E8', // Cyan
+      '#4030E8', // Blue
+      '#8930E8', // Purple
+      '#E8308C', // Pink
+      '#E83A30', // Red
+      '#E86830'  // Orange-Red
     ];
   }, []);
 
