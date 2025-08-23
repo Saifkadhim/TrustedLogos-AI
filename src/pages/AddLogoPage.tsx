@@ -3,6 +3,7 @@ import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shap
 import { useLogos, type Logo, type CreateLogoData, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
 import ColorSwatch from '../components/ColorSwatch';
+import AIDescriptionHelper from '../components/AIDescriptionHelper';
 const AddLogoPage = () => {
   const { 
     logos: allLogos, 
@@ -423,6 +424,16 @@ const AddLogoPage = () => {
                   <p className="text-sm text-gray-500 mt-1">
                     Provide background information, design story, or any relevant details about this logo.
                   </p>
+                  
+                  {/* AI Description Helper */}
+                  <AIDescriptionHelper
+                    logoName={logoName}
+                    logoType={logoType}
+                    industry={industryCategory}
+                    shape={logoShape}
+                    currentDescription={logoInformation}
+                    onDescriptionGenerated={setLogoInformation}
+                  />
                 </div>
 
                 {/* Designer/Owner URL */}

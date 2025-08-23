@@ -3,6 +3,7 @@ import { Search, Filter, Grid, List, Download, Heart, Loader, Trash2, Edit3, X, 
 import { useLogos, type Logo, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
 import ColorSwatch from '../components/ColorSwatch';
+import AIDescriptionHelper from '../components/AIDescriptionHelper';
 const ManageLogosPage = () => {
   const { 
     logos: allLogos, 
@@ -783,6 +784,16 @@ const ManageLogosPage = () => {
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Optional description"
+                  />
+                  
+                  {/* AI Description Helper */}
+                  <AIDescriptionHelper
+                    logoName={editForm.name}
+                    logoType={editForm.type}
+                    industry={editForm.industry_category}
+                    shape={editForm.logo_shape}
+                    currentDescription={editForm.description}
+                    onDescriptionGenerated={(description) => setEditForm({...editForm, description})}
                   />
                 </div>
 
