@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Upload, Plus, Save, AlertCircle, CheckCircle, Image, Palette, Tag, Shapes, Edit3, Loader } from 'lucide-react';
 import { useLogos, type Logo, type CreateLogoData, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
@@ -42,17 +42,21 @@ const AddLogoPage = () => {
     'Mascot Logos'
   ];
 
-  // Shape options
-  const shapeOptions = [
-    'Circular',
-    'Square', 
-    'Rectangular',
-    'Triangular',
-    'Organic',
-    'Geometric',
-    'Script',
-    'Other'
-  ];
+  // Shape options - dynamically extracted from existing logos (same as /brands-logos filter)
+  const shapeOptions = useMemo(() => {
+    const uniqueShapes = [...new Set(allLogos.map(logo => logo.shape).filter(Boolean))];
+    // If no shapes exist yet, provide some default options
+    return uniqueShapes.length > 0 ? uniqueShapes.sort() : [
+      'Circular',
+      'Square', 
+      'Rectangular',
+      'Triangular',
+      'Organic',
+      'Geometric',
+      'Script',
+      'Other'
+    ];
+  }, [allLogos]);
 
   // Industry categories
   const industryCategories = getIndustryCategoryList();
