@@ -3,6 +3,7 @@ import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
 import { useLogos } from './hooks/useLogos-safe';
 import LogoModal from './components/LogoModal';
 import { INDUSTRY_CATEGORIES } from './utils/industryCategories';
+import SEO from './components/SEO';
 
 const AllImagesPage = () => {
   const { logos, loading, error, incrementDownloads, incrementLikes } = useLogos();
@@ -609,6 +610,14 @@ const AllImagesPage = () => {
 
   return (
     <div className="flex flex-col h-full">
+      <SEO 
+        title="Browse Thousands of Professional Logos | Logo Gallery"
+        description="Explore our comprehensive logo gallery featuring thousands of professional logos from all industries. Search by type, color, shape, and industry. Perfect for logo design inspiration and brand identity research."
+        keywords={['logo gallery', 'professional logos', 'logo design inspiration', 'brand logos', 'company logos', 'logo search', 'logo database', 'logo examples', 'branding inspiration', 'logo collection']}
+        canonical="https://trustedlogos.netlify.app/brands-logos"
+        ogTitle="Browse Thousands of Professional Logos | Logo Gallery"
+        ogDescription="Explore our comprehensive logo gallery featuring thousands of professional logos from all industries. Perfect for logo design inspiration and brand identity research."
+      />
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
 

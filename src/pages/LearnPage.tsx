@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Star, ExternalLink, Search, AlertCircle } from 'lucide-react';
 import { useBooks, Book, BookCategory } from '../hooks/useBooks';
+import SEO from '../components/SEO';
 
 const LearnPage = () => {
   const { books, categories, loading, error } = useBooks();
@@ -60,6 +61,14 @@ const LearnPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO 
+        title="Learn Logo Design | Branding Books & Design Resources"
+        description="Discover the best books and resources for learning logo design and branding. Curated collection of design books, tutorials, and educational content for designers at all levels."
+        keywords={['learn logo design', 'books for designers', 'logo design books', 'branding books', 'design education', 'logo design resources', 'design learning', 'graphic design books', 'brand identity books', 'design tutorials']}
+        canonical="https://trustedlogos.netlify.app/learn"
+        ogTitle="Learn Logo Design | Branding Books & Design Resources"
+        ogDescription="Discover the best books and resources for learning logo design and branding. Curated collection for designers at all levels."
+      />
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

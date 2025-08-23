@@ -20,6 +20,7 @@ import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAIVisibility } from './hooks/useAIVisibility';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
 import LogoModal from './components/LogoModal';
+import SEO from './components/SEO';
 
 const App = () => {
   const location = useLocation();
@@ -642,6 +643,27 @@ const HomePage = ({
 
   return (
     <>
+      <SEO 
+        title={`${activeLogoType} Logo Design Examples | ${activeIndustry} Logo Inspiration`}
+        description={`Explore professional ${activeLogoType.toLowerCase()} logo designs from the ${activeIndustry.toLowerCase()} industry. Your trusted source for logo inspiration and brand identity resources. Discover thousands of professional logos across all industries.`}
+        keywords={[
+          'logo design inspiration', 
+          'learning logo design', 
+          'famous company logo', 
+          'popular company logo', 
+          `${activeLogoType.toLowerCase()} logos`,
+          `${activeIndustry.toLowerCase()} logos`,
+          'professional logos', 
+          'brand identity resources', 
+          'logo gallery', 
+          'corporate logos', 
+          'startup logos', 
+          'logo design principles'
+        ]}
+        canonical="https://trustedlogos.netlify.app/"
+        ogTitle={`${activeLogoType} Logo Design Examples | ${activeIndustry} Logo Inspiration`}
+        ogDescription={`Explore professional ${activeLogoType.toLowerCase()} logo designs from the ${activeIndustry.toLowerCase()} industry. Your trusted source for logo inspiration and brand identity resources.`}
+      />
       {/* Recent Creations Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">

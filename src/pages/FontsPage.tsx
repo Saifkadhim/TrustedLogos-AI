@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Filter, Grid, List, Download, Heart, Eye, Star, Type, Palette, Tag, Copy, Share2, Bookmark, Zap, Sparkles, Clock, TrendingUp, Award } from 'lucide-react';
 import { useFonts } from '../hooks/useFonts';
+import SEO from '../components/SEO';
 
 const FontsPage = () => {
   const [viewMode, setViewMode] = useState('grid');
@@ -170,6 +171,14 @@ const FontsPage = () => {
 
   return (
     <div className="flex flex-col h-full">
+      <SEO 
+        title="Typography for Logo Design | Professional Font Resources"
+        description="Explore professional typography and fonts for logo design. Discover trending fonts, classic typefaces, and typography inspiration for brand identity projects. Perfect resource for logo designers and brand creators."
+        keywords={['logo fonts', 'typography design', 'logo typography', 'brand fonts', 'typefaces', 'font inspiration', 'logo typeface', 'branding typography', 'design fonts', 'professional fonts']}
+        canonical="https://trustedlogos.netlify.app/fonts"
+        ogTitle="Typography for Logo Design | Professional Font Resources"
+        ogDescription="Explore professional typography and fonts for logo design. Discover trending fonts and typography inspiration for brand identity projects."
+      />
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">

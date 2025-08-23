@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Palette, Copy, RefreshCw, Download, Heart, Shuffle, Lock, Unlock, Eye, EyeOff, Upload, Image as ImageIcon, X, Search } from 'lucide-react';
 import { useColorPalettes } from './hooks/useColorPalettes';
+import SEO from './components/SEO';
 
 interface Color {
   hex: string;
@@ -644,6 +645,14 @@ const ColorPalettePage = () => {
 
   return (
     <div className="flex flex-col h-full">
+      <SEO 
+        title="Logo Color Inspiration | Professional Brand Color Palettes"
+        description="Discover stunning color palettes for logo design and branding. Explore curated color combinations, trending palettes, and professional brand colors. Perfect for logo designers and brand identity projects."
+        keywords={['logo color palette', 'brand colors', 'color inspiration', 'logo colors', 'color schemes', 'branding colors', 'design colors', 'color combinations', 'color theory', 'brand color palette']}
+        canonical="https://trustedlogos.netlify.app/color-palette"
+        ogTitle="Logo Color Inspiration | Professional Brand Color Palettes"
+        ogDescription="Discover stunning color palettes for logo design and branding. Explore curated color combinations and professional brand colors."
+      />
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
