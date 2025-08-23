@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Grid, List, Download, Heart, Loader, Trash2 } from 'lucide-react';
-import { useLogos, type Logo } from '../hooks/useLogos-safe';
-import { getIndustryCategoryList } from '../utils/industryCategories';
+import { Search, Filter, Grid, List, Download, Heart, Loader, Trash2, Edit3, X, Save } from 'lucide-react';
+import { useLogos, type Logo, type UpdateLogoData } from '../hooks/useLogos-safe';
+import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
 const ManageLogosPage = () => {
   const { 
     logos: allLogos, 
@@ -26,6 +26,20 @@ const ManageLogosPage = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterIndustry, setFilterIndustry] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  
+  // Editing states
+  const [editingLogo, setEditingLogo] = useState<Logo | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    type: '',
+    industry_category: '',
+    subcategory: '',
+    logo_shape: '',
+    description: '',
+    website_url: '',
+    primary_color: '#000000',
+    secondary_color: '#ffffff'
+  });
 
   // Logo types from the existing data
   const logoTypes = [
@@ -111,6 +125,64 @@ const ManageLogosPage = () => {
         console.error('Error deleting logo:', error);
         alert('Failed to delete logo. Please try again.');
       }
+    }
+  };
+
+  // Start editing a logo
+  const handleEditLogo = (logo: Logo) => {
+    setEditingLogo(logo);
+    setEditForm({
+      name: logo.name,
+      type: logo.type,
+      industry_category: logo.industry,
+      subcategory: logo.subcategory || '',
+      logo_shape: logo.shape,
+      description: logo.description || '',
+      website_url: logo.websiteUrl || '',
+      primary_color: logo.primaryColor,
+      secondary_color: logo.secondaryColor || '#ffffff'
+    });
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingLogo(null);
+    setEditForm({
+      name: '',
+      type: '',
+      industry_category: '',
+      subcategory: '',
+      logo_shape: '',
+      description: '',
+      website_url: '',
+      primary_color: '#000000',
+      secondary_color: '#ffffff'
+    });
+  };
+
+  // Save edited logo
+  const handleSaveLogo = async () => {
+    if (!editingLogo) return;
+
+    try {
+      const updateData: UpdateLogoData = {
+        name: editForm.name,
+        type: editForm.type,
+        industry: editForm.industry_category,
+        subcategory: editForm.subcategory || null,
+        shape: editForm.logo_shape,
+        description: editForm.description || null,
+        websiteUrl: editForm.website_url || null,
+        primaryColor: editForm.primary_color,
+        secondaryColor: editForm.secondary_color
+      };
+
+      await updateLogo(editingLogo.id, updateData);
+      await refreshLogos();
+      handleCancelEdit();
+    } catch (error) {
+      console.error('Error updating logo:', error);
+      alert('Failed to update logo. Please try again.');
     }
   };
 
@@ -322,13 +394,22 @@ const ManageLogosPage = () => {
                       <span className="text-xs text-gray-500">
                         {new Date(logo.createdAt).toLocaleDateString()}
                       </span>
-                      <button
-                        onClick={() => handleDeleteLogo(logo.id, logo.name)}
-                        className="text-red-500 hover:text-red-700 transition-colors duration-200"
-                        title="Delete logo"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEditLogo(logo)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors duration-200"
+                          title="Edit logo"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteLogo(logo.id, logo.name)}
+                          className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                          title="Delete logo"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </>
@@ -381,6 +462,13 @@ const ManageLogosPage = () => {
                       {new Date(logo.createdAt).toLocaleDateString()}
                     </span>
                     <button
+                      onClick={() => handleEditLogo(logo)}
+                      className="text-blue-500 hover:text-blue-700 transition-colors duration-200"
+                      title="Edit logo"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => handleDeleteLogo(logo.id, logo.name)}
                       className="text-red-500 hover:text-red-700 transition-colors duration-200"
                       title="Delete logo"
@@ -392,6 +480,165 @@ const ManageLogosPage = () => {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingLogo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Logo</h2>
+                <button
+                  onClick={handleCancelEdit}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Logo Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Logo Name</label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Logo Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Logo Type</label>
+                  <select
+                    value={editForm.type}
+                    onChange={(e) => setEditForm({...editForm, type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select type</option>
+                    {logoTypes.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Industry Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Industry Category</label>
+                  <select
+                    value={editForm.industry_category}
+                    onChange={(e) => {
+                      setEditForm({...editForm, industry_category: e.target.value, subcategory: ''});
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select industry</option>
+                    {industryCategories.map((industry) => (
+                      <option key={industry} value={industry}>{industry}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory */}
+                {editForm.industry_category && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Subcategory</label>
+                    <select
+                      value={editForm.subcategory}
+                      onChange={(e) => setEditForm({...editForm, subcategory: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select subcategory (optional)</option>
+                      {getSubcategoriesForIndustry(editForm.industry_category).map((sub) => (
+                        <option key={sub.id} value={sub.name}>{sub.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Logo Shape */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Logo Shape</label>
+                  <select
+                    value={editForm.logo_shape}
+                    onChange={(e) => setEditForm({...editForm, logo_shape: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select shape</option>
+                    {shapeOptions.map((shape) => (
+                      <option key={shape} value={shape}>{shape}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Colors */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+                    <input
+                      type="color"
+                      value={editForm.primary_color}
+                      onChange={(e) => setEditForm({...editForm, primary_color: e.target.value})}
+                      className="w-full h-10 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Color</label>
+                    <input
+                      type="color"
+                      value={editForm.secondary_color}
+                      onChange={(e) => setEditForm({...editForm, secondary_color: e.target.value})}
+                      className="w-full h-10 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Optional description"
+                  />
+                </div>
+
+                {/* Website URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Website URL</label>
+                  <input
+                    type="url"
+                    value={editForm.website_url}
+                    onChange={(e) => setEditForm({...editForm, website_url: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://example.com"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveLogo}
+                  className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 flex items-center"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
