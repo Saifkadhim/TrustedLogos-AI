@@ -806,7 +806,7 @@ const HomePage = ({
         </div>
 
         {/* Logo Examples Grid */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-7 gap-4">
           {distributedData.logoTypes[activeLogoType]?.logos?.length > 0 ? distributedData.logoTypes[activeLogoType].logos.map((logo, index) => (
             <div
               key={index}

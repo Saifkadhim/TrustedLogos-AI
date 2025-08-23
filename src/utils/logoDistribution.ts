@@ -114,11 +114,11 @@ export function distributeLogos(allLogos: Logo[]): DistributedLogos {
     }
   });
 
-  // Assign logos to each type (limit to 8 per type for display)
+  // Assign logos to each type (limit to 14 per type for display)
   Object.keys(logoTypes).forEach(type => {
     logoTypes[type].logos = logosByType[type]
       ?.sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes))
-      .slice(0, 8) || [];
+      .slice(0, 14) || [];
   });
 
   // Group logos by industry
