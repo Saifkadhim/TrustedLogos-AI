@@ -52,6 +52,18 @@ const ManageLogosPage = () => {
     'Mascot Logos'
   ];
 
+  // Shape options
+  const shapeOptions = [
+    'Circular',
+    'Square', 
+    'Rectangular',
+    'Triangular',
+    'Organic',
+    'Geometric',
+    'Script',
+    'Other'
+  ];
+
   // Industry categories
   const industryCategories = getIndustryCategoryList();
 
@@ -130,18 +142,25 @@ const ManageLogosPage = () => {
 
   // Start editing a logo
   const handleEditLogo = (logo: Logo) => {
-    setEditingLogo(logo);
-    setEditForm({
-      name: logo.name,
-      type: logo.type,
-      industry_category: logo.industry,
-      subcategory: logo.subcategory || '',
-      logo_shape: logo.shape,
-      description: logo.description || '',
-      website_url: logo.websiteUrl || '',
-      primary_color: logo.primaryColor,
-      secondary_color: logo.secondaryColor || '#ffffff'
-    });
+    try {
+      console.log('Starting edit for logo:', logo);
+      setEditingLogo(logo);
+      setEditForm({
+        name: logo.name || '',
+        type: logo.type || '',
+        industry_category: logo.industry || '',
+        subcategory: logo.subcategory || '',
+        logo_shape: logo.shape || '',
+        description: logo.description || '',
+        website_url: logo.websiteUrl || '',
+        primary_color: logo.primaryColor || '#000000',
+        secondary_color: logo.secondaryColor || '#ffffff'
+      });
+      console.log('Edit form initialized successfully');
+    } catch (error) {
+      console.error('Error starting edit:', error);
+      alert('Error opening edit form. Please try again.');
+    }
   };
 
   // Cancel editing
@@ -485,7 +504,9 @@ const ManageLogosPage = () => {
 
       {/* Edit Modal */}
       {editingLogo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <>
+          {console.log('Rendering edit modal for logo:', editingLogo)}
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -637,10 +658,11 @@ const ManageLogosPage = () => {
                   Save Changes
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+                         </div>
+           </div>
+         </div>
+         </>
+       )}
     </div>
   );
 };
