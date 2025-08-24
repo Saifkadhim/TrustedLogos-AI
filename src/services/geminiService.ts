@@ -14,6 +14,7 @@ export interface LogoDescriptionRequest {
   industry: string;
   shape: string;
   currentDescription?: string;
+  customQuery?: string;
 }
 
 export class GeminiService {
@@ -139,6 +140,37 @@ Enhanced Analysis:`;
   }
 
   private buildDescriptionPrompt(request: LogoDescriptionRequest): string {
+    // If there's a custom query, use it for more targeted research
+    if (request.customQuery) {
+      return `
+You are a professional brand analyst and logo expert. For the company "${request.logoName}", please research and provide information based on this specific request: "${request.customQuery}"
+
+Logo Information:
+- Company/Logo Name: ${request.logoName}
+- Logo Type: ${request.logoType}
+- Industry: ${request.industry}
+- Shape: ${request.shape}
+${request.currentDescription ? `- Current Description: ${request.currentDescription}` : ''}
+
+Custom Research Request: ${request.customQuery}
+
+Please provide 3 different detailed responses that address the specific query above:
+
+RESPONSE 1: [Address the custom query with focus on company background and context]
+RESPONSE 2: [Address the custom query with focus on logo design and visual analysis]
+RESPONSE 3: [Address the custom query with focus on strategic/business perspective]
+
+For each response:
+1. Directly address the specific research question/request
+2. Provide detailed, factual information when available
+3. Include relevant context about the company and logo
+4. Keep professional tone suitable for brand documentation
+5. Each response should be 3-4 sentences long
+6. If the existing description is provided, build upon it rather than replacing it
+`;
+    }
+
+    // Default comprehensive analysis prompt
     return `
 You are a professional brand analyst and logo expert. For the company "${request.logoName}", provide comprehensive information including company background, logo history, and detailed logo analysis.
 
@@ -147,6 +179,7 @@ Logo Information:
 - Logo Type: ${request.logoType}
 - Industry: ${request.industry}
 - Shape: ${request.shape}
+${request.currentDescription ? `- Current Description: ${request.currentDescription}` : ''}
 
 Please provide 4 different comprehensive analyses with the following structure for each:
 
@@ -169,6 +202,7 @@ For each analysis:
 4. Highlight the logo's strongest design elements and strategic advantages
 5. Keep professional tone suitable for brand documentation
 6. Each analysis should be 3-4 sentences long
+${request.currentDescription ? '7. Build upon the existing description rather than replacing it completely' : ''}
 
 If the company is not widely known, provide general analysis based on the logo type, industry, and shape provided.
 
