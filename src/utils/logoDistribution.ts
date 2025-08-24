@@ -140,6 +140,13 @@ export function distributeLogos(allLogos: Logo[]): DistributedLogos {
       logosByIndustry[logo.industry].push(logo);
     } else {
       // If industry doesn't match, add to "Other"
+      if (!logosByIndustry['Other']) {
+        logosByIndustry['Other'] = [];
+        industries['Other'] = {
+          description: 'Various industries',
+          logos: []
+        };
+      }
       logosByIndustry['Other'].push(logo);
     }
   });
