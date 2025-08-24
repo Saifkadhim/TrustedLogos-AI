@@ -29,7 +29,7 @@ const App = () => {
   const { isAIVisible } = useAIVisibility();
   const [activeTab, setActiveTab] = useState('Social media');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
-  const [activeIndustry, setActiveIndustry] = useState('Automotive');
+  const [activeIndustry, setActiveIndustry] = useState('Food & Drinks');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Base sidebar items available to all users
@@ -314,9 +314,12 @@ const HomePage = ({
   const availableLogoTypes = React.useMemo(() => {
     try {
       const available = getAvailableLogoTypes(logos);
-      // Always include at least some basic types for navigation
-      const basicTypes = ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
-      return available.length > 0 ? available : basicTypes;
+      // Always include at least some basic types for navigation, but prioritize actual available types
+      if (available.length > 0) {
+        return available;
+      }
+      // Fallback to basic types only if no types are available
+      return ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
     } catch (err) {
       console.warn('Error getting logo types:', err);
       return ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
@@ -326,12 +329,15 @@ const HomePage = ({
   const availableIndustries = React.useMemo(() => {
     try {
       const available = getAvailableIndustries(logos);
-      // Always include basic industries for navigation
-      const basicIndustries = ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
-      return available.length > 0 ? available : basicIndustries;
+      // Always include basic industries for navigation, but prioritize actual available industries
+      if (available.length > 0) {
+        return available;
+      }
+      // Fallback to actual industry names from database
+      return ['Food & Drinks', 'Travel & Hospitality', 'Fashion & Beauty', 'Technology & Software', 'Social Media & Internet', 'Other Businesses', 'Sports & Fitness', 'Automotive & Transport'];
     } catch (err) {
       console.warn('Error getting industries:', err);
-      return ['Automotive', 'Fashion', 'Food & Drinks', 'Restaurant', 'Technology', 'E-commerce', 'Electronics', 'Industrial', 'Internet', 'Media/TV', 'Sport', 'Other'];
+      return ['Food & Drinks', 'Travel & Hospitality', 'Fashion & Beauty', 'Technology & Software', 'Social Media & Internet', 'Other Businesses', 'Sports & Fitness', 'Automotive & Transport'];
     }
   }, [logos]);
 
