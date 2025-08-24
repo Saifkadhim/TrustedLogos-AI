@@ -1149,7 +1149,7 @@ const ColorPalettePage = () => {
             </div>
 
             {/* Palettes Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {filteredExplorePalettes.map((palette) => (
                 <div
                   key={palette.id}
@@ -1245,7 +1245,7 @@ const ColorPalettePage = () => {
         ) : (
           /* Saved Palettes */
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {savedPalettes.map((palette) => (
                 <div
                   key={palette.id}
