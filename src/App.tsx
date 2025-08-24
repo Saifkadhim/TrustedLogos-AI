@@ -22,7 +22,6 @@ import { useAIVisibility } from './hooks/useAIVisibility';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
 import LogoModal from './components/LogoModal';
 import SEO from './components/SEO';
-import ColorPaletteExplorer from './components/ColorPaletteExplorer';
 
 const App = () => {
   const location = useLocation();
@@ -802,11 +801,6 @@ const HomePage = ({
             </div>
           </Link>
         </div>
-      </div>
-
-      {/* Color Palette Explorer Section */}
-      <div className="mt-12">
-        <ColorPaletteExplorer />
       </div>
 
       {/* Logo Types Section */}
