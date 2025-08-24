@@ -838,6 +838,17 @@ const HomePage = ({
 
         {/* Logo Examples Grid */}
         <div className="grid grid-cols-7 gap-4">
+          {(() => {
+            console.log('🔍 Logo Design Types Debug:', {
+              activeLogoType,
+              hasDistributedData: !!distributedData,
+              hasLogoTypes: !!distributedData.logoTypes,
+              hasActiveType: !!distributedData.logoTypes[activeLogoType],
+              logoCount: distributedData.logoTypes[activeLogoType]?.logos?.length || 0,
+              firstLogoImageUrl: distributedData.logoTypes[activeLogoType]?.logos?.[0]?.imageUrl || 'none'
+            });
+            return null;
+          })()}
           {distributedData.logoTypes[activeLogoType]?.logos?.length > 0 ? distributedData.logoTypes[activeLogoType].logos.map((logo, index) => (
             <div
               key={index}
@@ -913,6 +924,17 @@ const HomePage = ({
 
         {/* Industry Logos Grid */}
         <div className="grid grid-cols-7 gap-4">
+          {(() => {
+            console.log('🔍 Industry Showcase Debug:', {
+              activeIndustry,
+              hasDistributedData: !!distributedData,
+              hasIndustries: !!distributedData.industries,
+              hasActiveIndustry: !!distributedData.industries[activeIndustry],
+              logoCount: distributedData.industries[activeIndustry]?.logos?.length || 0,
+              firstLogoImageUrl: distributedData.industries[activeIndustry]?.logos?.[0]?.imageUrl || 'none'
+            });
+            return null;
+          })()}
           {distributedData.industries[activeIndustry]?.logos?.length > 0 ? distributedData.industries[activeIndustry].logos.map((logo, index) => (
             <div
               key={index}
