@@ -169,8 +169,8 @@ const ManageLogosPage = () => {
         industry_category: logo.industry || '',
         subcategory: logo.subcategory || '',
         logo_shape: logo.shape || '',
-        description: logo.description || '',
-        website_url: logo.websiteUrl || '',
+        description: logo.information || '',
+        website_url: logo.designerUrl || '',
         primary_color: logo.primaryColor || '#000000',
         secondary_color: logo.secondaryColor || '#ffffff'
       });
@@ -777,14 +777,23 @@ const ManageLogosPage = () => {
 
                 {/* Company Background & Logo Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Background & Logo Description</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">Company Background & Logo Description</label>
+                    <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                      ✅ Preserved during edits
+                    </div>
+                  </div>
                   <textarea
                     value={editForm.description}
                     onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                    rows={3}
+                    rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Company information, logo history, design analysis, and strengths"
                   />
+                  
+                  <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mt-2">
+                    💡 <strong>Editing Tip:</strong> Your existing description is automatically preserved. Use the AI tools below to enhance or add specific information without losing what you already have.
+                  </div>
                   
                   {/* AI Description Helper */}
                   <AIDescriptionHelper
