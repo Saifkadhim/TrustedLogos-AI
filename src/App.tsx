@@ -883,32 +883,46 @@ const HomePage = ({
       <div className="mt-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Industry Logo Showcase</h2>
         
-        {/* Industry Tab Menu */}
-        <div className="flex flex-wrap gap-2 mb-8 bg-white rounded-lg p-2 shadow-sm border border-gray-200">
-          {availableIndustries.map((industry) => (
-            <button
-              key={industry}
-              onClick={() => setActiveIndustry(industry)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                activeIndustry === industry
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              {industry}
-            </button>
-          ))}
-        </div>
-
-        {/* Industry Description */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">{activeIndustry} Logos</h3>
-          <p className="text-gray-600 mb-4">{distributedData.industries[activeIndustry]?.description || 'Industry description'}</p>
-          <div className="flex items-center text-sm text-gray-500">
-            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-              {distributedData.industries[activeIndustry]?.logos?.length || 0} Featured Brands
-            </span>
-          </div>
+        {/* Merged Industry Tab Menu with Descriptions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {availableIndustries.map((industry) => {
+            const isActive = activeIndustry === industry;
+            const industryData = distributedData.industries[industry];
+            const logoCount = industryData?.logos?.length || 0;
+            const description = industryData?.description || 'Industry description';
+            
+            return (
+              <button
+                key={industry}
+                onClick={() => setActiveIndustry(industry)}
+                className={`text-left p-4 rounded-lg border-2 transition-all duration-200 ${
+                  isActive
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`font-semibold ${
+                    isActive ? 'text-blue-900' : 'text-gray-900'
+                  }`}>
+                    {industry}
+                  </h3>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    isActive 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {logoCount} Brands
+                  </span>
+                </div>
+                <p className={`text-sm ${
+                  isActive ? 'text-blue-700' : 'text-gray-600'
+                } leading-relaxed`}>
+                  {description}
+                </p>
+              </button>
+            );
+          })}
         </div>
 
         {/* Industry Logos Grid */}
