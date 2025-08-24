@@ -17,7 +17,24 @@ export interface LogoDescriptionRequest {
 }
 
 export class GeminiService {
-  private model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  private model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  // Simple test method to verify API connectivity
+  async testConnection(): Promise<boolean> {
+    if (!API_KEY) {
+      return false;
+    }
+
+    try {
+      const result = await this.model.generateContent('Hello, please respond with "API working"');
+      const response = await result.response;
+      const text = response.text();
+      return text.toLowerCase().includes('api working') || text.length > 0;
+    } catch (error) {
+      console.error('Gemini API test failed:', error);
+      return false;
+    }
+  }
 
   async generateLogoDescription(request: LogoDescriptionRequest): Promise<string[]> {
     if (!API_KEY) {
@@ -31,11 +48,34 @@ export class GeminiService {
       const response = await result.response;
       const text = response.text();
       
+      if (!text || text.length < 20) {
+        throw new Error('Received empty or very short response from Gemini');
+      }
+      
       // Parse the response to extract multiple suggestions
       const suggestions = this.parseDescriptionResponse(text);
+      
+      if (suggestions.length === 0) {
+        throw new Error('Failed to parse AI response into usable suggestions');
+      }
+      
       return suggestions;
     } catch (error) {
       console.error('Error generating description with Gemini:', error);
+      
+      // More specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('API key')) {
+          throw new Error('API key issue. Please check configuration.');
+        } else if (error.message.includes('quota') || error.message.includes('limit')) {
+          throw new Error('API rate limit reached. Please try again in a moment.');
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          throw new Error('Network error. Please check your connection.');
+        } else if (error.message.includes('parse') || error.message.includes('empty')) {
+          throw new Error(error.message);
+        }
+      }
+      
       throw new Error('Failed to generate description. Please try again.');
     }
   }
@@ -73,9 +113,27 @@ Enhanced Analysis:`;
     try {
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
-      return response.text().trim();
+      const text = response.text().trim();
+      
+      if (!text || text.length < 10) {
+        throw new Error('Received empty or very short response from Gemini');
+      }
+      
+      return text;
     } catch (error) {
       console.error('Error enhancing description with Gemini:', error);
+      
+      // More specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('API key')) {
+          throw new Error('API key issue. Please check configuration.');
+        } else if (error.message.includes('quota') || error.message.includes('limit')) {
+          throw new Error('API rate limit reached. Please try again in a moment.');
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          throw new Error('Network error. Please check your connection.');
+        }
+      }
+      
       throw new Error('Failed to enhance description. Please try again.');
     }
   }

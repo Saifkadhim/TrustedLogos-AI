@@ -23,6 +23,7 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
   const [generatedSuggestions, setGeneratedSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'working' | 'failed'>('unknown');
 
   // Real AI-powered description generation using Gemini API
   const generateDescription = async () => {
@@ -84,6 +85,20 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
     }
   };
 
+  const testApiConnection = async () => {
+    try {
+      setError(null);
+      const isWorking = await geminiService.testConnection();
+      setApiStatus(isWorking ? 'working' : 'failed');
+      if (!isWorking) {
+        setError('API connection test failed');
+      }
+    } catch (error) {
+      setApiStatus('failed');
+      setError(error instanceof Error ? error.message : 'API test failed');
+    }
+  };
+
   return (
     <div className="mt-2">
       <div className="flex items-center gap-2 mb-3">
@@ -105,12 +120,21 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
           <button
             type="button"
             onClick={enhanceCurrentDescription}
-            className="flex items-center gap-2 px-3 py-2 text-sm bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:from-green-600 hover:to-teal-600 transition-all duration-200"
+            disabled={isGenerating}
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:from-green-600 hover:to-teal-600 disabled:opacity-50 transition-all duration-200"
           >
             <RefreshCw className="h-4 w-4" />
             Analyze & Enhance
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={testApiConnection}
+          className="flex items-center gap-2 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-all duration-200"
+        >
+          Test API ({apiStatus})
+        </button>
       </div>
 
       {!logoName || !logoType || !industry ? (
