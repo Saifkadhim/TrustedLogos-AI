@@ -10,16 +10,20 @@
   to = "/index.html"
   status = 200
 
-[build.processing]
-  skip_processing = false
+[functions]
+  node_bundler = "esbuild"
 
-[build.processing.css]
-  bundle = true
-  minify = true
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
-[build.processing.js]
-  bundle = true
-  minify = true
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
-[build.processing.html]
-  pretty_urls = true
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
