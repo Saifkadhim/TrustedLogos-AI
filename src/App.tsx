@@ -952,6 +952,17 @@ const HomePage = ({
             </div>
           )}
         </div>
+        
+        {/* More Button */}
+        <div className="flex justify-center mt-8">
+          <Link
+            to="/brands-logos"
+            className="inline-flex items-center px-6 py-3 border border-blue-600 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors duration-200 font-medium"
+          >
+            View All Logos
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Link>
+        </div>
       </div>
 
       {/* Footer */}
