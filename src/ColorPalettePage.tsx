@@ -567,6 +567,82 @@ const ColorPalettePage = () => {
     setExtractedPalette([]);
   };
 
+  // Download individual palette as PNG image
+  const downloadPalette = (palette: ColorPalette | { name: string; colors: Color[] }) => {
+    const width = 1200;
+    const height = 630;
+    const padding = 40;
+    const stripeGap = 8;
+    const stripeHeight = 360;
+    const numColors = Math.max(1, palette.colors.length);
+    const stripeWidth = (width - padding * 2 - stripeGap * (numColors - 1)) / numColors;
+
+    const getContrastColor = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      return luminance > 0.6 ? '#111827' : '#ffffff';
+    };
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    // Title
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 34px Inter, Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(palette.name || 'Color Palette', padding, padding);
+
+    // Draw color stripes with hex overlay
+    palette.colors.forEach((color, index) => {
+      const x = padding + index * (stripeWidth + stripeGap);
+      const y = padding + 50; // leave room for title
+
+      // Stripe
+      ctx.fillStyle = color.hex;
+      ctx.fillRect(x, y, stripeWidth, stripeHeight);
+
+      // Hex overlay
+      ctx.fillStyle = getContrastColor(color.hex);
+      ctx.font = 'bold 26px Inter, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(color.hex.toUpperCase(), x + stripeWidth / 2, y + stripeHeight / 2);
+
+      // Name label under stripe
+      if (color.name) {
+        ctx.fillStyle = '#111827';
+        ctx.font = '18px Inter, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(color.name, x + stripeWidth / 2, y + stripeHeight + 16);
+      }
+    });
+
+    // Footer note
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '14px Inter, Arial, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('trustedlogos — generated palette', width - padding, height - padding);
+
+    // Trigger download
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `${palette.name || 'palette'}-${Date.now()}.png`;
+    link.click();
+  };
+
   // Export palette as PNG image with color values
   const exportPalette = () => {
     const width = 1200;
@@ -1214,8 +1290,16 @@ const ColorPalettePage = () => {
                         Use Palette
                       </button>
                       <button
+                        onClick={() => downloadPalette(palette)}
+                        className="px-3 py-2 text-gray-600 text-sm border border-gray-200 rounded hover:bg-gray-50 transition-colors duration-200"
+                        title="Download Palette"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => saveExplorePalette(palette)}
                         className="px-3 py-2 text-gray-600 text-sm border border-gray-200 rounded hover:bg-gray-50 transition-colors duration-200"
+                        title="Like Palette"
                       >
                         <Heart className="h-4 w-4" />
                       </button>
@@ -1300,8 +1384,16 @@ const ColorPalettePage = () => {
                         Load
                       </button>
                       <button
+                        onClick={() => downloadPalette(palette)}
+                        className="px-3 py-2 text-gray-600 text-sm border border-gray-200 rounded hover:bg-gray-50 transition-colors duration-200"
+                        title="Download Palette"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => deletePalette(palette.id)}
                         className="px-3 py-2 text-red-600 text-sm border border-red-200 rounded hover:bg-red-50 transition-colors duration-200"
+                        title="Delete Palette"
                       >
                         Delete
                       </button>
