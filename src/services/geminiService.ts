@@ -6,7 +6,24 @@ if (!API_KEY) {
   console.warn('Gemini API key not found. AI features will not work.');
 }
 
-const genAI = new GoogleGenerativeAI(API_KEY);
+// Create a fallback service when API key is missing
+class FallbackGeminiService {
+  async testConnection(): Promise<boolean> {
+    return false;
+  }
+
+  async generateLogoDescription(request: LogoDescriptionRequest): Promise<string[]> {
+    throw new Error('Gemini API key is not configured. Please check your environment variables in production.');
+  }
+
+  async enhanceDescription(currentDescription: string, logoInfo: LogoDescriptionRequest): Promise<string> {
+    throw new Error('Gemini API key is not configured. Please check your environment variables in production.');
+  }
+}
+
+// Only create the real service if we have an API key
+const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
+const realService = genAI ? new GoogleGenerativeAI(API_KEY) : null;
 
 export interface LogoDescriptionRequest {
   logoName: string;
@@ -18,11 +35,11 @@ export interface LogoDescriptionRequest {
 }
 
 export class GeminiService {
-  private model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  private model = realService ? realService.getGenerativeModel({ model: 'gemini-1.5-flash' }) : null;
 
   // Simple test method to verify API connectivity
   async testConnection(): Promise<boolean> {
-    if (!API_KEY) {
+    if (!API_KEY || !this.model) {
       return false;
     }
 
@@ -38,8 +55,8 @@ export class GeminiService {
   }
 
   async generateLogoDescription(request: LogoDescriptionRequest): Promise<string[]> {
-    if (!API_KEY) {
-      throw new Error('Gemini API key is not configured');
+    if (!API_KEY || !this.model) {
+      throw new Error('Gemini API key is not configured. Please check your environment variables in production.');
     }
 
     const prompt = this.buildDescriptionPrompt(request);
@@ -82,8 +99,8 @@ export class GeminiService {
   }
 
   async enhanceDescription(currentDescription: string, logoInfo: LogoDescriptionRequest): Promise<string> {
-    if (!API_KEY) {
-      throw new Error('Gemini API key is not configured');
+    if (!API_KEY || !this.model) {
+      throw new Error('Gemini API key is not configured. Please check your environment variables in production.');
     }
 
     const prompt = `
@@ -258,3 +275,19 @@ ANALYSIS 4:
 }
 
 export const geminiService = new GeminiService();
+
+// Utility function to check if Gemini API is properly configured
+export const isGeminiConfigured = (): boolean => {
+  return !!API_KEY;
+};
+
+// Get configuration status for debugging
+export const getGeminiConfigStatus = () => {
+  return {
+    hasApiKey: !!API_KEY,
+    apiKeyLength: API_KEY ? API_KEY.length : 0,
+    isConfigured: !!genAI,
+    environment: import.meta.env.MODE,
+    nodeEnv: import.meta.env.NODE_ENV
+  };
+};

@@ -26,6 +26,7 @@ import { useColorPalettes } from '../hooks/useColorPalettes';
 import { useFonts } from '../hooks/useFonts';
 import { useAIVisibility } from '../hooks/useAIVisibility';
 import { runAllDebugTests } from '../utils/debugSupabase';
+import { DiagnosticInfo } from '../components/DiagnosticInfo';
 
 const AdminDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -482,6 +483,11 @@ const AdminDashboardPage: React.FC = () => {
             <span className="text-sm text-gray-700">AI Tools {isAIVisible ? 'Public' : 'Private'}</span>
           </div>
         </div>
+      </div>
+
+      {/* Diagnostic Info */}
+      <div className="mt-8">
+        <DiagnosticInfo />
       </div>
     </div>
   );
