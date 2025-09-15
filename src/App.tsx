@@ -12,22 +12,29 @@ import FontsPage from './pages/FontsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import FontsAdminPage from './pages/FontsAdminPage';
 import LearnPage from './pages/LearnPage';
+import BrandGuidelinesPage from './pages/BrandGuidelinesPage';
 import BooksAdminPage from './pages/BooksAdminPage';
 import AdminRoute from './components/AdminRoute';
 import { useLogos } from './hooks/useLogos-safe';
 import AdminSignInPage from './pages/AdminSignInPage';
 import BulkUploadPage from './pages/BulkUploadPage';
+import BrandGuidelinesAdminPage from './pages/BrandGuidelinesAdminPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAIVisibility } from './hooks/useAIVisibility';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
 import LogoModal from './components/LogoModal';
 import SEO from './components/SEO';
 
+// Helper function to safely render HTML content
+const renderHTML = (html: string) => {
+  return { __html: html };
+};
+
 const App = () => {
   const location = useLocation();
   const { isAuthenticated } = useAdminAuth();
   const { isAIVisible } = useAIVisibility();
-  const [activeTab, setActiveTab] = useState('Social media');
+  const [activeTab, setActiveTab] = useState('Restaurant Logos');
   const [activeLogoType, setActiveLogoType] = useState('Wordmarks');
   const [activeIndustry, setActiveIndustry] = useState('Food & Drinks');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -36,6 +43,7 @@ const App = () => {
   const baseSidebarItems = [
     { name: 'Home', icon: Home, path: '/' },
     { name: 'All Logos', icon: HandMetal, path: '/brands-logos' },
+    { name: 'Brand Guidelines', icon: BookOpen, path: '/brand-guidelines' },
     { name: 'Learn', icon: BookOpen, path: '/learn' },
     { name: 'Color Palette', icon: Star, path: '/color-palette' },
     { name: 'Fonts', icon: Folder, path: '/fonts' },
@@ -54,6 +62,7 @@ const App = () => {
     { name: 'Manage Logos', icon: HandMetal, path: '/admin/manage-logos' },
     { name: 'Bulk Upload', icon: Upload, path: '/admin/bulk-upload' },
     { name: 'Manage Books', icon: BookOpen, path: '/admin/books' },
+    { name: 'Manage Brand Guidelines', icon: BookOpen, path: '/admin/brand-guidelines' },
     { name: 'Manage Palettes', icon: Palette, path: '/admin/color-palettes' },
     { name: 'Manage Fonts', icon: Folder, path: '/admin/fonts' },
   ];
@@ -221,9 +230,11 @@ const App = () => {
             <Route path="/admin/manage-logos" element={<AdminRoute><ManageLogosPage /></AdminRoute>} />
             <Route path="/admin/bulk-upload" element={<AdminRoute><BulkUploadPage /></AdminRoute>} />
             <Route path="/admin/books" element={<AdminRoute><BooksAdminPage /></AdminRoute>} />
+            <Route path="/admin/brand-guidelines" element={<AdminRoute><BrandGuidelinesAdminPage /></AdminRoute>} />
             <Route path="/admin/color-palettes" element={<AdminRoute><ColorPaletteAdminPage /></AdminRoute>} />
             <Route path="/admin/fonts" element={<AdminRoute><FontsAdminPage /></AdminRoute>} />
             <Route path="/brands-logos" element={<AllImagesPage />} />
+            <Route path="/brand-guidelines" element={<BrandGuidelinesPage />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/ai-name-generator" element={<AINameGeneratorPage />} />
             <Route path="/color-palette" element={<ColorPalettePage />} />
@@ -255,7 +266,32 @@ const HomePage = ({
   activeIndustry: string;
   setActiveIndustry: (industry: string) => void;
 }) => {
-  const { logos, loading, error, incrementDownloads, incrementLikes } = useLogos();
+  const { logos, loading, error, incrementDownloads, incrementLikes, fetchAllLogos } = useLogos();
+  
+  // State for all logos (needed for proper type filtering)
+  const [allLogos, setAllLogos] = React.useState<any[]>([]);
+  const [allLogosLoading, setAllLogosLoading] = React.useState(false);
+  
+  // Load all logos when component mounts or when activeLogoType changes
+  React.useEffect(() => {
+    const loadAllLogos = async () => {
+      try {
+        setAllLogosLoading(true);
+        const allLogosData = await fetchAllLogos();
+        setAllLogos(allLogosData);
+      } catch (err) {
+        // Fallback to current logos if fetchAllLogos fails
+        setAllLogos(logos);
+      } finally {
+        setAllLogosLoading(false);
+      }
+    };
+    
+    loadAllLogos();
+  }, [fetchAllLogos, logos]);
+  
+  // Use allLogos for type filtering, fallback to current logos
+  const logosForFiltering = allLogos.length > 0 ? allLogos : logos;
 
   // Modal state for homepage
   const [selectedLogo, setSelectedLogo] = React.useState<any>(null);
@@ -275,7 +311,7 @@ const HomePage = ({
   const handleDownload = async (logoId: string) => {
     try {
       await incrementDownloads(logoId);
-      console.log('Download count incremented for logo:', logoId);
+
     } catch (error) {
       console.error('Failed to increment download count:', error);
     }
@@ -284,7 +320,7 @@ const HomePage = ({
   const handleLike = async (logoId: string) => {
     try {
       await incrementLikes(logoId);
-      console.log('Like count incremented for logo:', logoId);
+
     } catch (error) {
       console.error('Failed to increment like count:', error);
     }
@@ -295,10 +331,10 @@ const HomePage = ({
   // Distribute logos across sections
   const distributedData = React.useMemo(() => {
     try {
-      if (logos.length === 0) {
+      if (logosForFiltering.length === 0) {
         return distributeLogos([]);
       }
-      return distributeLogos(logos);
+      return distributeLogos(logosForFiltering);
     } catch (err) {
       console.warn('Error distributing logos:', err);
       // Return empty structure if distribution fails
@@ -308,12 +344,12 @@ const HomePage = ({
         industries: {}
       };
     }
-  }, [logos]);
+  }, [logosForFiltering]);
 
   // Get available types and industries (only show tabs that have logos)
   const availableLogoTypes = React.useMemo(() => {
     try {
-      const available = getAvailableLogoTypes(logos);
+      const available = getAvailableLogoTypes(logosForFiltering);
       // Always include at least some basic types for navigation, but prioritize actual available types
       if (available.length > 0) {
         return available;
@@ -324,11 +360,11 @@ const HomePage = ({
       console.warn('Error getting logo types:', err);
       return ['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'];
     }
-  }, [logos]);
+  }, [logosForFiltering]);
 
   const availableIndustries = React.useMemo(() => {
     try {
-      const available = getAvailableIndustries(logos);
+      const available = getAvailableIndustries(logosForFiltering);
       // Always include basic industries for navigation, but prioritize actual available industries
       if (available.length > 0) {
         return available;
@@ -339,7 +375,7 @@ const HomePage = ({
       console.warn('Error getting industries:', err);
       return ['Food & Drinks', 'Travel & Hospitality', 'Fashion & Beauty', 'Technology & Software', 'Social Media & Internet', 'Other Businesses', 'Sports & Fitness', 'Automotive & Transport'];
     }
-  }, [logos]);
+  }, [logosForFiltering]);
 
   // Use TOP logos from distributed data (preserve full logo objects for modal)
   const topLogosForDisplay = React.useMemo(() => {
@@ -353,14 +389,17 @@ const HomePage = ({
       return [];
     }
   }, [distributedData.topLogos]);
+  
+
 
   // Map homepage tabs to Subcategory only
   const topTabSubcategories: Record<string, string> = React.useMemo(() => ({
-    'Social media': 'Social Networks',
-    'Fashion Logos': 'Clothing & Apparel',
-    'Supermarkets & Grocery': 'Supermarkets & Grocery',
     'Restaurant Logos': 'Restaurants',
+    'Fashion Logos': 'Clothing & Apparel',
+    'Social media': 'Social Networks',
+    'Supermarkets & Grocery': 'Supermarkets & Grocery',
     'Apps & SaaS': 'Apps & SaaS',
+    'Electronics & Gadgets': 'Electronics & Gadgets',
     'Car Brands': 'Car Brands',
   }), []);
 
@@ -368,14 +407,34 @@ const HomePage = ({
   const filteredTopLogos = React.useMemo(() => {
     try {
       const sub = topTabSubcategories[activeTab];
-      if (!sub) return [];
-      const candidates = logos.filter(l => (l.subcategory || '').toLowerCase() === sub.toLowerCase());
+      if (!sub) {
+        console.warn('No subcategory mapping found for tab:', activeTab);
+        return [];
+      }
+      
+      // Exact subcategory matching - no extra words or variations
+      const candidates = logosForFiltering.filter(l => {
+        if (!l.subcategory) {
+          return false;
+        }
+        
+        const logoSub = l.subcategory;
+        const targetSub = sub;
+        
+        // Exact match only - no variations or extra words
+        if (logoSub === targetSub) {
+          return true;
+        }
+        
+        return false;
+      });
       return [...candidates].sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes));
     } catch (err) {
       console.warn('Error filtering logos for tab', activeTab, err);
-      return topLogosForDisplay;
+      // Use full logos array as fallback instead of limited topLogosForDisplay
+      return [];
     }
-  }, [logos, activeTab, topTabSubcategories, topLogosForDisplay]);
+  }, [logosForFiltering, activeTab, topTabSubcategories]);
 
   // Display top 14 filtered logos
   const displayLogos = filteredTopLogos.slice(0, 14);
@@ -685,7 +744,7 @@ const HomePage = ({
 
         {/* Filter Tabs */}
         <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
-          {['Social media', 'Fashion Logos', 'Supermarkets & Grocery', 'Restaurant Logos', 'Apps & SaaS', 'Car Brands'].map((tab) => (
+          {['Restaurant Logos', 'Fashion Logos', 'Social media', 'Supermarkets & Grocery', 'Apps & SaaS', 'Electronics & Gadgets', 'Car Brands'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -732,13 +791,24 @@ const HomePage = ({
                 <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">
                   {logo.name}
                 </h3>
-                <p className="text-xs text-gray-500">{new Date(logo.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
           )) : (
             <div className="col-span-5 text-center py-12 text-gray-500">
-              <div className="text-lg font-medium mb-2">No logos uploaded yet</div>
-              <p className="text-sm">Upload some logos through the admin panel to see them here!</p>
+              <div className="text-lg font-medium mb-2">No {activeTab} logos found</div>
+              <p className="text-sm mb-4">This might be because:</p>
+              <div className="text-xs space-y-1 text-left max-w-md mx-auto">
+                <p>• No logos have been uploaded yet</p>
+                <p>• Logos don't have matching subcategories</p>
+                <p>• Subcategory mapping needs adjustment</p>
+              </div>
+              <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-left max-w-md mx-auto">
+                <p><strong>Debug Info:</strong></p>
+                <p>Active Tab: {activeTab}</p>
+                <p>Mapped Subcategory: {topTabSubcategories[activeTab]}</p>
+                <p>Total Logos: {logos.length}</p>
+                <p>Available Subcategories: {logos.map(l => l.subcategory).filter(Boolean).slice(0, 5).join(', ')}...</p>
+              </div>
             </div>
           )}
         </div>
@@ -837,7 +907,7 @@ const HomePage = ({
         </div>
 
         {/* Logo Examples Grid */}
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid grid-cols-7 gap-4 mb-8">
           {distributedData.logoTypes[activeLogoType]?.logos?.length > 0 ? distributedData.logoTypes[activeLogoType].logos.map((logo, index) => (
             <div
               key={index}
@@ -867,16 +937,17 @@ const HomePage = ({
                 <h4 className="font-medium text-gray-900 text-sm mb-1">
                   {logo.name}
                 </h4>
-                <p className="text-xs text-gray-500">{logo.type}</p>
               </div>
             </div>
           )) : (
             <div className="col-span-4 text-center py-12 text-gray-500">
-              <div className="text-lg font-medium mb-2">No {activeLogoType} logos yet</div>
-              <p className="text-sm">Upload some {activeLogoType} logos to see them here!</p>
+              <div className="text-lg font-medium mb-2">No {activeLogoType} examples yet</div>
+              <p className="text-sm">Add some {activeLogoType} examples to see them here!</p>
             </div>
           )}
         </div>
+
+        
       </div>
 
       {/* Industry Logos Section */}
@@ -942,7 +1013,6 @@ const HomePage = ({
                 <h4 className="font-medium text-gray-900 text-sm mb-1">
                   {logo.name}
                 </h4>
-                <p className="text-xs text-gray-500">{logo.industry}</p>
               </div>
             </div>
           )) : (

@@ -77,9 +77,9 @@ const INDUSTRY_INFO = Object.fromEntries(
  * Distributes logos intelligently across homepage sections
  */
 export function distributeLogos(allLogos: Logo[]): DistributedLogos {
-  // Sort logos by popularity (downloads + likes) for TOP logos
+  // Sort logos by creation date since downloads/likes don't work yet
   const topLogos = [...allLogos]
-    .sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 10);
 
   // Group logos by type
@@ -117,7 +117,7 @@ export function distributeLogos(allLogos: Logo[]): DistributedLogos {
   // Assign logos to each type (limit to 14 per type for display)
   Object.keys(logoTypes).forEach(type => {
     logoTypes[type].logos = logosByType[type]
-      ?.sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes))
+      ?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 14) || [];
   });
 
@@ -154,7 +154,7 @@ export function distributeLogos(allLogos: Logo[]): DistributedLogos {
   // Assign logos to each industry (limit to 21 per industry for display - 3 rows × 7 columns)
   Object.keys(industries).forEach(industry => {
     industries[industry].logos = logosByIndustry[industry]
-      ?.sort((a, b) => (b.downloads + b.likes) - (a.downloads + a.likes))
+      ?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 21) || [];
   });
 

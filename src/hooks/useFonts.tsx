@@ -12,6 +12,10 @@ export interface FontItem {
   formats: string[];
   weights: string[];
   fileUrls?: string[];
+  licenseFilePath?: string;
+  readmeFilePath?: string;
+  folderStructure?: any;
+  hasFolder: boolean;
   featured: boolean;
   isPublic: boolean;
   downloads: number;
@@ -50,6 +54,7 @@ interface FontsContextType {
   incrementLikes: (id: string) => Promise<void>;
   refreshFonts: () => Promise<void>;
   uploadFontFiles: (id: string, files: File[]) => Promise<string[]>;
+  createFontFolder: (id: string, licenseFile: File, readmeFile: File) => Promise<void>;
 }
 
 const FontsContext = createContext<FontsContextType | undefined>(undefined);
@@ -88,6 +93,10 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       formats: parseMaybeJsonArray(row.formats),
       weights: parseMaybeJsonArray(row.weights),
       fileUrls: parseMaybeJsonArray(row.file_paths),
+      licenseFilePath: row.license_file_path || undefined,
+      readmeFilePath: row.readme_file_path || undefined,
+      folderStructure: row.folder_structure || {},
+      hasFolder: !!row.has_folder,
       featured: !!row.featured,
       isPublic: !!row.is_public,
       downloads: row.downloads ?? 0,
@@ -262,7 +271,7 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           // URL format: https://project.supabase.co/storage/v1/object/public/fonts/path/to/file
           const match = url.match(/\/storage\/v1\/object\/public\/fonts\/(.+)$/);
           return match ? match[1] : null;
-        }).filter(Boolean);
+        }).filter((path): path is string => path !== null);
         
         if (filePaths.length > 0) {
           const { error: storageError } = await supabase.storage
@@ -286,29 +295,96 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const incrementDownloads: FontsContextType['incrementDownloads'] = async (id) => {
     try {
-      const { error } = await supabase
-        .from(TABLE_NAME)
-        .update({ downloads: supabase.raw('downloads + 1') })
-        .eq('id', id);
-      if (error) throw error;
-      setFonts(prev => prev.map(f => f.id === id ? { ...f, downloads: f.downloads + 1 } : f));
+      const currentFont = fonts.find(f => f.id === id);
+      if (currentFont) {
+        const { error } = await supabase
+          .from(TABLE_NAME)
+          .update({ downloads: currentFont.downloads + 1 })
+          .eq('id', id);
+        if (error) throw error;
+        setFonts(prev => prev.map(f => f.id === id ? { ...f, downloads: f.downloads + 1 } : f));
+      }
     } catch {}
   };
 
   const incrementLikes: FontsContextType['incrementLikes'] = async (id) => {
     try {
-      const { error } = await supabase
-        .from(TABLE_NAME)
-        .update({ likes: supabase.raw('likes + 1') })
-        .eq('id', id);
-      if (error) throw error;
-      setFonts(prev => prev.map(f => f.id === id ? { ...f, likes: f.likes + 1 } : f));
+      const currentFont = fonts.find(f => f.id === id);
+      if (currentFont) {
+        const { error } = await supabase
+          .from(TABLE_NAME)
+          .update({ likes: currentFont.likes + 1 })
+          .eq('id', id);
+        if (error) throw error;
+        setFonts(prev => prev.map(f => f.id === id ? { ...f, likes: f.likes + 1 } : f));
+      }
     } catch {}
   };
 
   const refreshFonts: FontsContextType['refreshFonts'] = async () => {
     const data = await fetchFonts();
     setFonts(data);
+  };
+
+  const createFontFolder: FontsContextType['createFontFolder'] = async (id: string, licenseFile: File, readmeFile: File) => {
+    try {
+      setError(null);
+      
+      // Upload license file
+      const licenseSafeName = licenseFile.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
+      const licensePath = `folders/${id}/license/${Date.now()}-${licenseSafeName}`;
+      const { error: licenseError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(licensePath, licenseFile, { upsert: false, cacheControl: '3600' });
+      
+      if (licenseError) throw new Error(`License upload failed: ${licenseError.message}`);
+
+      // Upload readme file
+      const readmeSafeName = readmeFile.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
+      const readmePath = `folders/${id}/readme/${Date.now()}-${readmeSafeName}`;
+      const { error: readmeError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(readmePath, readmeFile, { upsert: false, cacheControl: '3600' });
+      
+      if (readmeError) throw new Error(`Readme upload failed: ${readmeError.message}`);
+
+      // Get public URLs
+      const { data: licensePub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(licensePath);
+      const { data: readmePub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(readmePath);
+
+      // Update font record with folder information
+      const folderStructure = {
+        license: licensePub?.publicUrl || '',
+        readme: readmePub?.publicUrl || '',
+        created: new Date().toISOString()
+      };
+
+      const { error: updateError } = await supabase
+        .from(TABLE_NAME)
+        .update({
+          license_file_path: licensePath,
+          readme_file_path: readmePath,
+          folder_structure: JSON.stringify(folderStructure),
+          has_folder: true
+        })
+        .eq('id', id);
+
+      if (updateError) throw new Error(`Database update failed: ${updateError.message}`);
+
+      // Update local state
+      setFonts(prev => prev.map(f => f.id === id ? {
+        ...f,
+        licenseFilePath: licensePath,
+        readmeFilePath: readmePath,
+        folderStructure: folderStructure,
+        hasFolder: true
+      } : f));
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create font folder';
+      setError(message);
+      throw new Error(message);
+    }
   };
 
   const value: FontsContextType = {
@@ -322,6 +398,7 @@ export const FontsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     incrementLikes,
     refreshFonts,
     uploadFontFiles,
+    createFontFolder,
   };
 
   return (

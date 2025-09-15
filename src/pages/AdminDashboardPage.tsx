@@ -4,7 +4,7 @@ import {
   Palette, 
   Type, 
   LogOut, 
-  Bug, 
+ 
   BookOpen, 
   Upload, 
   Settings, 
@@ -25,8 +25,8 @@ import { useBooks } from '../hooks/useBooks';
 import { useColorPalettes } from '../hooks/useColorPalettes';
 import { useFonts } from '../hooks/useFonts';
 import { useAIVisibility } from '../hooks/useAIVisibility';
-import { runAllDebugTests } from '../utils/debugSupabase';
-import { DiagnosticInfo } from '../components/DiagnosticInfo';
+
+
 
 const AdminDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -130,13 +130,7 @@ const AdminDashboardPage: React.FC = () => {
             <p className="text-xs text-gray-500">Administrator</p>
           </div>
           
-          <button
-            onClick={() => runAllDebugTests()}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-orange-600 hover:text-orange-800 border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors"
-          >
-            <Bug className="w-4 h-4" />
-            Debug DB
-          </button>
+
           
           <button
             onClick={handleSignOut}
@@ -288,13 +282,7 @@ const AdminDashboardPage: React.FC = () => {
             <p className="text-sm font-medium">Add Book</p>
           </Link>
           
-          <button
-            onClick={() => runAllDebugTests()}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 text-center"
-          >
-            <Bug className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-sm font-medium">Debug DB</p>
-          </button>
+
         </div>
       </div>
 
@@ -485,10 +473,7 @@ const AdminDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Diagnostic Info */}
-      <div className="mt-8">
-        <DiagnosticInfo />
-      </div>
+
     </div>
   );
 };

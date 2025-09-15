@@ -4,18 +4,12 @@ import { geminiService, type LogoDescriptionRequest } from '../services/geminiSe
 
 interface AIDescriptionHelperProps {
   logoName: string;
-  logoType: string;
-  industry: string;
-  shape: string;
   onDescriptionGenerated: (description: string) => void;
   currentDescription?: string;
 }
 
 const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
   logoName,
-  logoType,
-  industry,
-  shape,
   onDescriptionGenerated,
   currentDescription = ''
 }) => {
@@ -35,9 +29,6 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
     try {
       const request: LogoDescriptionRequest = {
         logoName,
-        logoType,
-        industry,
-        shape,
         currentDescription
       };
 
@@ -55,13 +46,18 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
 
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    onDescriptionGenerated(text);
+    // Convert plain text to basic HTML formatting for rich text editor
+    const htmlText = text
+      .split('\n\n')
+      .map(paragraph => `<p>${paragraph}</p>`)
+      .join('');
+    
+    onDescriptionGenerated(htmlText);
   };
 
   const appendToDescription = (text: string) => {
     const newDescription = currentDescription ? 
-      `${currentDescription}\n\n${text}` : 
+      `${currentDescription}<br><br>${text}` : 
       text;
     onDescriptionGenerated(newDescription);
   };
@@ -75,9 +71,6 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
     try {
       const request: LogoDescriptionRequest = {
         logoName,
-        logoType,
-        industry,
-        shape,
         currentDescription,
         customQuery: customSearchQuery
       };
@@ -106,14 +99,17 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
     try {
       const logoInfo: LogoDescriptionRequest = {
         logoName,
-        logoType,
-        industry,
-        shape,
         currentDescription
       };
 
       const enhanced = await geminiService.enhanceDescription(currentDescription, logoInfo);
-      onDescriptionGenerated(enhanced);
+      // Convert plain text to HTML for rich text editor
+      const htmlEnhanced = enhanced
+        .split('\n\n')
+        .map(paragraph => `<p>${paragraph}</p>`)
+        .join('');
+      
+      onDescriptionGenerated(htmlEnhanced);
     } catch (error) {
       console.error('Error enhancing description:', error);
       setError(error instanceof Error ? error.message : 'Failed to enhance description');
@@ -142,7 +138,7 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
         <div className="flex items-center justify-between mb-2">
           <h4 className="text-sm font-medium text-blue-900 flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            AI Research & Description Tools
+            AI Company Research Tool
           </h4>
           <button
             type="button"
@@ -159,7 +155,7 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
             <button
               type="button"
               onClick={generateDescription}
-              disabled={isGenerating || !logoName || !logoType || !industry}
+              disabled={isGenerating || !logoName}
               className="flex items-center gap-2 px-3 py-2 text-sm bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {isGenerating ? (
@@ -167,7 +163,7 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              {isGenerating ? 'Researching...' : 'Auto Research Company'}
+              {isGenerating ? 'Researching...' : 'Research Company'}
             </button>
 
             {currentDescription && (
@@ -224,9 +220,9 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
         </div>
       </div>
 
-      {!logoName || !logoType || !industry ? (
+      {!logoName ? (
         <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-          💡 Fill in Company Name, Logo Type, and Industry first to research company info and analyze logo
+          💡 Fill in Company Name first to research company info and analyze logo
         </p>
       ) : null}
 
@@ -242,7 +238,7 @@ const AIDescriptionHelper: React.FC<AIDescriptionHelperProps> = ({
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-purple-500" />
-              Company Research & Logo Analysis
+              Company Research Results
             </h4>
             <button
               onClick={() => setShowSuggestions(false)}

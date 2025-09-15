@@ -1,37 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Grid, List, Download, Heart, Loader, Trash2, Edit3, X, Save, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLogos, type Logo, type UpdateLogoData } from '../hooks/useLogos-safe';
-import { INDUSTRY_CATEGORIES, getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
+import { Grid, List, Download, Heart, Trash2, Edit3, X, Save } from 'lucide-react';
+import { type Logo, type UpdateLogoData } from '../hooks/useLogos-safe';
+import { useServerSideLogos } from '../hooks/useServerSideLogos';
+import { getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
 import ColorSwatch from '../components/ColorSwatch';
 import AIDescriptionHelper from '../components/AIDescriptionHelper';
+
+import { ProfessionalPagination } from '../components/ProfessionalPagination';
+import { EnhancedSearchFilters } from '../components/EnhancedSearchFilters';
+import { LogoListStates } from '../components/LogoListStates';
+import RichTextEditor from '../components/RichTextEditor';
+
+// Helper function to safely render HTML content
+const renderHTML = (html: string) => {
+  return { __html: html };
+};
+
 const ManageLogosPage = () => {
   const { 
-    logos: allLogos, 
-    loading, 
-    error: hookError, 
-    updateLogo, 
+    logos,
+    total,
+    currentPage,
+    pageSize,
+    totalPages,
+    hasNext,
+    hasPrev,
+    loading,
+    error,
+    filters,
+    goToPage,
+    changePageSize,
+    updateFilters,
+    clearFilters,
+    refresh,
+    updateLogoInState,
+    updateLogo,
+    removeLogoFromState,
     deleteLogo,
-    refreshLogos 
-  } = useLogos();
-
-  // Use logos from Supabase
-  const [logos, setLogos] = useState<Logo[]>([]);
-  
-  // Sync with Supabase data
-  useEffect(() => {
-    setLogos(allLogos);
-  }, [allLogos]);
+    isEmpty,
+    startItem,
+    endItem
+  } = useServerSideLogos();
 
   // Admin panel states
   const [viewMode, setViewMode] = useState('grid');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [filterIndustry, setFilterIndustry] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 50;
   
   // Editing states
   const [editingLogo, setEditingLogo] = useState<Logo | null>(null);
@@ -47,18 +59,22 @@ const ManageLogosPage = () => {
     secondary_color: '#ffffff'
   });
 
-  // Logo types from the existing data
-  const logoTypes = [
-    'Wordmarks',
-    'Lettermarks', 
-    'Pictorial Marks',
-    'Abstract Marks',
-    'Combination Marks',
-    'Emblem Logos',
-    'Mascot Logos'
-  ];
 
-  // Shape options
+  
+  // Notification state
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'info';
+    message: string;
+    show: boolean;
+  } | null>(null);
+
+  // Show notification
+  const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+    setNotification({ type, message, show: true });
+    setTimeout(() => setNotification(null), 5000); // Auto-hide after 5 seconds
+  };
+
+  // Shape options for edit form
   const shapeOptions = [
     'Circular',
     'Square', 
@@ -70,69 +86,18 @@ const ManageLogosPage = () => {
     'Other'
   ];
 
-  // Industry categories
-  const industryCategories = getIndustryCategoryList();
+  // Count active filters for display
+  const activeFiltersCount = (filters.search ? 1 : 0) + 
+    filters.type.length + 
+    filters.industry.length + 
+    filters.shape.length + 
+    filters.colors.length;
 
-  // Sort options
-  const sortOptions = [
-    { value: 'newest', label: 'Newest First' },
-    { value: 'oldest', label: 'Oldest First' },
-    { value: 'name', label: 'Name A-Z' },
-    { value: 'name-desc', label: 'Name Z-A' },
-    { value: 'type', label: 'Type' },
-    { value: 'industry', label: 'Industry' },
-    { value: 'most-liked', label: 'Most Liked' },
-    { value: 'most-downloaded', label: 'Most Downloaded' }
-  ];
-
-  // Filter and sort logos
-  const allFilteredLogos = logos
-    .filter(logo => {
-      const matchesSearch = logo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           logo.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           logo.type.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = filterType === 'all' || logo.type === filterType;
-      const matchesIndustry = filterIndustry === 'all' || logo.industry === filterIndustry;
-      return matchesSearch && matchesType && matchesIndustry;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'name-desc':
-          return b.name.localeCompare(a.name);
-        case 'type':
-          return a.type.localeCompare(b.type);
-        case 'industry':
-          return a.industry.localeCompare(b.industry);
-        case 'most-liked':
-          return (b.likes || 0) - (a.likes || 0);
-        case 'most-downloaded':
-          return (b.downloads || 0) - (a.downloads || 0);
-        case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        default: // newest
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-    });
-
-  // Pagination calculations
-  const totalItems = allFilteredLogos.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const filteredLogos = allFilteredLogos.slice(startIndex, endIndex);
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterType, filterIndustry, sortBy]);
-
-  // Export logos to CSV (exports all filtered results, not just current page)
+  // Export logos to CSV (exports current page results)
   const exportLogos = () => {
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Name,Type,Industry,Primary Color,Secondary Color,Shape,Downloads,Likes,Created\n"
-      + allFilteredLogos.map(logo => 
+      + logos.map(logo => 
           `"${logo.name}","${logo.type}","${logo.industry}","${logo.primaryColor}","${logo.secondaryColor || ''}","${logo.shape}","${logo.downloads || 0}","${logo.likes || 0}","${new Date(logo.createdAt).toLocaleDateString()}"`
         ).join("\n");
 
@@ -149,11 +114,16 @@ const ManageLogosPage = () => {
   const handleDeleteLogo = async (logoId: string, logoName: string) => {
     if (window.confirm(`Are you sure you want to delete "${logoName}"? This action cannot be undone.`)) {
       try {
-        await deleteLogo(logoId);
-        await refreshLogos(); // Refresh the list
+        const success = await deleteLogo(logoId);
+        if (success) {
+    
+          showNotification('success', `"${logoName}" has been deleted successfully`);
+        } else {
+          showNotification('error', 'Failed to delete logo. Please check the console for details.');
+        }
       } catch (error) {
-        console.error('Error deleting logo:', error);
-        alert('Failed to delete logo. Please try again.');
+        // Handle delete error silently
+        showNotification('error', 'Failed to delete logo. Please try again.');
       }
     }
   };
@@ -161,7 +131,7 @@ const ManageLogosPage = () => {
   // Start editing a logo
   const handleEditLogo = (logo: Logo) => {
     try {
-      console.log('Starting edit for logo:', logo);
+
       setEditingLogo(logo);
       setEditForm({
         name: logo.name || '',
@@ -174,9 +144,9 @@ const ManageLogosPage = () => {
         primary_color: logo.primaryColor || '#000000',
         secondary_color: logo.secondaryColor || '#ffffff'
       });
-      console.log('Edit form initialized successfully');
+
     } catch (error) {
-      console.error('Error starting edit:', error);
+      // Handle edit error silently
       alert('Error opening edit form. Please try again.');
     }
   };
@@ -200,42 +170,40 @@ const ManageLogosPage = () => {
   // Save edited logo
   const handleSaveLogo = async () => {
     if (!editingLogo) {
-      console.error('No logo selected for editing');
+      // No logo selected
       return;
     }
 
     try {
-      console.log('Starting logo update...');
-      console.log('Editing logo:', editingLogo);
-      console.log('Form data:', editForm);
+
       
-      const updateData: UpdateLogoData = {
+      const updateData = {
         id: editingLogo.id,
         name: editForm.name,
         type: editForm.type,
         industry: editForm.industry_category,
-        subcategory: editForm.subcategory || null,
+        subcategory: editForm.subcategory || undefined,
         shape: editForm.logo_shape,
-        information: editForm.description || null,
-        designerUrl: editForm.website_url || null,
+        information: editForm.description || undefined,
+        designerUrl: editForm.website_url || undefined,
         primaryColor: editForm.primary_color,
         secondaryColor: editForm.secondary_color
       };
 
-      console.log('Update data prepared:', updateData);
+
       
-      const result = await updateLogo(updateData);
-      console.log('Update result:', result);
+      // Update logo in database
+      const success = await updateLogo(updateData);
       
-      await refreshLogos();
-      console.log('Logos refreshed successfully');
-      
-      handleCancelEdit();
-      console.log('Logo update completed successfully');
+      if (success) {
+  
+        showNotification('success', `"${editForm.name}" has been updated successfully`);
+        handleCancelEdit();
+      } else {
+        showNotification('error', 'Failed to update logo. Please check the console for details.');
+      }
     } catch (error) {
-      console.error('Error updating logo - Full error details:', error);
-      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
-      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      // Handle update error silently
       alert(`Failed to update logo. Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
@@ -244,150 +212,179 @@ const ManageLogosPage = () => {
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Manage Logos</h1>
-        <p className="text-gray-600 mt-2">View, search, and manage your logo collection</p>
-      </div>
-
-      {/* Filters and Controls */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Search */}
-          <div className="flex-1 min-w-64">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search logos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Type Filter */}
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-500" />
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              <option value="all">All Types</option>
-              {logoTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Industry Filter */}
+        <div className="flex items-center justify-between">
           <div>
-            <select
-              value={filterIndustry}
-              onChange={(e) => setFilterIndustry(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              <option value="all">All Industries</option>
-              {industryCategories.map(industry => (
-                <option key={industry} value={industry}>{industry}</option>
-              ))}
-            </select>
+            <h1 className="text-3xl font-bold text-gray-900">Manage Logos</h1>
+            <p className="text-gray-600 mt-2">
+              View, search, and manage your logo collection
+              <span className="ml-2 inline-flex items-center gap-1 text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                🕒 Default: Newest uploads shown first
+              </span>
+            </p>
           </div>
+          <div className="flex items-center space-x-2">
 
-          {/* Sort */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Sort:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              {sortOptions.map(option => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </div>
 
-          {/* Export */}
-          <button
-            onClick={exportLogos}
-            className="flex items-center px-3 py-2 text-sm text-green-600 hover:text-green-700 border border-green-200 rounded-lg hover:bg-green-50 transition-colors duration-200"
-          >
-            <Download className="h-4 w-4 mr-1" />
-            Export CSV
-          </button>
-
-          {/* View Mode */}
-          <div className="flex items-center space-x-1 border border-gray-300 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1 rounded transition-colors duration-200 ${
-                viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Grid className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-1 rounded transition-colors duration-200 ${
-                viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <List className="h-4 w-4" />
-            </button>
           </div>
         </div>
-
-                      {/* Results count */}
-              <div className="mt-4 text-sm text-gray-600">
-                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} logos
-                {totalItems !== logos.length && ` (filtered from ${logos.length} total)`}
-              </div>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="text-center py-12">
-          <Loader className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading logos...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {hookError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-700">Error loading logos: {hookError}</p>
-        </div>
-      )}
-
-      {/* No Logos State */}
-      {!loading && !hookError && filteredLogos.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <svg className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+      {/* Notification */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md ${
+          notification.type === 'success' ? 'bg-green-500 text-white' :
+          notification.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span>{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-4 text-white hover:text-gray-200"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No logos found</h3>
-          <p className="text-gray-600">
-            {searchTerm || filterType !== 'all' || filterIndustry !== 'all' 
-              ? 'Try adjusting your search or filters'
-              : 'No logos have been uploaded yet'
+        </div>
+      )}
+
+      {/* Logo Collection Status */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-blue-900">Server-Side Pagination Status</h3>
+            <p className="text-sm text-blue-700">
+              Showing <strong>{startItem}-{endItem}</strong> of <strong>{total.toLocaleString()}</strong> total logos
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Page {currentPage} of {totalPages} • Page Size: {pageSize} • {activeFiltersCount} active filters
+            </p>
+            {loading && (
+              <p className="text-xs text-blue-600 mt-1">
+                🔄 Loading logos...
+              </p>
+            )}
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-blue-600">{total.toLocaleString()}</div>
+            <div className="text-xs text-blue-500">Total Logos</div>
+          </div>
+        </div>
+        
+        {/* Sort Order Indicator */}
+        <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-purple-800">Current Sort Order</span>
+            <span className="text-xs text-purple-600">🕒 Upload Date</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-purple-700">
+              {filters.sortBy === 'created_at' && filters.sortOrder === 'desc' ? '⬇️ Newest First' : 
+               filters.sortBy === 'created_at' && filters.sortOrder === 'asc' ? '⬆️ Oldest First' :
+               filters.sortBy === 'name' ? '📝 Name' :
+               filters.sortBy === 'type' ? '🏷️ Type' :
+               filters.sortBy === 'industry' ? '🏭 Industry' :
+               filters.sortBy === 'likes' ? '❤️ Most Liked' :
+               filters.sortBy === 'downloads' ? '⬇️ Most Downloaded' : '🔄 Custom Sort'}
+            </span>
+            {filters.sortBy === 'created_at' && filters.sortOrder === 'desc' && (
+              <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                ✅ Default - Latest Uploads
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-purple-700 mt-1">
+            {filters.sortBy === 'created_at' && filters.sortOrder === 'desc' 
+              ? 'Logos are displayed with the most recently uploaded first'
+              : 'Use the search filters below to change the sort order'
             }
           </p>
         </div>
-      )}
+        
+        {/* Performance Info */}
+        <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-green-800">Performance Benefits</span>
+            <span className="text-xs text-green-600">Server-side processing</span>
+          </div>
+          <p className="text-xs text-green-700">
+            ✅ Only {pageSize} logos loaded per page • ✅ Instant search & filtering • ✅ Consistent performance regardless of collection size
+          </p>
+        </div>
+      </div>
+
+      {/* Enhanced Search and Filters */}
+      <EnhancedSearchFilters
+        filters={filters}
+        onFiltersChange={updateFilters}
+        onClearFilters={clearFilters}
+        loading={loading}
+        className="mb-6"
+      />
+
+      {/* Controls Bar */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {/* Export */}
+            <button
+              onClick={exportLogos}
+              className="flex items-center px-3 py-2 text-sm text-green-600 hover:text-green-700 border border-green-200 rounded-lg hover:bg-green-50 transition-colors duration-200"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Export CSV
+            </button>
+
+            {/* View Mode */}
+            <div className="flex items-center space-x-1 border border-gray-300 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1 rounded transition-colors duration-200 ${
+                  viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Grid className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1 rounded transition-colors duration-200 ${
+                  viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="text-sm text-gray-600">
+            Showing {logos.length} of {total.toLocaleString()} total logos
+            {filters.sortBy === 'created_at' && filters.sortOrder === 'desc' && (
+              <span className="ml-2 text-green-600 font-medium">• Newest First</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Logo List States */}
+      <LogoListStates
+        loading={loading}
+        error={error}
+        isEmpty={isEmpty}
+        totalItems={total}
+        searchTerm={filters.search}
+        activeFilters={activeFiltersCount}
+        className="mb-6"
+      />
 
       {/* Logo Grid/List */}
-      {!loading && !hookError && filteredLogos.length > 0 && (
+      {!loading && !error && logos.length > 0 && (
         <div className={`${
           viewMode === 'grid' 
             ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6' 
             : 'space-y-4'
         }`}>
-          {filteredLogos.map((logo) => (
+          {logos.map((logo) => (
             <div key={logo.id} className={`${
               viewMode === 'grid'
                 ? 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200'
@@ -411,12 +408,20 @@ const ManageLogosPage = () => {
                       </div>
                     )}
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-gray-900 truncate" title={logo.name}>
-                      {logo.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 truncate">{logo.type}</p>
-                    <p className="text-sm text-gray-500 truncate">{logo.industry}</p>
+                                      <div className="p-4">
+                      <h3 className="font-medium text-gray-900 truncate" title={logo.name}>
+                        {logo.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 truncate">{logo.type}</p>
+                      <p className="text-sm text-gray-500 truncate">{logo.industry}</p>
+                      {logo.information && (
+                        <div className="mt-2 text-xs text-gray-600 line-clamp-3">
+                          <div 
+                            dangerouslySetInnerHTML={renderHTML(logo.information)}
+                            className="prose prose-xs max-w-none"
+                          />
+                        </div>
+                      )}
                     
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center space-x-2">
@@ -446,9 +451,14 @@ const ManageLogosPage = () => {
                     </div>
                     
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
-                      <span className="text-xs text-gray-500">
-                        {new Date(logo.createdAt).toLocaleDateString()}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500">
+                          Uploaded: {new Date(logo.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(logo.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </span>
+                      </div>
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEditLogo(logo)}
@@ -459,7 +469,10 @@ const ManageLogosPage = () => {
                         </button>
                         <button
                           onClick={() => handleDeleteLogo(logo.id, logo.name)}
-                          className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                          disabled={loading}
+                          className={`text-red-500 hover:text-red-700 transition-colors duration-200 ${
+                            loading ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                           title="Delete logo"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -491,6 +504,14 @@ const ManageLogosPage = () => {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-gray-900 truncate">{logo.name}</h3>
                       <p className="text-sm text-gray-600">{logo.type} • {logo.industry}</p>
+                      {logo.information && (
+                        <div className="mt-1 text-xs text-gray-600 line-clamp-2">
+                          <div 
+                            dangerouslySetInnerHTML={renderHTML(logo.information)}
+                            className="prose prose-xs max-w-none"
+                          />
+                        </div>
+                      )}
                       <div className="flex items-center space-x-4 mt-1">
                         <div className="flex items-center space-x-2">
                           <div
@@ -513,9 +534,14 @@ const ManageLogosPage = () => {
                   </div>
                   
                   <div className="flex items-center space-x-3">
-                    <span className="text-xs text-gray-500">
-                      {new Date(logo.createdAt).toLocaleDateString()}
-                    </span>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500">
+                        {new Date(logo.createdAt).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {new Date(logo.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </div>
+                    </div>
                     <button
                       onClick={() => handleEditLogo(logo)}
                       className="text-blue-500 hover:text-blue-700 transition-colors duration-200"
@@ -525,7 +551,10 @@ const ManageLogosPage = () => {
                     </button>
                     <button
                       onClick={() => handleDeleteLogo(logo.id, logo.name)}
-                      className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                      disabled={loading}
+                      className={`text-red-500 hover:text-red-700 transition-colors duration-200 ${
+                        loading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                       title="Delete logo"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -538,134 +567,17 @@ const ManageLogosPage = () => {
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {/* Previous Button */}
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center space-x-1">
-              {(() => {
-                const pages = [];
-                const showEllipsis = totalPages > 7;
-                
-                if (!showEllipsis) {
-                  // Show all pages if 7 or fewer
-                  for (let i = 1; i <= totalPages; i++) {
-                    pages.push(
-                      <button
-                        key={i}
-                        onClick={() => setCurrentPage(i)}
-                        className={`px-3 py-2 text-sm rounded-lg ${
-                          currentPage === i
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-white border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {i}
-                      </button>
-                    );
-                  }
-                } else {
-                  // Show ellipsis for many pages
-                  // Always show first page
-                  pages.push(
-                    <button
-                      key={1}
-                      onClick={() => setCurrentPage(1)}
-                      className={`px-3 py-2 text-sm rounded-lg ${
-                        currentPage === 1
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white border border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      1
-                    </button>
-                  );
-
-                  // Show ellipsis if needed
-                  if (currentPage > 3) {
-                    pages.push(
-                      <span key="ellipsis1" className="px-2 text-gray-500">...</span>
-                    );
-                  }
-
-                  // Show pages around current page
-                  const start = Math.max(2, currentPage - 1);
-                  const end = Math.min(totalPages - 1, currentPage + 1);
-                  
-                  for (let i = start; i <= end; i++) {
-                    if (i !== 1 && i !== totalPages) {
-                      pages.push(
-                        <button
-                          key={i}
-                          onClick={() => setCurrentPage(i)}
-                          className={`px-3 py-2 text-sm rounded-lg ${
-                            currentPage === i
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white border border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {i}
-                        </button>
-                      );
-                    }
-                  }
-
-                  // Show ellipsis if needed
-                  if (currentPage < totalPages - 2) {
-                    pages.push(
-                      <span key="ellipsis2" className="px-2 text-gray-500">...</span>
-                    );
-                  }
-
-                  // Always show last page
-                  if (totalPages > 1) {
-                    pages.push(
-                      <button
-                        key={totalPages}
-                        onClick={() => setCurrentPage(totalPages)}
-                        className={`px-3 py-2 text-sm rounded-lg ${
-                          currentPage === totalPages
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-white border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {totalPages}
-                      </button>
-                    );
-                  }
-                }
-                
-                return pages;
-              })()}
-            </div>
-
-            {/* Next Button */}
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Professional Pagination */}
+      <ProfessionalPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={total}
+        pageSize={pageSize}
+        onPageChange={goToPage}
+        onPageSizeChange={changePageSize}
+        loading={loading}
+        className="mt-8"
+      />
 
       {/* Edit Modal */}
       {editingLogo && (
@@ -703,7 +615,7 @@ const ManageLogosPage = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select type</option>
-                    {logoTypes.map((type) => (
+                    {['Wordmarks', 'Lettermarks', 'Pictorial Marks', 'Abstract Marks', 'Combination Marks', 'Emblem Logos', 'Mascot Logos'].map((type) => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
@@ -720,7 +632,7 @@ const ManageLogosPage = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select industry</option>
-                    {industryCategories.map((industry) => (
+                    {getIndustryCategoryList().map((industry) => (
                       <option key={industry} value={industry}>{industry}</option>
                     ))}
                   </select>
@@ -780,27 +692,24 @@ const ManageLogosPage = () => {
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-700">Company Background & Logo Description</label>
                     <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                      ✅ Preserved during edits
+                      ✅ Rich Text Editor
                     </div>
                   </div>
-                  <textarea
+                  
+                  <RichTextEditor
                     value={editForm.description}
-                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Company information, logo history, design analysis, and strengths"
+                    onChange={(description) => setEditForm({...editForm, description})}
+                    placeholder="Company information, logo history, design analysis, and strengths. Use the toolbar above to format your text with headings, lists, bold, italic, and more."
+                    className="mb-4"
                   />
                   
                   <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mt-2">
-                    💡 <strong>Editing Tip:</strong> Your existing description is automatically preserved. Use the AI tools below to enhance or add specific information without losing what you already have.
+                    💡 <strong>Rich Text Editor:</strong> Use the toolbar above to format your description with headings, lists, bold text, colors, and more. Your formatting will be preserved.
                   </div>
                   
                   {/* AI Description Helper */}
                   <AIDescriptionHelper
                     logoName={editForm.name}
-                    logoType={editForm.type}
-                    industry={editForm.industry_category}
-                    shape={editForm.logo_shape}
                     currentDescription={editForm.description}
                     onDescriptionGenerated={(description) => setEditForm({...editForm, description})}
                   />
@@ -829,16 +738,21 @@ const ManageLogosPage = () => {
                 </button>
                 <button
                   onClick={handleSaveLogo}
-                  className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 flex items-center"
+                  disabled={loading}
+                  className={`px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 flex items-center ${
+                    loading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
                                       </div>
-           </div>
-         </div>
-       )}
+                     </div>
+        </div>
+      )}
+
+
     </div>
   );
 };

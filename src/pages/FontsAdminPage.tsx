@@ -3,7 +3,7 @@ import { Plus, Save, Trash2, Edit3, Grid, List, Filter, Search, Type, Tag, Downl
 import { useFonts } from '../hooks/useFonts';
 
 const FontsAdminPage: React.FC = () => {
-  const { fonts, addFont, updateFont, deleteFont, uploadFontFiles } = useFonts();
+  const { fonts, addFont, updateFont, deleteFont, uploadFontFiles, createFontFolder } = useFonts();
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +11,12 @@ const FontsAdminPage: React.FC = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [editingFont, setEditingFont] = useState<any | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showFolderCreate, setShowFolderCreate] = useState(false);
+  const [selectedFontForFolder, setSelectedFontForFolder] = useState<any | null>(null);
+  const [folderFiles, setFolderFiles] = useState<{ license: File | null; readme: File | null }>({
+    license: null,
+    readme: null
+  });
 
   const [formData, setFormData] = useState<any>({
     name: '',
@@ -148,6 +154,29 @@ const FontsAdminPage: React.FC = () => {
     await deleteFont(fontId);
   };
 
+  const handleCreateFolder = async () => {
+    if (!selectedFontForFolder || !folderFiles.license || !folderFiles.readme) {
+      alert('Please select both license and readme files');
+      return;
+    }
+
+    try {
+      await createFontFolder(selectedFontForFolder.id, folderFiles.license, folderFiles.readme);
+      alert('Font folder created successfully!');
+      setShowFolderCreate(false);
+      setSelectedFontForFolder(null);
+      setFolderFiles({ license: null, readme: null });
+    } catch (error) {
+      console.error('Folder creation failed:', error);
+      alert(`Failed: ${error instanceof Error ? error.message : error}`);
+    }
+  };
+
+  const handleFolderClick = (font: any) => {
+    setSelectedFontForFolder(font);
+    setShowFolderCreate(true);
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -244,6 +273,13 @@ const FontsAdminPage: React.FC = () => {
                     <button className="px-2 py-1 text-sm border rounded text-red-600" onClick={() => handleDelete(font.id)}>
                       <Trash2 className="h-4 w-4" />
                     </button>
+                    <button 
+                      className={`px-2 py-1 text-sm border rounded ${font.hasFolder ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}
+                      onClick={() => handleFolderClick(font)}
+                      title={font.hasFolder ? 'View Folder' : 'Create Folder'}
+                    >
+                      📁
+                    </button>
                   </div>
                 </div>
               </div>
@@ -272,6 +308,13 @@ const FontsAdminPage: React.FC = () => {
                 </button>
                 <button className="px-2 py-1 text-sm border rounded text-red-600" onClick={() => handleDelete(font.id)}>
                   <Trash2 className="h-4 w-4" />
+                </button>
+                <button 
+                  className={`px-2 py-1 text-sm border rounded ${font.hasFolder ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}
+                  onClick={() => handleFolderClick(font)}
+                  title={font.hasFolder ? 'View Folder' : 'Create Folder'}
+                >
+                  📁
                 </button>
               </div>
             </div>
@@ -364,6 +407,107 @@ const FontsAdminPage: React.FC = () => {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Font Folder Creation Modal */}
+      {showFolderCreate && selectedFontForFolder && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl border">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="text-lg font-semibold">
+                {selectedFontForFolder.hasFolder ? 'Font Folder' : 'Create Font Folder'}
+              </div>
+              <button className="text-gray-500" onClick={() => { setShowFolderCreate(false); setSelectedFontForFolder(null); }}>
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div className="bg-gray-50 p-3 rounded">
+                <h3 className="font-medium text-gray-900">{selectedFontForFolder.name}</h3>
+                <p className="text-sm text-gray-600">by {selectedFontForFolder.designer}</p>
+                {selectedFontForFolder.hasFolder && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                    <p className="text-sm text-green-700">✓ Font folder already exists</p>
+                  </div>
+                )}
+              </div>
+
+              {!selectedFontForFolder.hasFolder && (
+                <>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">License File</label>
+                    <input
+                      type="file"
+                      accept=".txt,.md,.pdf,.doc,.docx"
+                      onChange={(e) => setFolderFiles({ ...folderFiles, license: e.target.files?.[0] || null })}
+                      className="w-full border rounded p-2"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Accepted formats: TXT, MD, PDF, DOC, DOCX
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">README File</label>
+                    <input
+                      type="file"
+                      accept=".txt,.md,.pdf,.doc,.docx"
+                      onChange={(e) => setFolderFiles({ ...folderFiles, readme: e.target.files?.[0] || null })}
+                      className="w-full border rounded p-2"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Accepted formats: TXT, MD, PDF, DOC, DOCX
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button 
+                      className="px-3 py-2 border rounded-md hover:bg-gray-50"
+                      onClick={() => { setShowFolderCreate(false); setSelectedFontForFolder(null); }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="inline-flex items-center px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                      onClick={handleCreateFolder}
+                      disabled={!folderFiles.license || !folderFiles.readme}
+                    >
+                      📁 Create Folder
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {selectedFontForFolder.hasFolder && (
+                <div className="space-y-3">
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                    <h4 className="font-medium text-blue-900 mb-2">Folder Contents</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-blue-600">📄</span>
+                        <span>License file uploaded</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-blue-600">📖</span>
+                        <span>README file uploaded</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-end">
+                    <button 
+                      className="px-3 py-2 border rounded-md hover:bg-gray-50"
+                      onClick={() => { setShowFolderCreate(false); setSelectedFontForFolder(null); }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

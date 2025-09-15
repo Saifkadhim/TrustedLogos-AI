@@ -27,9 +27,6 @@ const realService = genAI ? new GoogleGenerativeAI(API_KEY) : null;
 
 export interface LogoDescriptionRequest {
   logoName: string;
-  logoType: string;
-  industry: string;
-  shape: string;
   currentDescription?: string;
   customQuery?: string;
 }
@@ -77,7 +74,15 @@ export class GeminiService {
         throw new Error('Failed to parse AI response into usable suggestions');
       }
       
-      return suggestions;
+      // Convert plain text suggestions to HTML for rich text editor
+      const htmlSuggestions = suggestions.map(suggestion => 
+        suggestion
+          .split('\n\n')
+          .map(paragraph => `<p>${paragraph}</p>`)
+          .join('')
+      );
+      
+      return htmlSuggestions;
     } catch (error) {
       console.error('Error generating description with Gemini:', error);
       
@@ -104,16 +109,12 @@ export class GeminiService {
     }
 
     const prompt = `
-You are a professional brand analyst and logo expert. Please enhance and expand the following logo description with comprehensive company information, logo history, and detailed analysis.
+You are a professional brand analyst and logo expert. Please enhance and expand the following logo description with comprehensive company information and logo history.
 
 Current Description:
 "${currentDescription}"
 
-Company/Logo Details:
-- Company Name: ${logoInfo.logoName}
-- Logo Type: ${logoInfo.logoType}
-- Industry: ${logoInfo.industry}
-- Shape: ${logoInfo.shape}
+Company Name: ${logoInfo.logoName}
 
 Instructions:
 1. Research and add brief company background information
@@ -121,10 +122,8 @@ Instructions:
 3. Provide detailed visual description of logo elements
 4. Highlight the logo's strongest design points and strategic advantages
 5. Explain what makes this logo effective and memorable
-6. Keep professional tone suitable for brand documentation
+6. Keep language simple and easy to understand
 7. Aim for 4-5 sentences with comprehensive information
-
-If the company is not widely known, provide analysis based on the logo type, industry, and shape.
 
 Enhanced Analysis:`;
 
@@ -137,7 +136,13 @@ Enhanced Analysis:`;
         throw new Error('Received empty or very short response from Gemini');
       }
       
-      return text;
+      // Convert plain text to HTML formatting for rich text editor
+      const htmlText = text
+        .split('\n\n')
+        .map(paragraph => `<p>${paragraph}</p>`)
+        .join('');
+      
+      return htmlText;
     } catch (error) {
       console.error('Error enhancing description with Gemini:', error);
       
@@ -162,12 +167,8 @@ Enhanced Analysis:`;
       return `
 You are a professional brand analyst and logo expert. For the company "${request.logoName}", please research and provide information based on this specific request: "${request.customQuery}"
 
-Logo Information:
-- Company/Logo Name: ${request.logoName}
-- Logo Type: ${request.logoType}
-- Industry: ${request.industry}
-- Shape: ${request.shape}
-${request.currentDescription ? `- Current Description: ${request.currentDescription}` : ''}
+Company Name: ${request.logoName}
+${request.currentDescription ? `Current Description: ${request.currentDescription}` : ''}
 
 Custom Research Request: ${request.customQuery}
 
@@ -181,7 +182,7 @@ For each response:
 1. Directly address the specific research question/request
 2. Provide detailed, factual information when available
 3. Include relevant context about the company and logo
-4. Keep professional tone suitable for brand documentation
+4. Keep language simple and easy to understand
 5. Each response should be 3-4 sentences long
 6. If the existing description is provided, build upon it rather than replacing it
 `;
@@ -189,39 +190,31 @@ For each response:
 
     // Default comprehensive analysis prompt
     return `
-You are a professional brand analyst and logo expert. For the company "${request.logoName}", provide comprehensive information including company background, logo history, and detailed logo analysis.
+You are a professional brand analyst and logo expert. For the company "${request.logoName}", provide comprehensive information including company background, logo history, and design analysis.
 
-Logo Information:
-- Company/Logo Name: ${request.logoName}
-- Logo Type: ${request.logoType}
-- Industry: ${request.industry}
-- Shape: ${request.shape}
-${request.currentDescription ? `- Current Description: ${request.currentDescription}` : ''}
+Company Name: ${request.logoName}
+${request.currentDescription ? `Current Description: ${request.currentDescription}` : ''}
 
-Please provide 4 different comprehensive analyses with the following structure for each:
+Please provide 3 different comprehensive analyses with the following structure:
 
-ANALYSIS 1: Company Background & Logo History
-[Provide company information, founding details, logo evolution history, and key milestones]
+ANALYSIS 1: Company Background
+[Provide company information, founding details, key milestones, and business overview in simple language]
 
-ANALYSIS 2: Logo Design Analysis & Visual Elements
-[Detailed description of the logo design, visual elements, color choices, typography, and overall composition]
+ANALYSIS 2: Logo History, Logo Design Analysis & Visual Elements
+[Detailed description of the logo design, visual elements, color choices, typography, and overall composition in simple language]
 
-ANALYSIS 3: Logo Strengths & Strategic Advantages
-[Analyze what makes this logo effective, its strong points, psychological impact, and competitive advantages]
-
-ANALYSIS 4: Brand Recognition & Market Impact
-[Discuss brand recognition, memorability, market positioning, and how the logo supports business objectives]
+ANALYSIS 3: Website and Wiki URL, if any
+[Provide official website URL and Wikipedia page URL if available, along with brief description of what users can find there]
 
 For each analysis:
 1. Start with brief company information and context
 2. Include logo history and evolution when available
 3. Provide detailed visual description of the logo
-4. Highlight the logo's strongest design elements and strategic advantages
-5. Keep professional tone suitable for brand documentation
-6. Each analysis should be 3-4 sentences long
-${request.currentDescription ? '7. Build upon the existing description rather than replacing it completely' : ''}
+4. Keep language simple and easy to understand
+5. Each analysis should be 3-4 sentences long
+${request.currentDescription ? '6. Build upon the existing description rather than replacing it completely' : ''}
 
-If the company is not widely known, provide general analysis based on the logo type, industry, and shape provided.
+If the company is not widely known, provide general analysis based on available information.
 
 Format your response exactly as:
 ANALYSIS 1:
@@ -231,9 +224,6 @@ ANALYSIS 2:
 [content]
 
 ANALYSIS 3:
-[content]
-
-ANALYSIS 4:
 [content]`;
   }
 
@@ -270,7 +260,7 @@ ANALYSIS 4:
       return [text.trim()];
     }
 
-    return descriptions.slice(0, 4); // Return max 4 descriptions
+    return descriptions.slice(0, 3); // Return max 3 descriptions
   }
 }
 

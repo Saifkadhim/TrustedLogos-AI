@@ -124,7 +124,12 @@ const LogoModal: React.FC<LogoModalProps> = ({
 
             {/* Description */}
             {logo.information && (
-              <p className="text-sm text-gray-700 leading-relaxed mb-6">{logo.information}</p>
+              <div className="text-sm text-gray-700 leading-relaxed mb-6">
+                <div 
+                  dangerouslySetInnerHTML={{ __html: logo.information }}
+                  className="prose prose-sm max-w-none"
+                />
+              </div>
             )}
 
             {/* Logo Details */}
