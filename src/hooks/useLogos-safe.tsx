@@ -109,14 +109,10 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!imagePath) return undefined;
     
     try {
-      const assetBase = (import.meta as any).env?.VITE_ASSET_BASE_URL as string | undefined;
-      if (assetBase && assetBase.length > 0) {
-        const normalizedBase = assetBase.replace(/\/+$/, '');
-        return `${normalizedBase}/${STORAGE_BUCKET}/${imagePath}`;
-      }
       const { data: { publicUrl } } = supabase.storage
         .from(STORAGE_BUCKET)
         .getPublicUrl(imagePath);
+      
       return publicUrl;
     } catch (error) {
       console.warn('Failed to get image URL:', error);
@@ -156,6 +152,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Smart fetch logos with automatic page size detection and lazy loading
   const fetchLogos = async (page: number = 1, requestedPageSize: number = 200): Promise<{ logos: Logo[]; total: number; hasMore: boolean; actualPageSize: number }> => {
     try {
+      console.log(`🔍 Fetching logos: page=${page}, requestedPageSize=${requestedPageSize}`);
       
       // First, get the total count
       const { count, error: countError } = await supabase
@@ -168,7 +165,8 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw countError;
       }
 
-      
+      console.log(`📊 Total logos in database: ${count}`);
+
       // Detect optimal page size based on Supabase limits
       let actualPageSize = requestedPageSize;
       if (requestedPageSize > 1000) {
@@ -180,7 +178,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const from = (page - 1) * actualPageSize;
       const to = from + actualPageSize - 1;
 
-      
+      console.log(`📥 Fetching range: ${from} to ${to} (actual page size: ${actualPageSize})`);
 
       const { data, error } = await supabase
         .from('logos')
@@ -194,6 +192,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
+      console.log(`✅ Retrieved ${data?.length || 0} logos from database`);
       
       const mappedLogos = data?.map(mapDatabaseRowToLogo) || [];
       const total = count || 0;
@@ -202,7 +201,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // hasMore should be true if we got a full page OR if there are more records
       const hasMore = (data?.length === actualPageSize) || (from + actualPageSize < total);
       
-      
+      console.log(`📈 Result: ${mappedLogos.length} logos, total: ${total}, hasMore: ${hasMore}, actualPageSize: ${actualPageSize}`);
       
       return { logos: mappedLogos, total, hasMore, actualPageSize };
     } catch (err) {
@@ -265,17 +264,20 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load more logos (lazy loading)
   const loadMoreLogos = async () => {
     if (isLoadingMore || !hasMore) {
+      console.log(`🚫 Skipping loadMoreLogos: isLoadingMore=${isLoadingMore}, hasMore=${hasMore}`);
       return;
     }
     
     // Check if we've already loaded this page
     const nextPage = currentPage + 1;
     if (loadedPages.has(nextPage)) {
+      console.log(`🚫 Page ${nextPage} already loaded, skipping`);
       return;
     }
     
     try {
       setIsLoadingMore(true);
+      console.log(`🔄 Loading more logos: page ${nextPage}`);
       
       const logoData = await fetchLogos(nextPage, pageSize);
       
@@ -286,9 +288,10 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setHasMore(logoData.hasMore);
         setLoadedPages(prev => new Set([...prev, nextPage]));
         
-        
+        console.log(`✅ Loaded ${logoData.logos.length} more logos. Total loaded: ${logos.length + logoData.logos.length}`);
       } else {
         setHasMore(false);
+        console.log('📝 No more logos to load');
       }
     } catch (err) {
       console.error('❌ Error loading more logos:', err);
@@ -313,6 +316,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPageSize(logoData.actualPageSize);
       setLoadedPages(new Set([1]));
       
+      console.log(`🔄 Logos refreshed: ${logoData.logos.length} logos loaded`);
     } catch (err) {
       console.error('❌ Error refreshing logos:', err);
       setError('Failed to refresh logos');
