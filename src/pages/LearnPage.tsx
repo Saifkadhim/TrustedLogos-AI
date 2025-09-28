@@ -5,29 +5,33 @@ import SEO from '../components/SEO';
 
 const LearnPage = () => {
   const { books, categories, loading, error } = useBooks();
-  const [activeCategory, setActiveCategory] = useState('Logo Books');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
 
-  // Update active category when categories load
+  // Ensure we don't override the explicit 'All' default once categories load
   useEffect(() => {
-    if (categories.length > 0 && !categories.find(c => c.name === activeCategory)) {
-      setActiveCategory(categories[0].name);
+    if (categories.length > 0 && activeCategory !== 'All') {
+      const stillExists = categories.find(c => c.name === activeCategory);
+      if (!stillExists) {
+        setActiveCategory('All');
+      }
     }
   }, [categories, activeCategory]);
 
   // Filter books based on active category and search term
   useEffect(() => {
+    const loweredSearch = searchTerm.toLowerCase();
     const filtered = books.filter(book => {
-      const matchesCategory = book.category?.name === activeCategory;
-      const matchesSearch = 
-        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (book.description && book.description.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+      const matchesCategory = activeCategory === 'All' || book.category?.name === activeCategory;
+      const matchesSearch =
+        book.title.toLowerCase().includes(loweredSearch) ||
+        book.author.toLowerCase().includes(loweredSearch) ||
+        (book.description && book.description.toLowerCase().includes(loweredSearch));
+
       return matchesCategory && matchesSearch && book.is_published;
     });
-    
+
     setFilteredBooks(filtered);
   }, [books, activeCategory, searchTerm]);
 
@@ -101,47 +105,59 @@ const LearnPage = () => {
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Bar */}
+        {/* Filters: Categories + Search */}
         <div className="mb-8">
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              placeholder="Search books..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-
-        {/* Category Tabs */}
-        {categories.length > 0 && (
-          <div className="mb-8">
-            <div className="flex flex-wrap justify-center gap-2">
-              {categories.map((category) => (
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            {/* Categories - Horizontally scrollable on mobile */}
+            {categories.length > 0 && (
+              <div className="horizontal-scroll sm:flex sm:flex-wrap justify-center gap-2 w-full lg:w-auto">
                 <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.name)}
+                  onClick={() => setActiveCategory('All')}
                   className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                    activeCategory === category.name
+                    activeCategory === 'All'
                       ? 'bg-blue-600 text-white shadow-lg'
                       : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
-                  {category.name}
+                  All
                 </button>
-              ))}
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveCategory(category.name)}
+                    className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                      activeCategory === category.name
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Search Bar */}
+            <div className="w-full lg:max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Books Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
             {activeCategory}
           </h2>
-          
           {filteredBooks.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -157,7 +173,7 @@ const LearnPage = () => {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid mobile-grid-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {filteredBooks.map((book) => (
                 <div key={book.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
                   {/* Book Cover */}

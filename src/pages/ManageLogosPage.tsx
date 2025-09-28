@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Grid, List, Download, Heart, Trash2, Edit3, X, Save } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Grid, List, Download, Heart, Trash2, Edit3, X, Save, Upload, Image as ImageIcon } from 'lucide-react';
 import { type Logo, type UpdateLogoData } from '../hooks/useLogos-safe';
 import { useServerSideLogos } from '../hooks/useServerSideLogos';
 import { getIndustryCategoryList, getSubcategoriesForIndustry } from '../utils/industryCategories';
@@ -56,10 +56,52 @@ const ManageLogosPage = () => {
     description: '',
     website_url: '',
     primary_color: '#000000',
-    secondary_color: '#ffffff'
+    secondary_color: '#ffffff',
+    show_in_brand_palettes: false,
+    tags: '',
+    brand_colors: [] as string[] // Added for brand colors
   });
+  
+    // Image upload states
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Handle image file selection
+  const handleImageFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showNotification('error', 'Please select a valid image file.');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showNotification('error', 'Image file size must be less than 5MB.');
+        return;
+      }
+      
+      setSelectedImageFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
+  // Reset image upload states
+  const resetImageUpload = () => {
+    setSelectedImageFile(null);
+    setImagePreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
   
   // Notification state
   const [notification, setNotification] = useState<{
@@ -131,7 +173,6 @@ const ManageLogosPage = () => {
   // Start editing a logo
   const handleEditLogo = (logo: Logo) => {
     try {
-
       setEditingLogo(logo);
       setEditForm({
         name: logo.name || '',
@@ -142,8 +183,14 @@ const ManageLogosPage = () => {
         description: logo.information || '',
         website_url: logo.designerUrl || '',
         primary_color: logo.primaryColor || '#000000',
-        secondary_color: logo.secondaryColor || '#ffffff'
+        secondary_color: logo.secondaryColor || '#ffffff',
+        show_in_brand_palettes: logo.showInBrandPalettes || false,
+        tags: logo.tags ? logo.tags.join(', ') : '',
+        brand_colors: logo.brandColors || [] // Initialize brand_colors
       });
+      
+      // Reset image upload states
+      resetImageUpload();
 
     } catch (error) {
       // Handle edit error silently
@@ -163,8 +210,14 @@ const ManageLogosPage = () => {
       description: '',
       website_url: '',
       primary_color: '#000000',
-      secondary_color: '#ffffff'
+      secondary_color: '#ffffff',
+      show_in_brand_palettes: false,
+      tags: '',
+      brand_colors: [] // Reset brand_colors
     });
+    
+    // Reset image upload states
+    resetImageUpload();
   };
 
   // Save edited logo
@@ -175,8 +228,6 @@ const ManageLogosPage = () => {
     }
 
     try {
-
-      
       const updateData = {
         id: editingLogo.id,
         name: editForm.name,
@@ -187,17 +238,18 @@ const ManageLogosPage = () => {
         information: editForm.description || undefined,
         designerUrl: editForm.website_url || undefined,
         primaryColor: editForm.primary_color,
-        secondaryColor: editForm.secondary_color
+        secondaryColor: editForm.secondary_color,
+        showInBrandPalettes: editForm.show_in_brand_palettes,
+        tags: editForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        brandColors: editForm.brand_colors, // Update brandColors
+        imageFile: selectedImageFile || undefined
       };
-
-
       
       // Update logo in database
       const success = await updateLogo(updateData);
       
       if (success) {
-  
-        showNotification('success', `"${editForm.name}" has been updated successfully`);
+        showNotification('success', `"${editForm.name}" has been updated successfully${selectedImageFile ? ' with new image' : ''}`);
         handleCancelEdit();
       } else {
         showNotification('error', 'Failed to update logo. Please check the console for details.');
@@ -248,70 +300,7 @@ const ManageLogosPage = () => {
         </div>
       )}
 
-      {/* Logo Collection Status */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-blue-900">Server-Side Pagination Status</h3>
-            <p className="text-sm text-blue-700">
-              Showing <strong>{startItem}-{endItem}</strong> of <strong>{total.toLocaleString()}</strong> total logos
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Page {currentPage} of {totalPages} • Page Size: {pageSize} • {activeFiltersCount} active filters
-            </p>
-            {loading && (
-              <p className="text-xs text-blue-600 mt-1">
-                🔄 Loading logos...
-              </p>
-            )}
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">{total.toLocaleString()}</div>
-            <div className="text-xs text-blue-500">Total Logos</div>
-          </div>
-        </div>
-        
-        {/* Sort Order Indicator */}
-        <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-purple-800">Current Sort Order</span>
-            <span className="text-xs text-purple-600">🕒 Upload Date</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-purple-700">
-              {filters.sortBy === 'created_at' && filters.sortOrder === 'desc' ? '⬇️ Newest First' : 
-               filters.sortBy === 'created_at' && filters.sortOrder === 'asc' ? '⬆️ Oldest First' :
-               filters.sortBy === 'name' ? '📝 Name' :
-               filters.sortBy === 'type' ? '🏷️ Type' :
-               filters.sortBy === 'industry' ? '🏭 Industry' :
-               filters.sortBy === 'likes' ? '❤️ Most Liked' :
-               filters.sortBy === 'downloads' ? '⬇️ Most Downloaded' : '🔄 Custom Sort'}
-            </span>
-            {filters.sortBy === 'created_at' && filters.sortOrder === 'desc' && (
-              <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
-                ✅ Default - Latest Uploads
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-purple-700 mt-1">
-            {filters.sortBy === 'created_at' && filters.sortOrder === 'desc' 
-              ? 'Logos are displayed with the most recently uploaded first'
-              : 'Use the search filters below to change the sort order'
-            }
-          </p>
-        </div>
-        
-        {/* Performance Info */}
-        <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-green-800">Performance Benefits</span>
-            <span className="text-xs text-green-600">Server-side processing</span>
-          </div>
-          <p className="text-xs text-green-700">
-            ✅ Only {pageSize} logos loaded per page • ✅ Instant search & filtering • ✅ Consistent performance regardless of collection size
-          </p>
-        </div>
-      </div>
+
 
       {/* Enhanced Search and Filters */}
       <EnhancedSearchFilters
@@ -422,6 +411,20 @@ const ManageLogosPage = () => {
                           />
                         </div>
                       )}
+
+                      {/* Tags */}
+                      {logo.tags && logo.tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {logo.tags.slice(0, 3).map((tag, index) => (
+                            <span key={index} className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                          {logo.tags.length > 3 && (
+                            <span className="text-xs text-gray-500">+{logo.tags.length - 3} more</span>
+                          )}
+                        </div>
+                      )}
                     
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center space-x-2">
@@ -512,6 +515,21 @@ const ManageLogosPage = () => {
                           />
                         </div>
                       )}
+                      
+                      {/* Tags */}
+                      {logo.tags && logo.tags.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {logo.tags.slice(0, 2).map((tag, index) => (
+                            <span key={index} className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                              {tag}
+                            </span>
+                          ))}
+                          {logo.tags.length > 2 && (
+                            <span className="text-xs text-gray-500">+{logo.tags.length - 2}</span>
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="flex items-center space-x-4 mt-1">
                         <div className="flex items-center space-x-2">
                           <div
@@ -606,6 +624,80 @@ const ManageLogosPage = () => {
                   />
                 </div>
 
+                {/* Logo Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Logo Image</label>
+                  
+                  {/* Current Image Preview */}
+                  {editingLogo?.imageUrl && !imagePreviewUrl && (
+                    <div className="mb-3">
+                      <div className="text-xs text-gray-500 mb-2">Current Image:</div>
+                      <div className="w-32 h-32 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 overflow-hidden">
+                        <img 
+                          src={editingLogo.imageUrl} 
+                          alt={editingLogo.name}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* New Image Preview */}
+                  {imagePreviewUrl && (
+                    <div className="mb-3">
+                      <div className="text-xs text-green-600 mb-2">New Image Preview:</div>
+                      <div className="w-32 h-32 border border-green-300 rounded-lg flex items-center justify-center bg-green-50 overflow-hidden">
+                        <img 
+                          src={imagePreviewUrl} 
+                          alt="Preview"
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* File Input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    className="hidden"
+                  />
+                  
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {selectedImageFile ? 'Change Image' : 'Upload New Image'}
+                    </button>
+                    
+                    {selectedImageFile && (
+                      <button
+                        type="button"
+                        onClick={resetImageUpload}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 flex items-center"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  
+                  {selectedImageFile && (
+                    <div className="mt-2 text-xs text-gray-600">
+                      Selected: {selectedImageFile.name} ({(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </div>
+                  )}
+                  
+                  <div className="mt-1 text-xs text-gray-500">
+                    Supported formats: JPG, PNG, GIF, WebP. Max size: 5MB.
+                  </div>
+                </div>
+
                 {/* Logo Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Logo Type</label>
@@ -670,21 +762,82 @@ const ManageLogosPage = () => {
                   </select>
                 </div>
 
-                {/* Colors */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ColorSwatch
-                    selectedColor={editForm.primary_color}
-                    onChange={(color) => setEditForm({...editForm, primary_color: color})}
-                    label="Primary Color"
-                    allowCustom={true}
-                  />
-                  
-                  <ColorSwatch
-                    selectedColor={editForm.secondary_color}
-                    onChange={(color) => setEditForm({...editForm, secondary_color: color})}
-                    label="Secondary Color"
-                    allowCustom={true}
-                  />
+                {/* Brand Colors Palette */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Brand Colors (up to 6)</label>
+                  <div className="space-y-3">
+                    {/* Editor rows */}
+                    {(Array.isArray((editForm as any).brand_colors) ? (editForm as any).brand_colors : []).map((hex: string, index: number) => (
+                      <div key={index} className="grid grid-cols-5 gap-3 items-center">
+                        <input
+                          type="color"
+                          value={hex || '#000000'}
+                          onChange={(e) => {
+                            const next = [ ...((editForm as any).brand_colors || []) ];
+                            next[index] = e.target.value;
+                            setEditForm({ ...(editForm as any), brand_colors: next });
+                          }}
+                          className="h-10 w-full border border-gray-300 rounded"
+                        />
+                        <input
+                          type="text"
+                          value={hex || ''}
+                          onChange={(e) => {
+                            const value = e.target.value.trim();
+                            const next = [ ...((editForm as any).brand_colors || []) ];
+                            next[index] = value;
+                            setEditForm({ ...(editForm as any), brand_colors: next });
+                          }}
+                          placeholder="#000000"
+                          className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = [ ...((editForm as any).brand_colors || []) ].filter((_, i) => i !== index);
+                            setEditForm({ ...(editForm as any), brand_colors: next });
+                          }}
+                          className="px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = [ ...((editForm as any).brand_colors || []) ];
+                          if (next.length < 6) {
+                            next.push('#000000');
+                            setEditForm({ ...(editForm as any), brand_colors: next });
+                          }
+                        }}
+                        className="px-3 py-2 text-sm text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50"
+                      >
+                        + Add Color
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Initialize if empty using current primary/secondary as a starting point
+                          const seeds = [] as string[];
+                          if (editForm.primary_color) seeds.push(editForm.primary_color);
+                          if (editForm.secondary_color) seeds.push(editForm.secondary_color);
+                          setEditForm({ ...(editForm as any), brand_colors: (editForm as any).brand_colors?.length ? (editForm as any).brand_colors : seeds });
+                        }}
+                        className="px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        Use Primary/Secondary as start
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      Tip: You can add up to 6 colors. Click color box to pick or paste hex.
+                    </div>
+                  </div>
                 </div>
 
                 {/* Company Background & Logo Description */}
@@ -726,6 +879,44 @@ const ManageLogosPage = () => {
                     placeholder="https://example.com"
                   />
                 </div>
+
+                {/* Tags */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tags (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.tags}
+                    onChange={(e) => setEditForm({...editForm, tags: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., modern, tech, blue, minimalist"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter tags separated by commas to help users find this logo
+                  </p>
+                </div>
+
+                {/* Brand Palettes Visibility */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="show_in_brand_palettes"
+                      checked={editForm.show_in_brand_palettes}
+                      onChange={(e) => setEditForm({...editForm, show_in_brand_palettes: e.target.checked})}
+                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="show_in_brand_palettes" className="text-sm font-medium text-blue-900 cursor-pointer">
+                        Show in Brand Palettes Page
+                      </label>
+                      <p className="text-xs text-blue-700 mt-1">
+                        When enabled, this logo will appear in the <strong>/brand-palettes</strong> page for users to discover brand color inspirations.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Modal Actions */}
@@ -744,7 +935,7 @@ const ManageLogosPage = () => {
                   }`}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? (selectedImageFile ? 'Uploading Image...' : 'Saving...') : 'Save Changes'}
                 </button>
               </div>
                                       </div>

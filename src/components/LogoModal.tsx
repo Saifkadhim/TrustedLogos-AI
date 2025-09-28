@@ -58,24 +58,24 @@ const LogoModal: React.FC<LogoModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-hidden relative">
+      <div className="bg-white rounded-lg sm:rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] sm:max-h-[92vh] overflow-hidden relative">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-600 transition-colors z-10 p-1 sm:p-0 touch-manipulation"
           aria-label="Close"
         >
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
 
         {/* Content */}
         <div className="flex flex-col md:flex-row">
           {/* Left Side - Fixed square image without shadow */}
-          <div className="md:w-3/5 p-6 bg-gray-50 flex items-center justify-center relative">
-            <div className="w-[20rem] h-[20rem] md:w-[36rem] md:h-[36rem] flex items-center justify-center">
+          <div className="md:w-3/5 p-3 sm:p-6 bg-gray-50 flex items-center justify-center relative">
+            <div className="w-[16rem] h-[16rem] sm:w-[20rem] sm:h-[20rem] md:w-[36rem] md:h-[36rem] flex items-center justify-center">
               {logo.imageUrl ? (
                 <img
                   src={logo.imageUrl}
@@ -95,17 +95,17 @@ const LogoModal: React.FC<LogoModalProps> = ({
             {/* Heart Icon bottom-left: outline/white -> red when liked */}
             <button
               onClick={handleLike}
-              className="absolute bottom-4 left-4 p-2"
+              className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 p-2 touch-manipulation"
               title="Like this logo"
             >
-              <Heart className={`h-7 w-7 transition-colors ${liked ? 'text-red-500 fill-red-500' : 'text-gray-400 fill-transparent'}`} />
+              <Heart className={`h-6 w-6 sm:h-7 sm:w-7 transition-colors ${liked ? 'text-red-500 fill-red-500' : 'text-gray-400 fill-transparent'}`} />
             </button>
           </div>
 
           {/* Right Side - Details */}
-          <div className="md:w-2/5 p-6 overflow-y-auto max-h-[92vh]">
+          <div className="md:w-2/5 p-3 sm:p-6 overflow-y-auto max-h-[95vh] sm:max-h-[92vh]">
             {/* Name */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{logo.name}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{logo.name}</h2>
 
             {/* Website */}
             {websiteHost && (

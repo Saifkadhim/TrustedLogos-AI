@@ -41,14 +41,23 @@ interface ColorPalettesContextType {
   incrementLikes: (id: string) => Promise<void>;
   searchPalettes: (query: string) => Promise<ColorPalette[]>;
   filterPalettes: (filters: { category?: string; tags?: string[] }) => Promise<ColorPalette[]>;
-  refreshPalettes: () => Promise<void>;
+  refreshPalettes: (includePrivate?: boolean) => Promise<void>;
 }
 
 const ColorPalettesContext = createContext<ColorPalettesContextType | undefined>(undefined);
 
-export const useColorPalettes = (): ColorPalettesContextType => {
+export const useColorPalettes = (adminMode = false): ColorPalettesContextType => {
   const ctx = useContext(ColorPalettesContext);
   if (!ctx) throw new Error('useColorPalettes must be used within a ColorPalettesProvider');
+  
+  // If in admin mode, we need to fetch all palettes, not just public ones
+  React.useEffect(() => {
+    if (adminMode) {
+      // Always refresh in admin mode to get all palettes including private ones
+      ctx.refreshPalettes(true);
+    }
+  }, [adminMode, ctx]);
+  
   return ctx;
 };
 
@@ -101,16 +110,22 @@ export const ColorPalettesProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   };
 
-  // Fetch all public color palettes
-  const fetchPalettes = async (): Promise<ColorPalette[]> => {
+  // Fetch color palettes (public only by default, all for admin)
+  const fetchPalettes = async (includePrivate = false): Promise<ColorPalette[]> => {
     try {
-      console.log('🎨 Fetching color palettes from Supabase...');
+      console.log('🎨 Fetching color palettes from Supabase...', includePrivate ? '(including private)' : '(public only)');
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('color_palettes')
         .select('*')
-        .eq('is_public', true)
         .order('created_at', { ascending: false });
+
+      // Only filter by public if not including private palettes
+      if (!includePrivate) {
+        query = query.eq('is_public', true);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.warn('Supabase error:', error.message);
@@ -270,16 +285,25 @@ export const ColorPalettesProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const incrementDownloads: ColorPalettesContextType['incrementDownloads'] = async (id) => {
     try {
+      // Get current downloads count first
+      const { data: currentData } = await supabase
+        .from('color_palettes')
+        .select('downloads')
+        .eq('id', id)
+        .single();
+
+      const newDownloads = (currentData?.downloads || 0) + 1;
+
       const { error } = await supabase
         .from('color_palettes')
-        .update({ downloads: supabase.raw('downloads + 1') })
+        .update({ downloads: newDownloads })
         .eq('id', id);
 
       if (error) throw error;
 
       // Update local state
       setPalettes(prev => prev.map(p => 
-        p.id === id ? { ...p, downloads: p.downloads + 1 } : p
+        p.id === id ? { ...p, downloads: newDownloads } : p
       ));
     } catch (err) {
       console.error('Failed to increment downloads:', err);
@@ -288,16 +312,25 @@ export const ColorPalettesProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const incrementLikes: ColorPalettesContextType['incrementLikes'] = async (id) => {
     try {
+      // Get current likes count first
+      const { data: currentData } = await supabase
+        .from('color_palettes')
+        .select('likes')
+        .eq('id', id)
+        .single();
+
+      const newLikes = (currentData?.likes || 0) + 1;
+
       const { error } = await supabase
         .from('color_palettes')
-        .update({ likes: supabase.raw('likes + 1') })
+        .update({ likes: newLikes })
         .eq('id', id);
 
       if (error) throw error;
 
       // Update local state
       setPalettes(prev => prev.map(p => 
-        p.id === id ? { ...p, likes: p.likes + 1 } : p
+        p.id === id ? { ...p, likes: newLikes } : p
       ));
     } catch (err) {
       console.error('Failed to increment likes:', err);
@@ -326,8 +359,8 @@ export const ColorPalettesProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  const refreshPalettes: ColorPalettesContextType['refreshPalettes'] = async () => {
-    const paletteData = await fetchPalettes();
+  const refreshPalettes: ColorPalettesContextType['refreshPalettes'] = async (includePrivate = false) => {
+    const paletteData = await fetchPalettes(includePrivate);
     setPalettes(paletteData);
   };
 

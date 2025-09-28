@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, Upload, LogIn, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles, Menu, BookOpen } from 'lucide-react';
+import { Search, Settings, Home, Zap, Star, Folder, Palette, HandMetal, Plus, Upload, ChevronRight, Twitter, Instagram, Linkedin, Mail, Sparkles, Menu, BookOpen } from 'lucide-react';
 import AllImagesPage from './AllImagesPage';
 import AINameGeneratorPage from './AINameGeneratorPage';
 import ColorPalettePage from './ColorPalettePage';
@@ -19,16 +19,16 @@ import { useLogos } from './hooks/useLogos-safe';
 import AdminSignInPage from './pages/AdminSignInPage';
 import BulkUploadPage from './pages/BulkUploadPage';
 import BrandGuidelinesAdminPage from './pages/BrandGuidelinesAdminPage';
+import BrandPalettesPage from './pages/BrandPalettesPage';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAIVisibility } from './hooks/useAIVisibility';
 import { distributeLogos, getAvailableLogoTypes, getAvailableIndustries } from './utils/logoDistribution';
 import LogoModal from './components/LogoModal';
 import SEO from './components/SEO';
+import { useColorPalettes } from './hooks/useColorPalettes';
 
 // Helper function to safely render HTML content
-const renderHTML = (html: string) => {
-  return { __html: html };
-};
+// (unused)
 
 const App = () => {
   const location = useLocation();
@@ -46,6 +46,7 @@ const App = () => {
     { name: 'Brand Guidelines', icon: BookOpen, path: '/brand-guidelines' },
     { name: 'Learn', icon: BookOpen, path: '/learn' },
     { name: 'Color Palette', icon: Star, path: '/color-palette' },
+    { name: 'Brand Palettes', icon: Palette, path: '/brand-palettes' },
     { name: 'Fonts', icon: Folder, path: '/fonts' },
   ];
 
@@ -71,49 +72,41 @@ const App = () => {
 
   // Admin sections are rendered in the sidebar based on authentication status
 
-  const quickActionTabs = [
-    'For you', 'Images', 'Vectors', 'Videos', 'Designs', 'Mockups', 'Icons', 'Others'
-  ];
+  // removed unused quickActionTabs
 
-  const bottomActions = [
-    'Find a vector',
-    'Create an AI video', 
-    'Use a custom AI character',
-    'Edit an image with AI',
-    'Upscale an image'
-  ];
+  // removed unused bottomActions
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex overflow-x-hidden w-full max-w-full">
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-black/40 z-40 md:hidden" />
       )}
       {/* Left Sidebar */}
-      <div className={`w-64 bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 h-screen z-50 transform transition-transform duration-200 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`w-full md:w-[15%] md:min-w-[240px] bg-white border-r border-gray-200 flex flex-col fixed top-0 left-0 h-screen z-50 transform transition-transform duration-200 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-black text-blue-600">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
+          <h1 className="text-lg sm:text-xl font-black text-blue-600">
             TRUSTEDLOGOS
           </h1>
         </div>
 
         {/* Main Navigation */}
-        <div className="flex-1 p-4">
-          <nav className="space-y-4">
-            <div className="space-y-2">
+        <div className="flex-1 p-2 sm:p-4">
+          <nav className="space-y-2 sm:space-y-4">
+            <div className="space-y-1 sm:space-y-2">
               {baseSidebarItems.map((item, index) => (
                 <Link
                   key={index}
                   to={item.path}
                   onClick={() => setIsSidebarOpen(false)}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                  className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base ${
                     location.pathname === item.path
                       ? 'bg-blue-50 text-blue-600 font-medium' 
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{item.name}</span>
                 </Link>
               ))}
@@ -121,21 +114,21 @@ const App = () => {
 
             {/* AI Tools section - conditionally rendered */}
             {isAIVisible && (
-              <div className="pt-4">
-                <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Tools</div>
-                <div className="space-y-2">
+              <div className="pt-2 sm:pt-4">
+                <div className="px-2 sm:px-3 pb-1 sm:pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Tools</div>
+                <div className="space-y-1 sm:space-y-2">
                   {aiToolsItems.map((item, index) => (
                     <Link
                       key={index}
                       to={item.path}
                       onClick={() => setIsSidebarOpen(false)}
-                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base ${
                         location.pathname === item.path
                           ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-medium'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                       <span>{item.name}</span>
                     </Link>
                   ))}
@@ -145,21 +138,21 @@ const App = () => {
 
             {/* Admin section - only visible to authenticated admins */}
             {isAuthenticated && (
-              <div className="pt-4">
-                <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
-                <div className="space-y-2">
+              <div className="pt-2 sm:pt-4">
+                <div className="px-2 sm:px-3 pb-1 sm:pb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
+                <div className="space-y-1 sm:space-y-2">
                   {adminSidebarItems.map((item, index) => (
                     <Link
                       key={index}
                       to={item.path}
                       onClick={() => setIsSidebarOpen(false)}
-                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
+                      className={`flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base ${
                         location.pathname === item.path
                           ? 'bg-purple-50 text-purple-700 font-medium'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                       <span>{item.name}</span>
                     </Link>
                   ))}
@@ -172,37 +165,36 @@ const App = () => {
         </div>
 
         {/* Bottom Upgrade Section */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white">
-            <h4 className="font-semibold mb-1">Upgrade</h4>
-            <p className="text-sm opacity-90">More credits & AI tools</p>
+        <div className="p-2 sm:p-4 border-t border-gray-200">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-3 sm:p-4 text-white">
+            <h4 className="font-semibold mb-1 text-sm sm:text-base">Explore All Popular Brands in The World</h4>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col md:ml-64 ml-0">
+      <div className="flex-1 flex flex-col ml-0 md:ml-[15%] w-full md:w-[calc(100%-15%)] max-w-full">
         {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 w-full">
+          <div className="flex items-center justify-between w-full">
             {/* Left: Mobile menu + Search */}
-            <div className="flex items-center gap-3 flex-1 max-w-2xl">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-2xl min-w-0">
               <button
-                className="md:hidden p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                className="md:hidden p-1.5 sm:p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
                 onClick={() => setIsSidebarOpen(true)}
                 aria-label="Open sidebar"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <div className="flex-1">
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
+                  <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   </div>
                   <input
                     type="text"
                     placeholder="Search assets or start creating"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                   />
                 </div>
               </div>
@@ -213,7 +205,7 @@ const App = () => {
         </header>
 
         {/* Main Content Area */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 px-4 md:px-6 py-6 overflow-y-auto overflow-x-hidden w-full main-content">
           <Routes>
             <Route path="/" element={<HomePage 
               activeTab={activeTab}
@@ -237,10 +229,126 @@ const App = () => {
             <Route path="/brand-guidelines" element={<BrandGuidelinesPage />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/ai-name-generator" element={<AINameGeneratorPage />} />
-            <Route path="/color-palette" element={<ColorPalettePage />} />
-            <Route path="/fonts" element={<FontsPage />} />
+                          <Route path="/color-palette" element={<ColorPalettePage />} />
+              <Route path="/brand-palettes" element={<BrandPalettesPage />} />
+              <Route path="/fonts" element={<FontsPage />} />
           </Routes>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-8 sm:mt-16 bg-white border-t border-gray-200 py-8 sm:py-12 w-full">
+          <div className="w-full mx-auto px-4 sm:px-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
+              {/* Company Info */}
+              <div>
+                <h3 className="text-lg font-bold text-blue-600 mb-4">TRUSTEDLOGOS</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Your trusted source for logo inspiration and brand identity resources. 
+                  Discover thousands of professional logos across all industries.
+                </p>
+                <div className="flex space-x-3">
+                  <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+                    <Twitter className="h-5 w-5" />
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+                    <Linkedin className="h-5 w-5" />
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+                    <Mail className="h-5 w-5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Resources */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">Resources</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Logo Generator</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Brand Guidelines</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Color Palettes</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Typography Guide</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Design Templates</a></li>
+                </ul>
+              </div>
+
+              {/* Industries */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">Industries</h4>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link 
+                      to="/brands-logos?category=Technology & Software" 
+                      className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    >
+                      Technology
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/brands-logos?category=Fashion & Beauty" 
+                      className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    >
+                      Fashion
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/brands-logos?category=Food & Drinks" 
+                      className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    >
+                      Food & Drinks
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/brands-logos?category=Automotive & Transport" 
+                      className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    >
+                      Automotive
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/brands-logos" 
+                      className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    >
+                      View All Industries
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Support */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">Support</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Help Center</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Contact Us</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Privacy Policy</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Terms of Service</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Cookie Policy</a></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom Footer */}
+            <div className="border-t border-gray-200 pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-gray-500 text-xs sm:text-sm text-center sm:text-left">
+                © 2025 TrustedLogos. All rights reserved.
+              </p>
+              <div className="flex items-center space-x-4 sm:space-x-6 text-xs sm:text-sm">
+                <span className="text-gray-500">Made with</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-gray-600">for designers worldwide</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
 
       
@@ -267,6 +375,8 @@ const HomePage = ({
   setActiveIndustry: (industry: string) => void;
 }) => {
   const { logos, loading, error, incrementDownloads, incrementLikes, fetchAllLogos } = useLogos();
+  // Add color palettes for homepage brand palettes
+  const { palettes: colorPalettes } = useColorPalettes();
   
   // State for all logos (needed for proper type filtering)
   const [allLogos, setAllLogos] = React.useState<any[]>([]);
@@ -325,8 +435,24 @@ const HomePage = ({
       console.error('Failed to increment like count:', error);
     }
   };
-  
 
+  // Add ref and scroll handler for the Circular Logos section
+  const circularLogoRowRef = React.useRef<HTMLDivElement>(null);
+  const scrollCircularLogoRow = (direction: 'left' | 'right') => {
+    const container = circularLogoRowRef.current;
+    if (!container) return;
+    const scrollAmount = Math.max(0, Math.floor(container.clientWidth * 0.8));
+    container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  };
+
+  // Add ref and scroll handler for the Brand Color Palettes row
+  const brandPalettesRowRef = React.useRef<HTMLDivElement>(null);
+  const scrollBrandPalettesRow = (direction: 'left' | 'right') => {
+    const container = brandPalettesRowRef.current;
+    if (!container) return;
+    const scrollAmount = Math.max(0, Math.floor(container.clientWidth * 0.8));
+    container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  };
   
   // Distribute logos across sections
   const distributedData = React.useMemo(() => {
@@ -390,7 +516,71 @@ const HomePage = ({
     }
   }, [distributedData.topLogos]);
   
+  // Compute circular logos once for the homepage (standalone section)
+  const circularLogos = React.useMemo(() => {
+    try {
+      const source = logosForFiltering || [];
+      const isCircular = (shape?: string) => {
+        if (!shape) return false;
+        const s = shape.toLowerCase();
+        return s.includes('circle') || s.includes('circular') || s.includes('round') || s.includes('rounded');
+      };
+      return source.filter((logo: any) => isCircular(logo.shape)).slice(0, 30);
+    } catch {
+      return [] as any[];
+    }
+  }, [logosForFiltering]);
 
+  // Build homepage brand palettes (most popular, max 25)
+  const homepageBrandPalettes = React.useMemo(() => {
+    try {
+      const source = Array.isArray(logosForFiltering) ? logosForFiltering : [];
+
+      // Use the same selection criteria as BrandPalettesPage: only logos opted-in
+      const filtered = source.filter((logo: any) => logo?.showInBrandPalettes === true);
+
+      const mapped = filtered.map((logo: any) => {
+        // Prefer brandColors if available
+        let colors: Array<{ hex: string; name?: string }> = Array.isArray((logo as any).brandColors) && (logo as any).brandColors.length > 0
+          ? (logo as any).brandColors.map((hex: string, index: number) => ({ hex, name: `Color ${index + 1}` }))
+          : [];
+
+        // If no brandColors, fall back to primary/secondary
+        if (colors.length === 0) {
+          if (logo.primaryColor) colors.push({ hex: logo.primaryColor, name: 'Primary' });
+          if (logo.secondaryColor) colors.push({ hex: logo.secondaryColor, name: 'Secondary' });
+        }
+
+        // Match DB palettes by brand name to enrich/override
+        const matchingPalette = (colorPalettes || []).find(p =>
+          p.name?.toLowerCase().includes((logo.name || '').toLowerCase()) ||
+          (logo.name || '').toLowerCase().includes(p.name?.toLowerCase())
+        );
+        if (matchingPalette && Array.isArray(matchingPalette.colors) && matchingPalette.colors.length > 0) {
+          colors = matchingPalette.colors.map((hex: string, idx: number) => ({ hex, name: `Color ${idx + 1}` }));
+        }
+
+        // Fallback default color if still empty
+        if (colors.length === 0) {
+          colors.push({ hex: '#6B7280', name: 'Default' });
+        }
+
+        return {
+          id: logo.id,
+          brandName: logo.name,
+          logoUrl: logo.imageUrl,
+          colors,
+        } as { id: string; brandName: string; logoUrl?: string; colors: Array<{ hex: string; name?: string }> };
+      });
+
+      // Sort by name to match BrandPalettesPage default
+      const sorted = mapped.sort((a, b) => a.brandName.localeCompare(b.brandName));
+
+      return sorted.slice(0, 25);
+    } catch (e) {
+      return [] as Array<{ id: string; brandName: string; logoUrl?: string; colors: Array<{ hex: string; name?: string }> }>;
+    }
+  }, [logosForFiltering, colorPalettes]);
 
   // Map homepage tabs to Subcategory only
   const topTabSubcategories: Record<string, string> = React.useMemo(() => ({
@@ -441,32 +631,36 @@ const HomePage = ({
 
   const quickActions = [
     {
-      title: 'Logo Generator',
-      subtitle: 'April 29, 2025',
-      description: 'Create professional logos instantly',
+      title: 'Brand Playbooks',
+      subtitle: '100+ interactive flipping book examples.',
+      description: 'Interactive brand playbooks',
       gradient: 'from-purple-400 via-pink-400 to-purple-600',
-      icon: 'LG'
+      icon: 'BP',
+      path: '/brand-guidelines'
     },
     {
-      title: 'Brand Identity Kit',
-      subtitle: 'Resize any logo filling the gaps with AI',
-      description: 'Complete branding solutions',
+      title: 'Design Academy',
+      subtitle: 'Logo design & branding Books.',
+      description: 'Logo design and branding books',
       gradient: 'from-green-500 via-teal-500 to-green-700',
-      icon: 'BI'
+      icon: 'DA',
+      path: '/learn'
     },
     {
-      title: 'Logo Evolution',
-      subtitle: 'Track brand changes easily',
-      description: 'See how brands evolved over time',
+      title: 'Color Lab',
+      subtitle: 'Color palettes inspired by brands.',
+      description: 'Brand-inspired color palettes',
       gradient: 'from-orange-400 via-red-400 to-pink-500',
-      icon: 'LE'
+      icon: 'CL',
+      path: '/color-palette'
     },
     {
-      title: 'Create an AI Logo',
-      subtitle: 'From words to logos',
-      description: 'AI-powered logo creation',
+      title: 'Typography Hub',
+      subtitle: 'Free fonts download',
+      description: 'Download free fonts',
       gradient: 'from-orange-500 via-red-500 to-yellow-500',
-      icon: 'AI'
+      icon: 'TH',
+      path: '/fonts'
     },
   ];
 
@@ -732,23 +926,24 @@ const HomePage = ({
         ogTitle={`${activeLogoType} Logo Design Examples | ${activeIndustry} Logo Inspiration`}
         ogDescription={`Explore professional ${activeLogoType.toLowerCase()} logo designs from the ${activeIndustry.toLowerCase()} industry. Your trusted source for logo inspiration and brand identity resources.`}
       />
+      <div className="w-full mx-auto">
       {/* Recent Creations Section */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">TOP Logos</h2>
-          <a href="#" className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">TOP Logos</h2>
+          <a href="#" className="text-sm sm:text-base text-blue-600 hover:text-blue-700 font-medium flex items-center">
             Explore the World's Most Iconic Logos
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
           </a>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+        {/* Filter Tabs - Horizontally scrollable on mobile */}
+        <div className="horizontal-scroll sm:flex sm:flex-wrap gap-1 sm:gap-2 mb-6 bg-gray-100 rounded-lg p-1 w-full">
           {['Restaurant Logos', 'Fashion Logos', 'Social media', 'Supermarkets & Grocery', 'Apps & SaaS', 'Electronics & Gadgets', 'Car Brands'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 ${
                 activeTab === tab
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -759,20 +954,20 @@ const HomePage = ({
           ))}
         </div>
 
-        {/* TOP Logos Grid */}
-        <div className="grid grid-cols-7 gap-4 mb-8">
+        {/* TOP Logos Grid - 2 columns on mobile */}
+        <div className="grid mobile-grid-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4 mb-8">
           {displayLogos.length > 0 ? displayLogos.map((logo) => (
             <div
               key={logo.id}
               onClick={() => openModal(logo)}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer group"
             >
-              <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
+              <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden p-1 sm:p-2 md:p-4">
                 {logo.imageUrl ? (
                   <img 
                     src={logo.imageUrl} 
                     alt={logo.name} 
-                    className="w-full h-full object-contain"
+                    className="max-w-full max-h-full object-contain"
                     onError={(e) => {
                       // Fallback to letter if image fails to load
                       e.currentTarget.style.display = 'none';
@@ -781,14 +976,14 @@ const HomePage = ({
                   />
                 ) : null}
                 <div
-                  className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform duration-200 ${logo.imageUrl ? 'hidden' : ''}`}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-200 ${logo.imageUrl ? 'hidden' : ''}`}
                   style={{ backgroundColor: logo.primaryColor }}
                 >
                   {logo.name?.charAt(0)?.toUpperCase()}
                 </div>
               </div>
-              <div className="p-3">
-                <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">
+              <div className="p-1 sm:p-2 md:p-3">
+                <h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 truncate">
                   {logo.name}
                 </h3>
               </div>
@@ -816,13 +1011,13 @@ const HomePage = ({
 
       {/* Quick Actions Section */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick actions</h2>
         
         {/* Quick Actions Grid */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
           {quickActions.map((action, index) => (
-            <div
+            <Link
               key={index}
+              to={action.path}
               className={`bg-gradient-to-br ${action.gradient} rounded-xl p-6 text-white cursor-pointer hover:scale-105 transition-transform duration-200 shadow-lg`}
             >
               <div className="flex items-center justify-between mb-4">
@@ -832,7 +1027,7 @@ const HomePage = ({
               </div>
               <h3 className="font-bold text-lg mb-2">{action.title}</h3>
               <p className="text-sm opacity-90 mb-1">{action.subtitle}</p>
-            </div>
+            </Link>
           ))}
         </div>
 
@@ -874,16 +1069,16 @@ const HomePage = ({
       </div>
 
       {/* Logo Types Section */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Logo Design Types</h2>
+      <div className="mt-8 sm:mt-12">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Logo Design Types</h2>
         
-        {/* Logo Types Tab Menu */}
-        <div className="flex flex-wrap gap-2 mb-8 bg-white rounded-lg p-2 shadow-sm border border-gray-200">
+        {/* Logo Types Tab Menu - Horizontally scrollable on mobile */}
+        <div className="horizontal-scroll sm:flex sm:flex-wrap gap-1 sm:gap-2 mb-6 sm:mb-8 bg-white rounded-lg p-1 sm:p-2 shadow-sm border border-gray-200">
           {availableLogoTypes.map((logoType, index) => (
             <button
               key={logoType}
               onClick={() => setActiveLogoType(logoType)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 ${
                 activeLogoType === logoType
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -906,8 +1101,8 @@ const HomePage = ({
           </div>
         </div>
 
-        {/* Logo Examples Grid */}
-        <div className="grid grid-cols-7 gap-4 mb-8">
+        {/* Logo Examples Grid - 2 columns on mobile */}
+        <div className="grid mobile-grid-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4 mb-6 sm:mb-8">
           {distributedData.logoTypes[activeLogoType]?.logos?.length > 0 ? distributedData.logoTypes[activeLogoType].logos.map((logo, index) => (
             <div
               key={index}
@@ -919,7 +1114,7 @@ const HomePage = ({
                   <img 
                     src={logo.imageUrl} 
                     alt={logo.name} 
-                    className="w-full h-full object-contain"
+                    className="max-w-full max-h-full object-contain"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -946,21 +1141,153 @@ const HomePage = ({
             </div>
           )}
         </div>
-
-        
       </div>
 
+      {/* Brand Color Palettes - One Row (max 25) */}
+      {homepageBrandPalettes.length > 0 && (
+        <div className="mt-8 sm:mt-12">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Brand Color Palettes</h2>
+              <p className="text-gray-600 text-sm">Discover the most popular Brands and color codes</p>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollBrandPalettesRow('left')}
+                aria-label="Scroll left"
+                className="h-8 w-8 items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 hidden md:inline-flex"
+              >
+                <span className="sr-only">Left</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-gray-700"><path fillRule="evenodd" d="M15.53 4.47a.75.75 0 0 1 0 1.06L9.06 12l6.47 6.47a.75.75 0 1 1-1.06 1.06l-7-7a.75.75 0 0 1 0-1.06l7-7a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" /></svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollBrandPalettesRow('right')}
+                aria-label="Scroll right"
+                className="h-8 w-8 items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 hidden md:inline-flex"
+              >
+                <span className="sr-only">Right</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-gray-700"><path fillRule="evenodd" d="M8.47 19.53a.75.75 0 0 1 0-1.06L14.94 12 8.47 5.53a.75.75 0 1 1 1.06-1.06l7 7a.75.75 0 0 1 0 1.06l-7 7a.75.75 0 0 1-1.06 0Z" clipRule="evenodd" /></svg>
+              </button>
+              <Link to="/brand-palettes" className="items-center text-sm text-blue-600 hover:text-blue-700 font-medium hidden md:inline-flex">
+                View all
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
+            </div>
+          </div>
+          <div ref={brandPalettesRowRef} className="overflow-x-auto no-scrollbar">
+            <div className="flex items-stretch gap-3 sm:gap-4 pr-3 sm:pr-4">
+              {homepageBrandPalettes.map((brand) => (
+                <div
+                  key={brand.id}
+                  className="flex-shrink-0 w-30 sm:w-48 md:w-60 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
+                  title={brand.brandName}
+                >
+                  <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden">
+                    {brand.logoUrl ? (
+                      <img
+                        src={brand.logoUrl}
+                        alt={brand.brandName}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          const target = e.currentTarget as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-10 h-10 rounded-md flex items-center justify-center text-white text-sm font-bold ${brand.logoUrl ? 'hidden' : ''}`}
+                      style={{ backgroundColor: brand.colors?.[0]?.hex || '#6B7280' }}
+                    >
+                      {brand.brandName?.charAt(0)?.toUpperCase()}
+                    </div>
+                  </div>
+                  <div className="flex h-3">
+                    {brand.colors.slice(0, 6).map((c, idx) => (
+                      <div key={idx} className="flex-1" style={{ backgroundColor: c.hex }} title={`${c.name || 'Color'}: ${c.hex}`} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Circular Logos Section */}
+      {circularLogos.length > 0 && (
+        <div className="mt-8 sm:mt-12 mb-8 sm:mb-12">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Circular Logos</h2>
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollCircularLogoRow('left')}
+                aria-label="Scroll left"
+                className="h-8 w-8 items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 hidden md:inline-flex"
+              >
+                <span className="sr-only">Left</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-gray-700"><path fillRule="evenodd" d="M15.53 4.47a.75.75 0 0 1 0 1.06L9.06 12l6.47 6.47a.75.75 0 1 1-1.06 1.06l-7-7a.75.75 0 0 1 0-1.06l7-7a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" /></svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollCircularLogoRow('right')}
+                aria-label="Scroll right"
+                className="h-8 w-8 items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 hidden md:inline-flex"
+              >
+                <span className="sr-only">Right</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-gray-700"><path fillRule="evenodd" d="M8.47 19.53a.75.75 0 0 1 0-1.06L14.94 12 8.47 5.53a.75.75 0 1 1 1.06-1.06l7 7a.75.75 0 0 1 0 1.06l-7 7a.75.75 0 0 1-1.06 0Z" clipRule="evenodd" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div ref={circularLogoRowRef} className="overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-3 sm:gap-4 pr-3 sm:pr-4">
+              {circularLogos.map((logo: any, index: number) => (
+                <div
+                  key={`${logo.name}-${index}`}
+                  onClick={() => openModal(logo)}
+                  className="flex-shrink-0 w-30 h-30 sm:w-48 sm:h-48 md:w-60 md:h-60 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer flex items-center justify-center"
+                  title={logo.name}
+                >
+                  {logo.imageUrl ? (
+                    <img
+                      src={logo.imageUrl}
+                      alt={logo.name}
+                      className="w-full h-full object-contain bg-white"
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement | null;
+                        if (fallback) fallback.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold bg-gray-400 ${logo.imageUrl ? 'hidden' : ''}`}
+                    style={{ backgroundColor: logo.primaryColor }}
+                  >
+                    {logo.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Industry Logos Section */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Industry Logo Showcase</h2>
+      <div className="mt-8 sm:mt-12">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Industry Logo Showcase</h2>
         
-        {/* Industry Tab Menu */}
-        <div className="flex flex-wrap gap-2 mb-8 bg-white rounded-lg p-2 shadow-sm border border-gray-200">
+        {/* Industry Tab Menu - Horizontally scrollable on mobile */}
+        <div className="horizontal-scroll sm:flex sm:flex-wrap gap-1 sm:gap-2 mb-6 sm:mb-8 bg-white rounded-lg p-1 sm:p-2 shadow-sm border border-gray-200">
           {availableIndustries.map((industry) => (
             <button
               key={industry}
               onClick={() => setActiveIndustry(industry)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 ${
                 activeIndustry === industry
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -971,19 +1298,9 @@ const HomePage = ({
           ))}
         </div>
 
-        {/* Industry Description */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">{activeIndustry} Logos</h3>
-          <p className="text-gray-600 mb-4">{distributedData.industries[activeIndustry]?.description || 'Industry description'}</p>
-          <div className="flex items-center text-sm text-gray-500">
-            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-              {distributedData.industries[activeIndustry]?.logos?.length || 0} Featured Brands
-            </span>
-          </div>
-        </div>
 
-        {/* Industry Logos Grid */}
-        <div className="grid grid-cols-7 gap-4">
+        {/* Industry Logos Grid - 2 columns on mobile */}
+        <div className="grid mobile-grid-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4">
           {distributedData.industries[activeIndustry]?.logos?.length > 0 ? distributedData.industries[activeIndustry].logos.map((logo, index) => (
             <div
               key={index}
@@ -995,7 +1312,7 @@ const HomePage = ({
                   <img 
                     src={logo.imageUrl} 
                     alt={logo.name} 
-                    className="w-full h-full object-contain"
+                    className="max-w-full max-h-full object-contain"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.nextElementSibling?.classList.remove('hidden');
@@ -1034,121 +1351,7 @@ const HomePage = ({
           </Link>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="mt-16 bg-white border-t border-gray-200 py-12">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-4 gap-8 mb-8">
-            {/* Company Info */}
-            <div>
-              <h3 className="text-lg font-bold text-blue-600 mb-4">TRUSTEDLOGOS</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Your trusted source for logo inspiration and brand identity resources. 
-                Discover thousands of professional logos across all industries.
-              </p>
-              <div className="flex space-x-3">
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
-                  <Instagram className="h-5 w-5" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
-                  <Linkedin className="h-5 w-5" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
-                  <Mail className="h-5 w-5" />
-                </a>
-              </div>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Logo Generator</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Brand Guidelines</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Color Palettes</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Typography Guide</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Design Templates</a></li>
-              </ul>
-            </div>
-
-            {/* Industries */}
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Industries</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link 
-                    to="/brands-logos?category=Technology & Software" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                  >
-                    Technology
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/brands-logos?category=Fashion & Beauty" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                  >
-                    Fashion
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/brands-logos?category=Food & Drinks" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                  >
-                    Food & Drinks
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/brands-logos?category=Automotive & Transport" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                  >
-                    Automotive
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/brands-logos" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                  >
-                    View All Industries
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Support</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Help Center</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Contact Us</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Terms of Service</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">Cookie Policy</a></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Footer */}
-          <div className="border-t border-gray-200 pt-8 flex items-center justify-between">
-            <p className="text-gray-500 text-sm">
-              © 2025 TrustedLogos. All rights reserved.
-            </p>
-            <div className="flex items-center space-x-6 text-sm">
-              <span className="text-gray-500">Made with</span>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-gray-600">for designers worldwide</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+    </div>
 
       {/* Logo Modal */}
       <LogoModal

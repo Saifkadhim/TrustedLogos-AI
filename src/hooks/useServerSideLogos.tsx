@@ -79,12 +79,48 @@ const mapDatabaseRowToLogo = (row: any): Logo => {
     fileSize: row.file_size || undefined,
     fileType: row.file_type || undefined,
     isPublic: row.is_public,
+    showInBrandPalettes: row.show_in_brand_palettes || false,
+    tags: row.tags || [],
+    brandColors: row.brand_colors || undefined,
     downloads: row.downloads || 0,
     likes: row.likes || 0,
     createdBy: row.created_by || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+};
+
+// Helper function to upload image to Supabase Storage
+const uploadImage = async (file: File, logoName: string): Promise<{ path: string; url: string }> => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${logoName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${fileExt}`;
+  const filePath = `originals/${fileName}`;
+
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(filePath);
+
+  return { path: filePath, url: publicUrl };
+};
+
+// Helper function to delete image from storage
+const deleteImage = async (imagePath: string): Promise<void> => {
+  if (!imagePath) return;
+  
+  const { error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .remove([imagePath]);
+  
+  if (error) console.warn('Failed to delete image:', error);
 };
 
 export const useServerSideLogos = () => {
@@ -292,9 +328,32 @@ export const useServerSideLogos = () => {
     designerUrl?: string;
     primaryColor?: string;
     secondaryColor?: string;
+    showInBrandPalettes?: boolean;
+    tags?: string[];
+    brandColors?: string[];
+    imageFile?: File;
   }): Promise<boolean> => {
     try {
       setLoading(true);
+      
+      const existingLogo = logos.find(l => l.id === updateData.id);
+      if (!existingLogo) throw new Error('Logo not found');
+
+      // Handle image upload if provided
+      let imagePath = existingLogo.imagePath;
+      let imageUrl = existingLogo.imageUrl;
+      
+      if (updateData.imageFile) {
+        // Delete old image
+        if (existingLogo.imagePath) {
+          await deleteImage(existingLogo.imagePath);
+        }
+        
+        // Upload new image
+        const uploadResult = await uploadImage(updateData.imageFile, updateData.name || existingLogo.name);
+        imagePath = uploadResult.path;
+        imageUrl = uploadResult.url;
+      }
       
       // Prepare the data for database update
       const dbUpdateData: any = {};
@@ -307,6 +366,17 @@ export const useServerSideLogos = () => {
       if (updateData.designerUrl !== undefined) dbUpdateData.designer_url = updateData.designerUrl;
       if (updateData.primaryColor !== undefined) dbUpdateData.primary_color = updateData.primaryColor;
       if (updateData.secondaryColor !== undefined) dbUpdateData.secondary_color = updateData.secondaryColor;
+      if (updateData.showInBrandPalettes !== undefined) dbUpdateData.show_in_brand_palettes = updateData.showInBrandPalettes;
+      if (updateData.tags !== undefined) dbUpdateData.tags = updateData.tags;
+      if (updateData.brandColors !== undefined) dbUpdateData.brand_colors = updateData.brandColors;
+      
+      // Add image data if file was uploaded
+      if (updateData.imageFile) {
+        dbUpdateData.image_path = imagePath;
+        dbUpdateData.image_name = updateData.imageFile.name;
+        dbUpdateData.file_size = updateData.imageFile.size;
+        dbUpdateData.file_type = updateData.imageFile.type;
+      }
       
       // Add updated_at timestamp
       dbUpdateData.updated_at = new Date().toISOString();
@@ -344,7 +414,7 @@ export const useServerSideLogos = () => {
     } finally {
       setLoading(false);
     }
-  }, [updateLogoInState]);
+  }, [updateLogoInState, logos]);
 
   // Remove logo from local state
   const removeLogoFromState = useCallback((id: string) => {

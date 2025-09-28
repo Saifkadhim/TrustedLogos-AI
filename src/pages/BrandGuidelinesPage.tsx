@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, 
-  Filter, 
   BookOpen, 
   Star,
   Smartphone,
@@ -9,8 +8,7 @@ import {
   Utensils,
   Car,
   Film,
-  Building2,
-  Eye
+  Building2
 } from 'lucide-react';
 import { useBrandGuidelines } from '../hooks/useBrandGuidelines';
 import FlipbookViewer from '../components/FlipbookViewer';
@@ -56,13 +54,6 @@ const BrandGuidelinesPage: React.FC = () => {
       }
     });
 
-  // Handle search
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Search functionality will be implemented later
-    console.log('Searching for:', searchTerm);
-  };
-
   // Handle category filter
   const handleCategoryFilter = (categoryName: string) => {
     setSelectedCategory(categoryName);
@@ -81,6 +72,38 @@ const BrandGuidelinesPage: React.FC = () => {
     }
   };
 
+  const getBrandColors = (brandName: string): string[] => {
+    const brandColors: Record<string, string[]> = {
+      'Nike': ['#FF6900', '#FCB900', '#7BDCB5'],
+      'Apple': ['#007AFF', '#FF3B30', '#FF9500'],
+      'Coca-Cola': ['#FF0000', '#FFFFFF', '#000000'],
+      'Google': ['#4285F4', '#EA4335', '#FBBC04', '#34A853'],
+      'McDonald\'s': ['#FFC72C', '#DA291C'],
+      'Starbucks': ['#00704A', '#FFFFFF'],
+      'Microsoft': ['#00BCF2', '#80BC00', '#FFBA00', '#F25022'],
+      'Facebook': ['#1877F2', '#42B883'],
+      'Amazon': ['#FF9900', '#232F3E'],
+      'Tesla': ['#CC0000', '#000000'],
+      'Netflix': ['#E50914', '#221F1F'],
+      'Spotify': ['#1DB954', '#191414'],
+      'Uber': ['#000000', '#1FBAD6'],
+      'Airbnb': ['#FF5A5F', '#00A699', '#FC642D'],
+      'Twitter': ['#1DA1F2', '#657786'],
+      'Instagram': ['#E4405F', '#833AB4', '#F56040'],
+      'LinkedIn': ['#0A66C2', '#313335'],
+      'YouTube': ['#FF0000', '#FFFFFF', '#000000'],
+      'Adobe': ['#FF0000', '#000000'],
+      'IBM': ['#054ADA', '#000000'],
+      'Samsung': ['#1428A0', '#FFFFFF'],
+      'Sony': ['#000000', '#0080FF'],
+      'PayPal': ['#003087', '#009CDE'],
+      'Visa': ['#1A1F71', '#F7B600'],
+      'Mastercard': ['#EB001B', '#FF5F00', '#F79E1B']
+    };
+
+    return brandColors[brandName] || ['#6B7280', '#9CA3AF', '#D1D5DB'];
+  };
+
   return (
     <>
       <SEO 
@@ -95,49 +118,11 @@ const BrandGuidelinesPage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Explore the Rules Behind the World's Most Iconic Brands
+                Explore the Rules Behind the World\'s Most Iconic Brands
               </h1>
-              <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl text-blue-100 mb-0 max-w-3xl mx-auto">
                 Flip through official brand books and see how global companies define their logos, colors, and typography.
               </p>
-              
-              {/* Search Bar */}
-              <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-8">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by brand name or industry..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 text-lg text-gray-900 bg-white rounded-lg shadow-lg focus:ring-4 focus:ring-blue-300 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Search
-                  </button>
-                </div>
-              </form>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={() => setSelectedCategory('all')}
-                  className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-                >
-                  <BookOpen className="h-5 w-5" />
-                  Browse All Guidelines
-                </button>
-                <button
-                  onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Filter className="h-5 w-5" />
-                  Explore by Category
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -173,8 +158,8 @@ const BrandGuidelinesPage: React.FC = () => {
         <div id="categories" className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
-              {/* Categories */}
-              <div className="flex flex-wrap gap-2">
+              {/* Categories - Horizontally scrollable on mobile */}
+              <div className="horizontal-scroll sm:flex sm:flex-wrap gap-2 w-full lg:w-auto">
                 <button
                   onClick={() => handleCategoryFilter('all')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -201,7 +186,23 @@ const BrandGuidelinesPage: React.FC = () => {
                 ))}
               </div>
 
-              {/* Sort & View Controls */}
+              {/* Search Bar (moved from hero; matches brands-logos style) */}
+              <div className="w-full lg:max-w-md">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search guidelines..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  />
+                </div>
+              </div>
+
+              {/* Sort Controls */}
               <div className="flex items-center gap-4">
                 {/* Sort Dropdown */}
                 <select
@@ -248,59 +249,57 @@ const BrandGuidelinesPage: React.FC = () => {
             </div>
           )}
 
-          {/* Brand Guidelines Grid */}
+          {/* Brand Guidelines Grid -> Masonry */}
           {!loading && !error && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="masonry-columns columns-1 lg:columns-2 xl:columns-3">
               {filteredGuidelines.map((guideline) => (
                 <div
                   key={guideline.id}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden p-6 text-center"
+                  onClick={() => setSelectedGuideline({
+                    pdfUrl: guideline.pdf_url,
+                    title: `${guideline.brand_name} - ${guideline.title}`
+                  })}
+                  className="inline-block w-full mb-6 break-inside-avoid bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden cursor-pointer align-top"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setSelectedGuideline({
+                        pdfUrl: guideline.pdf_url,
+                        title: `${guideline.brand_name} - ${guideline.title}`
+                      });
+                    }
+                  }}
+                  aria-label={`Open ${guideline.brand_name} brand guidelines`}
                 >
-                  {/* Thumbnail */}
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BookOpen className="h-10 w-10 text-white" />
+                  {/* Thumbnail - full width, natural height */}
+                  <div className="w-full bg-gray-100">
+                    {guideline.thumbnail_url ? (
+                      <img 
+                        src={guideline.thumbnail_url} 
+                        alt={`${guideline.brand_name} brand guidelines thumbnail`}
+                        className="w-full h-auto object-contain bg-white"
+                        onError={(e) => {
+                          // Fallback to icon if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (nextElement) {
+                            nextElement.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div className={`${guideline.thumbnail_url ? 'hidden' : 'flex'} w-full h-56 bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center`}>
+                      <BookOpen className="h-10 w-10 text-white" />
+                    </div>
                   </div>
-                  
-                  {/* Brand Info */}
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{guideline.brand_name}</h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{guideline.title}</p>
-                  
-                  {/* Category Badge */}
-                  <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium mb-3 bg-opacity-10`} style={{ backgroundColor: `${guideline.category?.color || '#6B7280'}20`, color: guideline.category?.color || '#6B7280' }}>
-                    {getCategoryIcon(guideline.category?.name || '')}
-                    {guideline.category?.name || 'Uncategorized'}
+
+                  {/* Brand Name under image */}
+                  <div className="p-4 text-center">
+                    <h3 className="text-base font-semibold text-gray-900 line-clamp-1">
+                      {guideline.brand_name}
+                    </h3>
                   </div>
-                  
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1 justify-center mb-4">
-                    {guideline.tags?.slice(0, 3).map((tag, index) => (
-                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  {/* Stats */}
-                  <div className="flex items-center justify-center gap-4 text-sm text-gray-500 mb-4">
-                    <span className="flex items-center gap-1">
-                      <span>👁️ {guideline.views || 0}</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span>⬇️ {guideline.downloads || 0}</span>
-                    </span>
-                  </div>
-                  
-                  {/* Action Button */}
-                  <button 
-                    onClick={() => setSelectedGuideline({
-                      pdfUrl: guideline.pdf_url,
-                      title: `${guideline.brand_name} - ${guideline.title}`
-                    })}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    📖 Open Flipbook
-                  </button>
                 </div>
               ))}
             </div>

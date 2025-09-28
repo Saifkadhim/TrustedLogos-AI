@@ -24,7 +24,7 @@ const FlipbookModal: React.FC<FlipbookModalProps> = ({
   const { numPages, renderPage, getOutline } = usePdf(pdfUrl);
   
   const [currentPage, setCurrentPage] = useState(initialPage);
-  const [zoom, setZoom] = useState(0.95); // Default zoom is slightly out
+  const [zoom, setZoom] = useState(1); // Default zoom at 100% for better fullscreen fit
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [showToc, setShowToc] = useState(false);
@@ -54,6 +54,55 @@ const FlipbookModal: React.FC<FlipbookModalProps> = ({
     setLastViewedPage(currentPage);
   }, [currentPage, setLastViewedPage]);
 
+  // Try to enter fullscreen automatically on open
+  useEffect(() => {
+    let cleaned = false;
+
+    const requestFs = async () => {
+      try {
+        if (!document.fullscreenElement && flipbookContainerRef.current) {
+          await flipbookContainerRef.current.requestFullscreen();
+        }
+      } catch (e) {
+        // Browser likely blocked due to no user gesture; fallback below
+      }
+    };
+
+    // Attempt immediately
+    requestFs();
+
+    // Fallback: on first user interaction, request fullscreen
+    const onFirstInteract = () => {
+      if (!document.fullscreenElement && flipbookContainerRef.current) {
+        flipbookContainerRef.current.requestFullscreen().catch(() => {});
+      }
+      cleanup();
+    };
+
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      window.removeEventListener('pointerdown', onFirstInteract, true);
+      window.removeEventListener('keydown', onFirstInteract, true);
+      window.removeEventListener('touchstart', onFirstInteract, true);
+    };
+
+    window.addEventListener('pointerdown', onFirstInteract, true);
+    window.addEventListener('keydown', onFirstInteract, true);
+    window.addEventListener('touchstart', onFirstInteract, true);
+
+    // Also clean up when we do enter fullscreen
+    const onFsChange = () => {
+      if (document.fullscreenElement) cleanup();
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+
+    return () => {
+      cleanup();
+      document.removeEventListener('fullscreenchange', onFsChange);
+    };
+  }, []);
+
   // Sync current page with flipbook when it changes externally
   useEffect(() => {
     if (flipbookRef.current && numPages > 0) {
@@ -65,12 +114,44 @@ const FlipbookModal: React.FC<FlipbookModalProps> = ({
     }
   }, [numPages, currentPage]);
 
+  // Preload nearby pages for better performance
+  useEffect(() => {
+    if (!numPages || numPages === 0) return;
+
+    const preloadPages = async () => {
+      const pagesToPreload = [];
+      
+      // Preload current page and nearby pages
+      const preloadRange = 2; // Preload 2 pages before and after current page
+      
+      for (let i = Math.max(1, currentPage - preloadRange); 
+           i <= Math.min(numPages, currentPage + preloadRange); 
+           i++) {
+        if (i !== currentPage) { // Current page is already loading/loaded
+          pagesToPreload.push(i);
+        }
+      }
+      
+      // Preload with lower priority
+      pagesToPreload.forEach((pageNum, index) => {
+        setTimeout(() => {
+          renderPage(pageNum, 0.5); // Lower priority for preloading
+        }, index * 100); // Stagger the preloading
+      });
+    };
+
+    // Delay preloading to not interfere with current page loading
+    const preloadTimer = setTimeout(preloadPages, 500);
+    
+    return () => clearTimeout(preloadTimer);
+  }, [currentPage, numPages, renderPage]);
+
   const navigateToPage = (targetPage: number) => {
     if (currentPage !== targetPage && targetPage >= 1 && targetPage <= numPages) {
       setCurrentPage(targetPage);
       
       // Reset view state on page change
-      setZoom(0.95);
+      setZoom(1);
       setPanOffset({ x: 0, y: 0 });
       
       // Navigate flipbook to target page
@@ -107,6 +188,11 @@ const FlipbookModal: React.FC<FlipbookModalProps> = ({
   
   const handleToggleFullscreen = () => {
     toggleFullscreen();
+    // Reset zoom and pan when toggling fullscreen for better UX
+    setTimeout(() => {
+      setZoom(1);
+      setPanOffset({ x: 0, y: 0 });
+    }, 100);
   };
 
   const handleToggleEmbed = () => {
@@ -172,10 +258,19 @@ const FlipbookModal: React.FC<FlipbookModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4" onClick={() => {
+      // As an extra safeguard, try entering fullscreen if user clicks the backdrop
+      if (!document.fullscreenElement && flipbookContainerRef.current) {
+        flipbookContainerRef.current.requestFullscreen().catch(() => {});
+      }
+    }}>
       <div 
         ref={flipbookContainerRef}
-        className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-[95vw] max-h-[95vh] overflow-hidden flex flex-col"
+        className={`bg-white dark:bg-gray-900 shadow-2xl w-full overflow-hidden flex flex-col ${
+          isFullscreen 
+            ? 'h-full max-w-full max-h-full rounded-none' 
+            : 'h-[95vh] max-w-[95vw] rounded-lg'
+        }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
@@ -190,34 +285,38 @@ const FlipbookModal: React.FC<FlipbookModalProps> = ({
 
         {/* Main Content */}
         <main 
-          className="flex-1 overflow-hidden relative min-h-[500px]"
-          style={{ 
-            transform: `scale(${zoom}) translate(${panOffset.x}px, ${panOffset.y}px)`,
-            transition: isPanning ? 'none' : 'transform 0.3s ease-in-out',
-            cursor: zoom > 1 ? (isPanning ? 'grabbing' : 'grab') : 'default',
-            userSelect: isPanning ? 'none' : 'auto',
-          }}
-          onMouseDownCapture={handlePanStart}
-          onMouseMove={handlePanMove}
-          onMouseUp={handlePanEnd}
-          onMouseLeave={handlePanEnd}
-          onTouchStartCapture={handlePanStart}
-          onTouchMove={handlePanMove}
-          onTouchEnd={handlePanEnd}
+          className={`flex-1 overflow-hidden relative min-h-0`}
         >
-
-          
-          <FlipbookViewer
-            ref={flipbookRef}
-            pdfUrl={pdfUrl}
-            title={title}
-            onClose={onClose}
-            enableWatermark={enableWatermark}
-            readingDirection={readingDirection}
-            initialPage={currentPage}
-            theme={theme}
-            onPageChange={navigateToPage}
-          />
+          {/* Zoom/Pan wrapper */}
+          <div
+            className="w-full h-full"
+            style={{ 
+              transform: `scale(${zoom}) translate(${panOffset.x}px, ${panOffset.y}px)`,
+              transformOrigin: 'center center',
+              transition: isPanning ? 'none' : 'transform 0.3s ease-in-out',
+              cursor: zoom > 1 ? (isPanning ? 'grabbing' : 'grab') : 'default',
+              userSelect: isPanning ? 'none' : 'auto',
+            }}
+            onMouseDownCapture={handlePanStart}
+            onMouseMove={handlePanMove}
+            onMouseUp={handlePanEnd}
+            onMouseLeave={handlePanEnd}
+            onTouchStartCapture={handlePanStart}
+            onTouchMove={handlePanMove}
+            onTouchEnd={handlePanEnd}
+          >
+            <FlipbookViewer
+              ref={flipbookRef}
+              pdfUrl={pdfUrl}
+              title={title}
+              onClose={onClose}
+              enableWatermark={enableWatermark}
+              readingDirection={readingDirection}
+              initialPage={currentPage}
+              theme={theme}
+              onPageChange={navigateToPage}
+            />
+          </div>
         </main>
 
         {/* Thumbnail Rail */}

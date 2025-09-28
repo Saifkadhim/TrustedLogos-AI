@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
+// Debug logging gate: set VITE_DEBUG_LOGS=true to enable
+const LOG_DEBUG = import.meta.env.VITE_DEBUG_LOGS === 'true';
+const debugLog = (...args: unknown[]) => { if (LOG_DEBUG) console.log(...args); };
+const debugWarn = (...args: unknown[]) => { if (LOG_DEBUG) console.warn(...args); };
+const debugError = (...args: unknown[]) => { if (LOG_DEBUG) console.error(...args); };
+
 export interface Logo {
   id: string;
   name: string;
@@ -18,6 +24,9 @@ export interface Logo {
   fileSize?: number;
   fileType?: string;
   isPublic: boolean;
+  showInBrandPalettes?: boolean;
+  tags: string[];
+  brandColors?: string[];
   downloads: number;
   likes: number;
   createdBy?: string;
@@ -37,6 +46,9 @@ export interface CreateLogoData {
   designerUrl?: string;
   imageFile?: File;
   isPublic?: boolean;
+  showInBrandPalettes?: boolean;
+  tags?: string[];
+  brandColors?: string[];
 }
 
 export interface UpdateLogoData extends Partial<CreateLogoData> {
@@ -141,6 +153,9 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fileSize: row.file_size || undefined,
       fileType: row.file_type || undefined,
       isPublic: row.is_public,
+      showInBrandPalettes: row.show_in_brand_palettes || false,
+      tags: row.tags || [],
+      brandColors: row.brand_colors || undefined,
       downloads: row.downloads || 0,
       likes: row.likes || 0,
       createdBy: row.created_by || undefined,
@@ -152,7 +167,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Smart fetch logos with automatic page size detection and lazy loading
   const fetchLogos = async (page: number = 1, requestedPageSize: number = 200): Promise<{ logos: Logo[]; total: number; hasMore: boolean; actualPageSize: number }> => {
     try {
-      console.log(`🔍 Fetching logos: page=${page}, requestedPageSize=${requestedPageSize}`);
+      debugLog(`🔍 Fetching logos: page=${page}, requestedPageSize=${requestedPageSize}`);
       
       // First, get the total count
       const { count, error: countError } = await supabase
@@ -161,16 +176,16 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('is_public', true);
 
       if (countError) {
-        console.warn('Supabase count error:', countError.message);
+        debugWarn('Supabase count error:', countError.message);
         throw countError;
       }
 
-      console.log(`📊 Total logos in database: ${count}`);
+      debugLog(`📊 Total logos in database: ${count}`);
 
       // Detect optimal page size based on Supabase limits
       let actualPageSize = requestedPageSize;
       if (requestedPageSize > 1000) {
-        console.warn(`⚠️ Requested page size ${requestedPageSize} exceeds Supabase limit, reducing to 1000`);
+        debugWarn(`⚠️ Requested page size ${requestedPageSize} exceeds Supabase limit, reducing to 1000`);
         actualPageSize = 1000;
       }
 
@@ -178,7 +193,7 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const from = (page - 1) * actualPageSize;
       const to = from + actualPageSize - 1;
 
-      console.log(`📥 Fetching range: ${from} to ${to} (actual page size: ${actualPageSize})`);
+      debugLog(`📥 Fetching range: ${from} to ${to} (actual page size: ${actualPageSize})`);
 
       const { data, error } = await supabase
         .from('logos')
@@ -188,11 +203,11 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .range(from, to);
 
       if (error) {
-        console.warn('Supabase error:', error.message);
+        debugWarn('Supabase error:', error.message);
         throw error;
       }
       
-      console.log(`✅ Retrieved ${data?.length || 0} logos from database`);
+      debugLog(`✅ Retrieved ${data?.length || 0} logos from database`);
       
       const mappedLogos = data?.map(mapDatabaseRowToLogo) || [];
       const total = count || 0;
@@ -201,11 +216,11 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // hasMore should be true if we got a full page OR if there are more records
       const hasMore = (data?.length === actualPageSize) || (from + actualPageSize < total);
       
-      console.log(`📈 Result: ${mappedLogos.length} logos, total: ${total}, hasMore: ${hasMore}, actualPageSize: ${actualPageSize}`);
+      debugLog(`📈 Result: ${mappedLogos.length} logos, total: ${total}, hasMore: ${hasMore}, actualPageSize: ${actualPageSize}`);
       
       return { logos: mappedLogos, total, hasMore, actualPageSize };
     } catch (err) {
-      console.error('❌ Error fetching logos:', err);
+      debugError('❌ Error fetching logos:', err);
       // Return empty result instead of throwing to prevent app crash
       return { logos: [], total: 0, hasMore: false, actualPageSize: 0 };
     }
@@ -264,20 +279,20 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Load more logos (lazy loading)
   const loadMoreLogos = async () => {
     if (isLoadingMore || !hasMore) {
-      console.log(`🚫 Skipping loadMoreLogos: isLoadingMore=${isLoadingMore}, hasMore=${hasMore}`);
+      debugLog(`🚫 Skipping loadMoreLogos: isLoadingMore=${isLoadingMore}, hasMore=${hasMore}`);
       return;
     }
     
     // Check if we've already loaded this page
     const nextPage = currentPage + 1;
     if (loadedPages.has(nextPage)) {
-      console.log(`🚫 Page ${nextPage} already loaded, skipping`);
+      debugLog(`🚫 Page ${nextPage} already loaded, skipping`);
       return;
     }
     
     try {
       setIsLoadingMore(true);
-      console.log(`🔄 Loading more logos: page ${nextPage}`);
+      debugLog(`🔄 Loading more logos: page ${nextPage}`);
       
       const logoData = await fetchLogos(nextPage, pageSize);
       
@@ -288,13 +303,13 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setHasMore(logoData.hasMore);
         setLoadedPages(prev => new Set([...prev, nextPage]));
         
-        console.log(`✅ Loaded ${logoData.logos.length} more logos. Total loaded: ${logos.length + logoData.logos.length}`);
+        debugLog(`✅ Loaded ${logoData.logos.length} more logos. Total loaded: ${logos.length + logoData.logos.length}`);
       } else {
         setHasMore(false);
-        console.log('📝 No more logos to load');
+        debugLog('📝 No more logos to load');
       }
     } catch (err) {
-      console.error('❌ Error loading more logos:', err);
+      debugError('❌ Error loading more logos:', err);
       setError('Failed to load more logos');
     } finally {
       setIsLoadingMore(false);
@@ -316,9 +331,9 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPageSize(logoData.actualPageSize);
       setLoadedPages(new Set([1]));
       
-      console.log(`🔄 Logos refreshed: ${logoData.logos.length} logos loaded`);
+      debugLog(`🔄 Logos refreshed: ${logoData.logos.length} logos loaded`);
     } catch (err) {
-      console.error('❌ Error refreshing logos:', err);
+      debugError('❌ Error refreshing logos:', err);
       setError('Failed to refresh logos');
     } finally {
       setLoading(false);
@@ -388,6 +403,8 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         file_size: logoData.imageFile?.size,
         file_type: logoData.imageFile?.type,
         is_public: logoData.isPublic ?? true,
+        tags: logoData.tags || [],
+        brand_colors: logoData.brandColors || [],
       };
       
       // Only add subcategory if it exists (for backward compatibility)
@@ -462,6 +479,9 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (logoData.information !== undefined) updateData.information = logoData.information;
       if (logoData.designerUrl !== undefined) updateData.designer_url = logoData.designerUrl;
       if (logoData.isPublic !== undefined) updateData.is_public = logoData.isPublic;
+      if (logoData.showInBrandPalettes !== undefined) updateData.show_in_brand_palettes = logoData.showInBrandPalettes;
+      if (logoData.tags !== undefined) updateData.tags = logoData.tags;
+      if (logoData.brandColors !== undefined) updateData.brand_colors = logoData.brandColors;
       
       if (logoData.imageFile) {
         updateData.image_path = imagePath;
@@ -613,7 +633,8 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         query = query.in('type', filters.selectedTypes);
       }
       if (filters.selectedColors && filters.selectedColors.length > 0) {
-        query = query.in('primary_color', filters.selectedColors);
+        const lowered = filters.selectedColors.map(c => c.toLowerCase());
+        query = query.overlaps('tags_lower', lowered);
       }
       if (filters.selectedShapes && filters.selectedShapes.length > 0) {
         query = query.in('shape', filters.selectedShapes);
@@ -663,7 +684,8 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         paginatedQuery = paginatedQuery.in('type', filters.selectedTypes);
       }
       if (filters.selectedColors && filters.selectedColors.length > 0) {
-        paginatedQuery = paginatedQuery.in('primary_color', filters.selectedColors);
+        const lowered = filters.selectedColors.map(c => c.toLowerCase());
+        paginatedQuery = paginatedQuery.overlaps('tags_lower', lowered);
       }
       if (filters.selectedShapes && filters.selectedShapes.length > 0) {
         paginatedQuery = paginatedQuery.in('shape', filters.selectedShapes);
@@ -723,7 +745,8 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         query = query.in('type', filters.selectedTypes);
       }
       if (filters.selectedColors && filters.selectedColors.length > 0) {
-        query = query.in('primary_color', filters.selectedColors);
+        const lowered = filters.selectedColors.map(c => c.toLowerCase());
+        query = query.overlaps('tags_lower', lowered);
       }
       if (filters.selectedShapes && filters.selectedShapes.length > 0) {
         query = query.in('shape', filters.selectedShapes);
@@ -773,7 +796,8 @@ export const LogoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         paginatedQuery = paginatedQuery.in('type', filters.selectedTypes);
       }
       if (filters.selectedColors && filters.selectedColors.length > 0) {
-        paginatedQuery = paginatedQuery.in('primary_color', filters.selectedColors);
+        const lowered = filters.selectedColors.map(c => c.toLowerCase());
+        paginatedQuery = paginatedQuery.overlaps('tags_lower', lowered);
       }
       if (filters.selectedShapes && filters.selectedShapes.length > 0) {
         paginatedQuery = paginatedQuery.in('shape', filters.selectedShapes);

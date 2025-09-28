@@ -11,10 +11,10 @@ const ColorPaletteAdminPage = () => {
     updatePalette, 
     deletePalette,
     refreshPalettes 
-  } = useColorPalettes();
+  } = useColorPalettes(true); // Enable admin mode to fetch all palettes
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingPalette, setEditingPalette] = useState(null);
+  const [editingPalette, setEditingPalette] = useState<ColorPalette | null>(null);
   const [viewMode, setViewMode] = useState('grid');
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,7 +49,7 @@ const ColorPaletteAdminPage = () => {
     let filtered = palettes.filter(palette => {
       const matchesCategory = filterCategory === 'all' || palette.category === filterCategory;
       const matchesSearch = palette.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           palette.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           palette.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            palette.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
@@ -57,7 +57,7 @@ const ColorPaletteAdminPage = () => {
     // Sort palettes
     switch (sortBy) {
       case 'oldest':
-        return filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        return filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       case 'popular':
         return filtered.sort((a, b) => b.likes - a.likes);
       case 'downloads':
@@ -65,7 +65,7 @@ const ColorPaletteAdminPage = () => {
       case 'alphabetical':
         return filtered.sort((a, b) => a.name.localeCompare(b.name));
       default: // newest
-        return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
   }, [palettes, filterCategory, searchTerm, sortBy]);
 
@@ -89,11 +89,11 @@ const ColorPaletteAdminPage = () => {
     }
   };
 
-  const handleEditPalette = (palette) => {
+  const handleEditPalette = (palette: ColorPalette) => {
     setEditingPalette(palette);
     setFormData({
       name: palette.name,
-      description: palette.description,
+      description: palette.description || '',
       colors: [...palette.colors],
       category: palette.category,
       tags: palette.tags.join(', '),
@@ -148,7 +148,7 @@ const ColorPaletteAdminPage = () => {
     });
   };
 
-  const handleColorChange = (index, color) => {
+  const handleColorChange = (index: number, color: string) => {
     const newColors = [...formData.colors];
     newColors[index] = color;
     setFormData(prev => ({ ...prev, colors: newColors }));
@@ -163,14 +163,14 @@ const ColorPaletteAdminPage = () => {
     }
   };
 
-  const removeColor = (index) => {
+  const removeColor = (index: number) => {
     if (formData.colors.length > 2) {
       const newColors = formData.colors.filter((_, i) => i !== index);
       setFormData(prev => ({ ...prev, colors: newColors }));
     }
   };
 
-  const copyPaletteColors = (colors) => {
+  const copyPaletteColors = (colors: string[]) => {
     const colorString = colors.join(', ');
     navigator.clipboard.writeText(colorString);
   };

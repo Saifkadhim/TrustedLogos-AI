@@ -32,7 +32,7 @@ export interface LogoDescriptionRequest {
 }
 
 export class GeminiService {
-  private model = realService ? realService.getGenerativeModel({ model: 'gemini-1.5-flash' }) : null;
+  private model = realService ? realService.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }) : null;
 
   // Simple test method to verify API connectivity
   async testConnection(): Promise<boolean> {

@@ -77,6 +77,9 @@ const BrandGuidelinesAdminPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  // Thumbnail image upload state
+  const [selectedThumbnailFile, setSelectedThumbnailFile] = useState<File | null>(null);
+  const [dragActiveThumb, setDragActiveThumb] = useState(false);
 
   // Reset form
   const resetForm = () => {
@@ -95,6 +98,7 @@ const BrandGuidelinesAdminPage: React.FC = () => {
       tags: ''
     });
     setSelectedFile(null);
+    setSelectedThumbnailFile(null);
     setEditingGuideline(null);
     setShowForm(false);
   };
@@ -116,6 +120,7 @@ const BrandGuidelinesAdminPage: React.FC = () => {
       tags: Array.isArray(guideline.tags) ? guideline.tags.join(', ') : ''
     });
     setSelectedFile(null);
+    setSelectedThumbnailFile(null);
     setEditingGuideline(guideline);
     setShowForm(true);
   };
@@ -123,14 +128,13 @@ const BrandGuidelinesAdminPage: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    let finalPdfUrl = formData.pdf_url;
-    
-    // If there's a selected file, upload it first
-    if (selectedFile) {
-      try {
-        setUploadingFile(true);
-        
+    setUploadingFile(true);
+    try {
+      let finalPdfUrl = formData.pdf_url;
+      let finalThumbnailUrl = formData.thumbnail_url;
+
+      // Upload PDF if a new file was selected
+      if (selectedFile) {
         // Check storage access first
         const hasAccess = await checkStorageAccess();
         if (!hasAccess) {
@@ -140,14 +144,12 @@ const BrandGuidelinesAdminPage: React.FC = () => {
         // Validate file type
         if (selectedFile.type !== 'application/pdf') {
           alert('Please upload a PDF file');
-          setUploadingFile(false);
           return;
         }
 
         // Validate file size (50MB limit)
         if (selectedFile.size > 50 * 1024 * 1024) {
           alert('File size must be less than 50MB');
-          setUploadingFile(false);
           return;
         }
 
@@ -155,119 +157,123 @@ const BrandGuidelinesAdminPage: React.FC = () => {
         const timestamp = Date.now();
         const fileName = `${timestamp}-${selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         const filePath = `public/${fileName}`;
-        
-        console.log('Upload details:', {
-          fileName,
-          filePath,
-          fileSize: selectedFile.size,
-          fileType: selectedFile.type,
-          bucket: 'brand-guidelines'
-        });
 
-        // Upload to Supabase storage
-        console.log('Starting upload...');
-        const { data, error } = await supabase.storage
+        const { error: pdfError } = await supabase.storage
           .from('brand-guidelines')
           .upload(filePath, selectedFile, {
             cacheControl: '3600',
             upsert: false
           });
-        
-        console.log('Upload response:', { data, error });
 
-        if (error) {
-          throw error;
+        if (pdfError) {
+          throw pdfError;
         }
 
-        // Get public URL
-        console.log('Getting public URL...');
-        const { data: urlData } = supabase.storage
+        const { data: pdfUrlData } = supabase.storage
           .from('brand-guidelines')
           .getPublicUrl(filePath);
-        
-        console.log('URL response:', urlData);
 
-        // Use the new PDF URL
-        finalPdfUrl = urlData.publicUrl;
-        
-        console.log('File uploaded successfully:', urlData.publicUrl);
+        finalPdfUrl = pdfUrlData.publicUrl;
+      }
 
-        setUploadingFile(false);
+      // If no file selected and no URL provided, show error for PDF
+      if (!selectedFile && !finalPdfUrl) {
+        alert('Please select a PDF file or provide a PDF URL');
+        return;
+      }
 
-      } catch (error) {
-        console.error('Upload error:', error);
-        console.error('Error type:', typeof error);
-        console.error('Error constructor:', error?.constructor?.name);
-        console.error('Error keys:', error ? Object.keys(error) : 'No keys');
-        
-        // More detailed error message
-        let errorMessage = 'Failed to upload file. ';
-        if (error instanceof Error) {
-          errorMessage += error.message;
-        } else if (typeof error === 'object' && error !== null) {
-          errorMessage += JSON.stringify(error, null, 2);
-        } else {
-          errorMessage += String(error);
+      // Upload Thumbnail if a new image was selected
+      if (selectedThumbnailFile) {
+        const isImage = selectedThumbnailFile.type.startsWith('image/');
+        if (!isImage) {
+          alert('Thumbnail must be an image (PNG, JPG, WEBP)');
+          return;
         }
-        
-        console.error('Full error details:', errorMessage);
-        alert(errorMessage);
-        setUploadingFile(false);
-        return; // Don't proceed with form submission if upload fails
+        // 10MB limit for images
+        if (selectedThumbnailFile.size > 10 * 1024 * 1024) {
+          alert('Thumbnail size must be less than 10MB');
+          return;
+        }
+
+        const brandSlug = (formData.brand_name || 'brand').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const ext = selectedThumbnailFile.name.split('.').pop() || 'png';
+        const thumbPath = `thumbnails/${brandSlug}-${Date.now()}.${ext}`;
+
+        const { error: thumbError } = await supabase.storage
+          .from('brand-guidelines')
+          .upload(thumbPath, selectedThumbnailFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (thumbError) {
+          throw thumbError;
+        }
+
+        const { data: thumbUrlData } = supabase.storage
+          .from('brand-guidelines')
+          .getPublicUrl(thumbPath);
+
+        finalThumbnailUrl = thumbUrlData.publicUrl;
       }
-    }
-    
-    // If no file selected and no URL provided, show error
-    if (!selectedFile && !finalPdfUrl) {
-      alert('Please select a PDF file or provide a PDF URL');
-      return;
-    }
-    
-    const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-    
-    if (editingGuideline) {
-      // Update existing guideline
-      const updateData: UpdateBrandGuidelineData = {
-        id: editingGuideline.id,
-        brand_name: formData.brand_name,
-        title: formData.title,
-        description: formData.description || undefined,
-        pdf_url: finalPdfUrl,
-        thumbnail_url: formData.thumbnail_url || undefined,
-        category_id: formData.category_id || undefined,
-        industry: formData.industry || undefined,
-        year_founded: formData.year_founded ? parseInt(formData.year_founded) : undefined,
-        logo_story: formData.logo_story || undefined,
-        is_public: formData.is_public,
-        is_featured: formData.is_featured,
-        tags: tagsArray
-      };
-      
-      const success = await updateBrandGuideline(updateData);
-      if (success) {
-        resetForm();
+
+      const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+
+      if (editingGuideline) {
+        // Update existing guideline
+        const updateData: UpdateBrandGuidelineData = {
+          id: editingGuideline.id,
+          brand_name: formData.brand_name,
+          title: formData.title,
+          description: formData.description || undefined,
+          pdf_url: finalPdfUrl,
+          thumbnail_url: finalThumbnailUrl || undefined,
+          category_id: formData.category_id || undefined,
+          industry: formData.industry || undefined,
+          year_founded: formData.year_founded ? parseInt(formData.year_founded) : undefined,
+          logo_story: formData.logo_story || undefined,
+          is_public: formData.is_public,
+          is_featured: formData.is_featured,
+          tags: tagsArray
+        };
+        const success = await updateBrandGuideline(updateData);
+        if (success) {
+          resetForm();
+        }
+      } else {
+        // Create new guideline
+        const createData: CreateBrandGuidelineData = {
+          brand_name: formData.brand_name,
+          title: formData.title,
+          description: formData.description || undefined,
+          pdf_url: finalPdfUrl,
+          thumbnail_url: finalThumbnailUrl || undefined,
+          category_id: formData.category_id || undefined,
+          industry: formData.industry || undefined,
+          year_founded: formData.year_founded ? parseInt(formData.year_founded) : undefined,
+          logo_story: formData.logo_story || undefined,
+          is_public: formData.is_public,
+          is_featured: formData.is_featured,
+          tags: tagsArray
+        };
+        const newGuideline = await createBrandGuideline(createData);
+        if (newGuideline) {
+          resetForm();
+        }
       }
-    } else {
-      // Create new guideline
-      const createData: CreateBrandGuidelineData = {
-        brand_name: formData.brand_name,
-        title: formData.title,
-        description: formData.description || undefined,
-        pdf_url: finalPdfUrl,
-        thumbnail_url: formData.thumbnail_url || undefined,
-        category_id: formData.category_id || undefined,
-        industry: formData.industry || undefined,
-        year_founded: formData.year_founded ? parseInt(formData.year_founded) : undefined,
-        logo_story: formData.logo_story || undefined,
-        is_public: formData.is_public,
-        is_featured: formData.is_featured,
-        tags: tagsArray
-      };
-      
-      const newGuideline = await createBrandGuideline(createData);
-      if (newGuideline) {
-        resetForm();
+    } catch (error) {
+      let errorMessage = 'Failed to submit form. ';
+      if (error instanceof Error) {
+        errorMessage += error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage += JSON.stringify(error, null, 2);
+      } else {
+        errorMessage += String(error);
       }
+      console.error('Submission error:', errorMessage);
+      alert(errorMessage);
+    } finally {
+      setUploadingFile(false);
     }
   };
 
@@ -589,16 +595,88 @@ const BrandGuidelinesAdminPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Thumbnail Upload + URL */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Thumbnail URL
+                      Thumbnail Image
                     </label>
-                    <input
-                      type="url"
-                      value={formData.thumbnail_url}
-                      onChange={(e) => setFormData({...formData, thumbnail_url: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+                        dragActiveThumb
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-blue-400'
+                      }`}
+                      onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragActiveThumb(true); }}
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragActiveThumb(true); }}
+                      onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragActiveThumb(false); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragActiveThumb(false);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) setSelectedThumbnailFile(file);
+                      }}
+                    >
+                      {selectedThumbnailFile || formData.thumbnail_url ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-center space-x-2 text-green-600">
+                            <CheckCircle className="h-5 w-5" />
+                            <span className="font-medium">{selectedThumbnailFile ? 'Image selected' : 'Thumbnail set'}</span>
+                          </div>
+                          {selectedThumbnailFile ? (
+                            <div className="text-sm text-gray-600">{selectedThumbnailFile.name}</div>
+                          ) : (
+                            <div className="text-sm text-gray-600 truncate">{formData.thumbnail_url}</div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedThumbnailFile(null);
+                              setFormData({ ...formData, thumbnail_url: '' });
+                            }}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            Remove {selectedThumbnailFile ? 'Image' : 'Thumbnail URL'}
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <Upload className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">PNG, JPG, or WEBP up to 10MB</p>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) setSelectedThumbnailFile(file);
+                            }}
+                            className="hidden"
+                            id="thumbnail-upload"
+                          />
+                          <label
+                            htmlFor="thumbnail-upload"
+                            className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+                          >
+                            Choose Image
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Or enter Thumbnail URL manually
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.thumbnail_url}
+                        onChange={(e) => setFormData({...formData, thumbnail_url: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="https://example.com/thumbnail.jpg"
+                      />
+                    </div>
                   </div>
 
                   <div>

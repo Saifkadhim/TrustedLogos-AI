@@ -16,6 +16,7 @@ interface ColorPalette {
   liked: boolean;
   likes?: number;
   tags?: string[];
+  category?: string;
 }
 
 const ColorPalettePage = () => {
@@ -57,17 +58,23 @@ const ColorPalettePage = () => {
   ]);
 
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'generator' | 'image' | 'explore' | 'saved'>('explore');
+  const [activeTab, setActiveTab] = useState<'generator' | 'image' | 'explore'>('explore');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [extractedPalette, setExtractedPalette] = useState<Color[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedColor, setSelectedColor] = useState('all');
+  const [selectedStyle, setSelectedStyle] = useState('all');
+  const [selectedTopic, setSelectedTopic] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState('Popular');
 
-  // Filter options
+  // Filter options - matching admin panel structure
+  const categories = [
+    'Nature', 'Business', 'Creative', 'Vintage', 'Modern', 'Pastel', 
+    'Bold', 'Monochrome', 'Gradient', 'Seasonal', 'Cultural', 'Other'
+  ];
+
   const colorFilters = [
     { name: 'Red', color: '#EF4444' },
     { name: 'Orange', color: '#F97316' },
@@ -84,18 +91,20 @@ const ColorPalettePage = () => {
   ];
 
   const styleFilters = [
-    'Warm', 'Cold', 'Bright', 'Dark', 'Pastel', 'Vintage',
-    'Monochromatic', 'Gradient', 'Rainbow', '2 Colors', '3 Colors',
-    '4 Colors', '5 Colors', '6 Colors'
+    'Warm', 'Cold', 'Bright', 'Dark', 'Rainbow'
   ];
 
   const topicFilters = [
     'Christmas', 'Halloween', 'Pride', 'Sunset', 'Spring', 'Winter',
     'Summer', 'Autumn', 'Gold', 'Wedding', 'Party', 'Space',
-    'Kids', 'Nature', 'City', 'Food', 'Happy', 'Water', 'Relax'
+    'Kids', 'City', 'Food', 'Happy', 'Water', 'Relax'
   ];
 
-  const orderOptions = ['Trending', 'Latest', 'Popular'];
+  const sortOptions = [
+    { value: 'Popular', label: 'Most Popular' },
+    { value: 'Latest', label: 'Latest' },
+    { value: 'Trending', label: 'Trending' }
+  ];
 
   // Convert database palettes to explore format
   const explorePalettes: ColorPalette[] = useMemo(() => {
@@ -109,7 +118,8 @@ const ColorPalettePage = () => {
       })),
       liked: false,
       likes: dbPalette.likes,
-      tags: dbPalette.tags
+      tags: dbPalette.tags,
+      category: dbPalette.category
     }));
   }, [dbPalettes]);
 
@@ -122,26 +132,33 @@ const ColorPalettePage = () => {
         return false;
       }
 
+      // Category filter
+      if (selectedCategory !== 'all') {
+        if (palette.category !== selectedCategory) {
+          return false;
+        }
+      }
+
       // Color filter
-      if (selectedColors.length > 0) {
-        const hasMatchingColor = selectedColors.some(filterColor => 
-          palette.tags?.some(tag => tag.toLowerCase().includes(filterColor.toLowerCase()))
+      if (selectedColor !== 'all') {
+        const hasMatchingColor = palette.tags?.some(tag => 
+          tag.toLowerCase().includes(selectedColor.toLowerCase())
         );
         if (!hasMatchingColor) return false;
       }
 
       // Style filter
-      if (selectedStyles.length > 0) {
-        const hasMatchingStyle = selectedStyles.some(style => 
-          palette.tags?.some(tag => tag.toLowerCase().includes(style.toLowerCase()))
+      if (selectedStyle !== 'all') {
+        const hasMatchingStyle = palette.tags?.some(tag => 
+          tag.toLowerCase().includes(selectedStyle.toLowerCase())
         );
         if (!hasMatchingStyle) return false;
       }
 
       // Topic filter
-      if (selectedTopics.length > 0) {
-        const hasMatchingTopic = selectedTopics.some(topic => 
-          palette.tags?.some(tag => tag.toLowerCase().includes(topic.toLowerCase()))
+      if (selectedTopic !== 'all') {
+        const hasMatchingTopic = palette.tags?.some(tag => 
+          tag.toLowerCase().includes(selectedTopic.toLowerCase())
         );
         if (!hasMatchingTopic) return false;
       }
@@ -158,41 +175,15 @@ const ColorPalettePage = () => {
           return (b.likes || 0) - (a.likes || 0);
       }
     });
-  }, [searchQuery, selectedColors, selectedStyles, selectedTopics, selectedOrder]);
-
-  // Handle filter changes
-  const handleFilterChange = (filterType: 'colors' | 'styles' | 'topics', value: string) => {
-    switch (filterType) {
-      case 'colors':
-        setSelectedColors(prev => 
-          prev.includes(value) 
-            ? prev.filter(item => item !== value)
-            : [...prev, value]
-        );
-        break;
-      case 'styles':
-        setSelectedStyles(prev => 
-          prev.includes(value) 
-            ? prev.filter(item => item !== value)
-            : [...prev, value]
-        );
-        break;
-      case 'topics':
-        setSelectedTopics(prev => 
-          prev.includes(value) 
-            ? prev.filter(item => item !== value)
-            : [...prev, value]
-        );
-        break;
-    }
-  };
+  }, [searchQuery, selectedCategory, selectedColor, selectedStyle, selectedTopic, selectedOrder]);
 
   // Clear all filters
   const clearAllFilters = () => {
     setSearchQuery('');
-    setSelectedColors([]);
-    setSelectedStyles([]);
-    setSelectedTopics([]);
+    setSelectedCategory('all');
+    setSelectedColor('all');
+    setSelectedStyle('all');
+    setSelectedTopic('all');
   };
 
   // Load explore palette
@@ -774,16 +765,7 @@ const ColorPalettePage = () => {
             >
               Generator
             </button>
-            <button
-              onClick={() => setActiveTab('saved')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                activeTab === 'saved'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Saved ({savedPalettes.length})
-            </button>
+
           </div>
         </div>
       </div>
@@ -1094,120 +1076,134 @@ const ColorPalettePage = () => {
               </div>
             )}
           </div>
-        ) : activeTab === 'explore' ? (
+        ) : (
           /* Explore Palettes */
           <div className="w-full">
-            {/* Search Bar - Full Width to Match Header */}
+            {/* Professional Search and Filters */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+              {/* Main Search and Controls */}
               <div className="p-6">
-                <div className="flex items-center gap-4">
-                  {/* Search Input - Takes most space */}
-                  <div className="flex-1 relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Search className="h-5 w-5 text-gray-400" />
+                <div className="flex flex-wrap items-center gap-4">
+                  {/* Search Input */}
+                  <div className="flex-1 min-w-64">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Search palettes by name, tags, or colors..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Search with colors, topics, styles or hex values..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm bg-gray-50 focus:bg-white transition-colors"
-                    />
                   </div>
-                  
-                  {/* Order Selector */}
+
+                  {/* Category Filter */}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 whitespace-nowrap">Sort by:</span>
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Category:</span>
                     <select
-                      value={selectedOrder}
-                      onChange={(e) => setSelectedOrder(e.target.value)}
-                      className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm bg-white min-w-[120px]"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm min-w-[120px]"
                     >
-                      {orderOptions.map((order) => (
-                        <option key={order} value={order}>{order}</option>
+                      <option value="all">All Categories</option>
+                      {categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
                       ))}
                     </select>
                   </div>
-                  
+
+                  {/* Color Filter Dropdown */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Color:</span>
+                    <select
+                      value={selectedColor}
+                      onChange={(e) => setSelectedColor(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm min-w-[120px]"
+                    >
+                      <option value="all">All Colors</option>
+                      {colorFilters.map(colorFilter => (
+                        <option key={colorFilter.name} value={colorFilter.name}>
+                          {colorFilter.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Sort:</span>
+                    <select
+                      value={selectedOrder}
+                      onChange={(e) => setSelectedOrder(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm min-w-[120px]"
+                    >
+                      {sortOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Clear Filters Button */}
-                  {(searchQuery || selectedColors.length > 0 || selectedStyles.length > 0 || selectedTopics.length > 0) && (
+                  {(searchQuery || selectedCategory !== 'all' || selectedColor !== 'all' || selectedStyle !== 'all' || selectedTopic !== 'all') && (
                     <button
                       onClick={clearAllFilters}
-                      className="px-4 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200 whitespace-nowrap border border-red-200"
+                      className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200 whitespace-nowrap border border-red-200"
                     >
-                      Clear Filters
+                      Clear All
                     </button>
                   )}
                 </div>
               </div>
-              
-              {/* Filters Row - Collapsible */}
-              <div className="border-t border-gray-200 p-6 pt-4">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Colors Filter */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Colors</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {colorFilters.map((colorFilter) => (
-                      <button
-                        key={colorFilter.name}
-                        onClick={() => handleFilterChange('colors', colorFilter.name)}
-                        className={`flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
-                          selectedColors.includes(colorFilter.name)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        <div
-                          className="w-3 h-3 rounded-full mr-2 border border-gray-300"
-                          style={{ backgroundColor: colorFilter.color }}
-                        />
-                        {colorFilter.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Styles Filter */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Styles</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {styleFilters.map((style) => (
-                      <button
-                        key={style}
-                        onClick={() => handleFilterChange('styles', style)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
-                          selectedStyles.includes(style)
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {style}
-                      </button>
-                    ))}
+              {/* Additional Filters Row */}
+              <div className="border-t border-gray-200 px-6 py-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  {/* Style Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Style:</span>
+                    <select
+                      value={selectedStyle}
+                      onChange={(e) => setSelectedStyle(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm min-w-[120px]"
+                    >
+                      <option value="all">All Styles</option>
+                      {styleFilters.map(style => (
+                        <option key={style} value={style}>{style}</option>
+                      ))}
+                    </select>
                   </div>
-                </div>
 
-                {/* Topics Filter */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Topics</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {topicFilters.map((topic) => (
-                      <button
-                        key={topic}
-                        onClick={() => handleFilterChange('topics', topic)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 ${
-                          selectedTopics.includes(topic)
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {topic}
-                      </button>
-                    ))}
+                  {/* Topic Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 whitespace-nowrap">Topic:</span>
+                    <select
+                      value={selectedTopic}
+                      onChange={(e) => setSelectedTopic(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm min-w-[140px]"
+                    >
+                      <option value="all">All Topics</option>
+                      {topicFilters.map(topic => (
+                        <option key={topic} value={topic}>{topic}</option>
+                      ))}
+                    </select>
                   </div>
-                </div>
 
+                  {/* Filter Summary */}
+                  <div className="text-xs text-gray-500 ml-auto">
+                    {(selectedCategory !== 'all' || selectedColor !== 'all' || selectedStyle !== 'all' || selectedTopic !== 'all') && (
+                      <span>
+                        Active filters: {[
+                          selectedCategory !== 'all' ? `Category: ${selectedCategory}` : null,
+                          selectedColor !== 'all' ? `Color: ${selectedColor}` : null,
+                          selectedStyle !== 'all' ? `Style: ${selectedStyle}` : null,
+                          selectedTopic !== 'all' ? `Topic: ${selectedTopic}` : null
+                        ].filter(Boolean).join(', ')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1225,7 +1221,7 @@ const ColorPalettePage = () => {
             </div>
 
             {/* Palettes Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredExplorePalettes.map((palette) => (
                 <div
                   key={palette.id}
@@ -1322,99 +1318,6 @@ const ColorPalettePage = () => {
                   className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200"
                 >
                   Clear All Filters
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Saved Palettes */
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {savedPalettes.map((palette) => (
-                <div
-                  key={palette.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200"
-                >
-                  {/* Palette Preview */}
-                  <div className="flex h-32">
-                    {palette.colors.map((color, index) => (
-                      <div
-                        key={index}
-                        className="flex-1"
-                        style={{ backgroundColor: color.hex }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Palette Info */}
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-gray-900">{palette.name}</h3>
-                      <button
-                        onClick={() => togglePaletteLike(palette.id)}
-                        className={`p-1 rounded transition-colors duration-200 ${
-                          palette.liked
-                            ? 'text-red-500 hover:text-red-600'
-                            : 'text-gray-400 hover:text-red-500'
-                        }`}
-                      >
-                        <Heart className={`h-4 w-4 ${palette.liked ? 'fill-current' : ''}`} />
-                      </button>
-                    </div>
-
-                    {/* Color Swatches */}
-                    <div className="flex space-x-1 mb-3">
-                      {palette.colors.map((color, index) => (
-                        <div
-                          key={index}
-                          className="w-6 h-6 rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform duration-200"
-                          style={{ backgroundColor: color.hex }}
-                          title={`${color.name} - ${color.hex}`}
-                          onClick={() => copyToClipboard(color.hex)}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => loadPalette(palette)}
-                        className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors duration-200"
-                      >
-                        Load
-                      </button>
-                      <button
-                        onClick={() => downloadPalette(palette)}
-                        className="px-3 py-2 text-gray-600 text-sm border border-gray-200 rounded hover:bg-gray-50 transition-colors duration-200"
-                        title="Download Palette"
-                      >
-                        <Download className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deletePalette(palette.id)}
-                        className="px-3 py-2 text-red-600 text-sm border border-red-200 rounded hover:bg-red-50 transition-colors duration-200"
-                        title="Delete Palette"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {savedPalettes.length === 0 && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Palette className="h-8 w-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No saved palettes</h3>
-                <p className="text-gray-500 mb-4">Create and save your first color palette to see it here.</p>
-                <button
-                  onClick={() => setActiveTab('generator')}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200"
-                >
-                  Start Creating
                 </button>
               </div>
             )}

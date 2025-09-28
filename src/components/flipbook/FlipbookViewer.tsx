@@ -16,7 +16,7 @@ const FlipbookViewer = forwardRef<FlipbookViewerActions, FlipbookViewerProps>(({
   theme = 'light',
   onPageChange
 }, ref) => {
-  const { pdfDoc, numPages, isLoading, error, renderPage, retry } = usePdf(pdfUrl);
+  const { pdfDoc, numPages, isLoading, error, renderPage, retry, loadingProgress } = usePdf(pdfUrl);
   
   const flipBookRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,103 +61,104 @@ const FlipbookViewer = forwardRef<FlipbookViewerActions, FlipbookViewerProps>(({
     }
   }, [pdfDoc]);
 
+  const findSizedAncestor = (el: HTMLElement | null): HTMLElement | null => {
+    let current: HTMLElement | null = el;
+    while (current) {
+      const { clientWidth, clientHeight } = current;
+      const rect = current.getBoundingClientRect();
+      if ((clientWidth > 0 && clientHeight > 0) || (rect.width > 0 && rect.height > 0)) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+    return null;
+  };
+
   const calculateOptimalDimensions = useCallback(() => {
     if (!containerRef.current || !pageAspectRatio) return;
     
-    const parentContainer = containerRef.current.parentElement;
+    // Prefer the nearest ancestor with a real size
+    const sizedAncestor = findSizedAncestor(containerRef.current.parentElement);
+    const parentContainer = sizedAncestor || containerRef.current.parentElement;
     if (!parentContainer) return;
     
-    const isMobileView = parentContainer.clientWidth < 1024;
-    setIsSinglePageView(isMobileView);
+    // Detect fullscreen mode
+    const isFullscreenMode = document.fullscreenElement !== null;
     
-    // Calculate book aspect ratio (single page vs. double page spread)
+    // Determine single vs double page
+    const isMobileView = (parentContainer.clientWidth || parentContainer.getBoundingClientRect().width) < 1024;
+    setIsSinglePageView(isMobileView);
     const bookAspectRatio = isMobileView ? pageAspectRatio : pageAspectRatio * 2;
     
-    const containerWidth = parentContainer.clientWidth;
-    const containerHeight = parentContainer.clientHeight;
+    // Compute available size with robust fallbacks
+    const rect = parentContainer.getBoundingClientRect();
+    const containerWidth = parentContainer.clientWidth || rect.width || window.innerWidth;
+    const containerHeight = parentContainer.clientHeight || rect.height || window.innerHeight;
     
-    // Account for padding and margins
-    const availableWidth = containerWidth - 40;
-    const availableHeight = containerHeight - 40;
+    const padding = isFullscreenMode ? 20 : 40;
+    const availableWidth = Math.max(0, containerWidth - padding);
+    const availableHeight = Math.max(0, containerHeight - padding);
     
-    // Calculate optimal dimensions
-    let optimalWidth = availableWidth;
+    // If still zero (e.g., initial mount), fallback to viewport
+    const safeWidth = availableWidth > 0 ? availableWidth : Math.max(320, window.innerWidth - padding);
+    const safeHeight = availableHeight > 0 ? availableHeight : Math.max(400, window.innerHeight - padding);
+    
+    let optimalWidth = safeWidth;
     let optimalHeight = optimalWidth / bookAspectRatio;
     
-    // Adjust if height exceeds available space
-    if (optimalHeight > availableHeight) {
-      optimalHeight = availableHeight;
+    if (optimalHeight > safeHeight) {
+      optimalHeight = safeHeight;
       optimalWidth = optimalHeight * bookAspectRatio;
     }
     
-    // Apply minimum size constraints
     const MIN_WIDTH = 300;
     const MIN_HEIGHT = 400;
-    
+
     if (optimalWidth < MIN_WIDTH) {
       optimalWidth = MIN_WIDTH;
       optimalHeight = optimalWidth / bookAspectRatio;
     }
-    
+
     if (optimalHeight < MIN_HEIGHT) {
       optimalHeight = MIN_HEIGHT;
       optimalWidth = optimalHeight * bookAspectRatio;
     }
-    
-    // Ensure dimensions don't exceed available space
-    optimalWidth = Math.min(optimalWidth, availableWidth);
-    optimalHeight = Math.min(optimalHeight, availableHeight);
-    
-    setDimensions({ width: optimalWidth, height: optimalHeight });
+
+    setDimensions({ width: Math.floor(optimalWidth), height: Math.floor(optimalHeight) });
   }, [pageAspectRatio]);
 
   useEffect(() => {
     const parentElement = containerRef.current?.parentElement;
     if (!parentElement) return;
   
-    // Initial dimension calculation
+    // Initial calculation
     calculateOptimalDimensions();
   
-    // Use ResizeObserver to detect when the container size changes
+    // Resize observer on the nearest sized ancestor if available
+    const observedEl = findSizedAncestor(parentElement) || parentElement;
     const resizeObserver = new ResizeObserver(() => {
       calculateOptimalDimensions();
     });
+    resizeObserver.observe(observedEl);
+
+    // Listen to window resize and fullscreen
+    const handleFullscreenChange = () => setTimeout(calculateOptimalDimensions, 50);
+    const handleWindowResize = () => setTimeout(calculateOptimalDimensions, 50);
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    window.addEventListener('resize', handleWindowResize);
   
-    resizeObserver.observe(parentElement);
-  
-    // Fallback: if dimensions are still 0 after 1 second, set default dimensions
+    // Fallback timer
     const fallbackTimer = setTimeout(() => {
       if (dimensions.width === 0 && pageAspectRatio) {
-        const parentContainer = containerRef.current?.parentElement;
-        if (parentContainer) {
-          const containerWidth = parentContainer.clientWidth;
-          const containerHeight = parentContainer.clientHeight;
-          
-          // Calculate fallback dimensions that fit the container
-          const availableWidth = Math.max(300, containerWidth - 40);
-          const availableHeight = Math.max(400, containerHeight - 40);
-          
-          let fallbackWidth = availableWidth;
-          let fallbackHeight = fallbackWidth / pageAspectRatio;
-          
-          // Adjust if height exceeds available space
-          if (fallbackHeight > availableHeight) {
-            fallbackHeight = availableHeight;
-            fallbackWidth = fallbackHeight * pageAspectRatio;
-          }
-          
-          setDimensions({ width: fallbackWidth, height: fallbackHeight });
-        } else {
-          // Ultimate fallback if no parent
-          const defaultWidth = 800;
-          const defaultHeight = defaultWidth / pageAspectRatio;
-          setDimensions({ width: defaultWidth, height: defaultHeight });
-        }
+        calculateOptimalDimensions();
       }
-    }, 1000);
+    }, 500);
   
     return () => {
-      resizeObserver.unobserve(parentElement);
+      resizeObserver.disconnect();
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('resize', handleWindowResize);
       clearTimeout(fallbackTimer);
     };
   }, [calculateOptimalDimensions, dimensions.width, pageAspectRatio]);
@@ -165,7 +166,11 @@ const FlipbookViewer = forwardRef<FlipbookViewerActions, FlipbookViewerProps>(({
   if (isLoading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <Loader message="Loading PDF..." />
+        <Loader 
+          message="Loading PDF..." 
+          progress={loadingProgress}
+          showProgress={true}
+        />
       </div>
     );
   }

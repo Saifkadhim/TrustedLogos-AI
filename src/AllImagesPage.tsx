@@ -167,17 +167,33 @@ const AllImagesPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Get unique values for filters from all loaded logos
-  const uniqueTypes = useMemo(() => {
-    const types = [...new Set(allLogos.map(logo => logo.type))];
-    // Fallback to common logo types if none are available
-    return types.length > 0 ? types : ['Logo', 'Icon', 'Symbol', 'Text', 'Combination'];
-  }, [allLogos]);
-  const uniqueColors = useMemo(() => {
-    const colors = [...new Set(allLogos.map(logo => logo.primaryColor))];
-    // Fallback to common colors if none are available
-    return colors.length > 0 ? colors : ['#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
-  }, [allLogos]);
+  // Standardized logo types for filtering
+  const uniqueTypes = [
+    'Wordmarks',
+    'Lettermarks', 
+    'Pictorial Marks',
+    'Abstract Marks',
+    'Combination Marks',
+    'Emblem Logos',
+    'Mascot Logos'
+  ];
+  const COLOR_TAG_OPTIONS = [
+    'Red','Orange','Brown','Yellow','Green','Turquoise','Blue','Violet','Pink','Gray','Black','White'
+  ];
+  const colorNameToHex: Record<string, string> = {
+    Red: '#EF4444',
+    Orange: '#F97316',
+    Brown: '#A3A3A3',
+    Yellow: '#EAB308',
+    Green: '#22C55E',
+    Turquoise: '#06B6D4',
+    Blue: '#3B82F6',
+    Violet: '#8B5CF6',
+    Pink: '#EC4899',
+    Gray: '#6B7280',
+    Black: '#000000',
+    White: '#FFFFFF'
+  };
   const uniqueShapes = useMemo(() => {
     const shapes = [...new Set(allLogos.map(logo => logo.shape))];
     // Fallback to common shapes if none are available
@@ -305,13 +321,13 @@ const AllImagesPage = () => {
       <div className="flex-1 flex flex-col">
         {/* Content Area */}
         <div className="flex-1 p-6 overflow-y-auto">
-          {/* Category Tabs */}
-          <div className="flex flex-wrap gap-2 mb-3 bg-gray-100 rounded-lg p-2">
+          {/* Category Tabs - Horizontally scrollable on mobile */}
+          <div className="horizontal-scroll sm:flex sm:flex-wrap gap-1 sm:gap-2 mb-3 bg-gray-100 rounded-lg p-1 sm:p-2">
             {categoryTabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => { setActiveCategory(tab); setActiveSubcategory('All'); }}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors duration-200 ${
                   activeCategory === tab
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -323,12 +339,12 @@ const AllImagesPage = () => {
           </div>
           
           {subcategoryTabs.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6 bg-gray-50 rounded-lg p-2 border border-gray-200">
+            <div className="horizontal-scroll sm:flex sm:flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6 bg-gray-50 rounded-lg p-1 sm:p-2 border border-gray-200">
               {subcategoryTabs.map((sub) => (
                 <button
                   key={sub}
                   onClick={() => setActiveSubcategory(sub)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-medium transition-colors duration-200 ${
                     activeSubcategory === sub
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -343,133 +359,142 @@ const AllImagesPage = () => {
 
 
           {/* Filters Section */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex flex-wrap items-center gap-4">
-                {/* Search */}
-                <div className="flex-1 min-w-64">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Search logos..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+          <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+            <div className="flex flex-col gap-4">
+              {/* Search Bar - Full width on mobile */}
+              <div className="w-full">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
                   </div>
-                </div>
-
-                {/* Logo Type Filter */}
-                <div className="relative filter-dropdown">
-                  <button
-                    onClick={() => setTypeFilterOpen(!typeFilterOpen)}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    <Filter className="h-4 w-4" />
-                    Type
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                  {typeFilterOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      <div className="p-2 max-h-48 overflow-y-auto">
-                        {uniqueTypes.map((type) => (
-                          <label key={type} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedLogoTypes.includes(type)}
-                              onChange={() => handleFilterChange('type', type)}
-                              className="rounded"
-                            />
-                            <span className="text-sm">{type}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Color Filter */}
-                <div className="relative filter-dropdown">
-                  <button
-                    onClick={() => setColorFilterOpen(!colorFilterOpen)}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    <Filter className="h-4 w-4" />
-                    Color
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                  {colorFilterOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      <div className="p-2 max-h-48 overflow-y-auto">
-                        {uniqueColors.map((color) => (
-                          <label key={color} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedColors.includes(color)}
-                              onChange={() => handleFilterChange('color', color)}
-                              className="rounded"
-                            />
-                            <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: color }} />
-                            <span className="text-sm">{color}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Shape Filter */}
-                <div className="relative filter-dropdown">
-                  <button
-                    onClick={() => setShapeFilterOpen(!shapeFilterOpen)}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    <Filter className="h-4 w-4" />
-                    Shape
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                  {shapeFilterOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      <div className="p-2 max-h-48 overflow-y-auto">
-                        {uniqueShapes.map((shape) => (
-                          <label key={shape} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedShapes.includes(shape)}
-                              onChange={() => handleFilterChange('shape', shape)}
-                              className="rounded"
-                            />
-                            <span className="text-sm">{shape}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <input
+                    type="text"
+                    placeholder="Search logos..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base touch-manipulation"
+                  />
                 </div>
               </div>
 
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-colors duration-200 ${
-                    viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'
-                  }`}
-                  title="Grid View (Mobile: 2, Medium: 4, Large: 7 columns)"
-                >
-                  <Grid className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-colors duration-200 ${
-                    viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'
-                  }`}
-                >
-                  <List className="h-5 w-5" />
-                </button>
+              {/* Filters Row - Better mobile layout */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                  {/* Logo Type Filter */}
+                  <div className="relative filter-dropdown w-full sm:w-auto">
+                    <button
+                      onClick={() => setTypeFilterOpen(!typeFilterOpen)}
+                      className="flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm sm:text-base touch-manipulation w-full sm:w-auto min-w-[120px]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        Type
+                      </div>
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {typeFilterOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-full sm:w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <div className="p-2 max-h-48 overflow-y-auto">
+                          {uniqueTypes.map((type) => (
+                            <label key={type} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedLogoTypes.includes(type)}
+                                onChange={() => handleFilterChange('type', type)}
+                                className="rounded"
+                              />
+                              <span className="text-sm">{type}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Color Filter */}
+                  <div className="relative filter-dropdown w-full sm:w-auto">
+                    <button
+                      onClick={() => setColorFilterOpen(!colorFilterOpen)}
+                      className="flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm sm:text-base touch-manipulation w-full sm:w-auto min-w-[120px]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        Color
+                      </div>
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {colorFilterOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-full sm:w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <div className="p-2 max-h-48 overflow-y-auto">
+                          {COLOR_TAG_OPTIONS.map((name) => (
+                            <label key={name} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedColors.includes(name)}
+                                onChange={() => handleFilterChange('color', name)}
+                                className="rounded"
+                              />
+                              <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: colorNameToHex[name] }} />
+                              <span className="text-sm">{name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Shape Filter */}
+                  <div className="relative filter-dropdown w-full sm:w-auto">
+                    <button
+                      onClick={() => setShapeFilterOpen(!shapeFilterOpen)}
+                      className="flex items-center justify-between sm:justify-start gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm sm:text-base touch-manipulation w-full sm:w-auto min-w-[120px]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        Shape
+                      </div>
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {shapeFilterOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-full sm:w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <div className="p-2 max-h-48 overflow-y-auto">
+                          {uniqueShapes.map((shape) => (
+                            <label key={shape} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedShapes.includes(shape)}
+                                onChange={() => handleFilterChange('shape', shape)}
+                                className="rounded"
+                              />
+                              <span className="text-sm">{shape}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* View Mode Toggle */}
+                <div className="flex items-center gap-1 sm:gap-2 mt-3 sm:mt-0">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 sm:p-2 rounded-lg transition-colors duration-200 touch-manipulation ${
+                      viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                    title="Grid View"
+                  >
+                    <Grid className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 sm:p-2 rounded-lg transition-colors duration-200 touch-manipulation ${
+                      viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    <List className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -524,7 +549,7 @@ const AllImagesPage = () => {
           {!filterLoading && filteredTotal > 0 && (
             <div className={`${
               viewMode === 'grid' 
-                ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4' 
+                ? 'grid mobile-grid-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4' 
                 : 'space-y-3'
             }`}>
               {filteredLogos.map((logo) => (
@@ -557,8 +582,8 @@ const AllImagesPage = () => {
                         </div>
                       )}
                     </div>
-                    <div className={viewMode === 'grid' ? 'p-3' : 'flex-1'}>
-                      <h4 className="font-medium text-gray-900 text-sm mb-1 truncate">
+                    <div className={viewMode === 'grid' ? 'p-1 sm:p-2 md:p-3' : 'flex-1'}>
+                      <h4 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 truncate">
                         {logo.name}
                       </h4>
 
@@ -571,40 +596,16 @@ const AllImagesPage = () => {
 
           {/* Pagination */}
           {filteredTotal > 0 && totalPages > 1 && (
-            <div className="flex items-center justify-between mt-8 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <div className="flex items-center text-sm text-gray-600">
-                <span>
-                  Showing {startIndex + 1}-{endIndex} of {filteredTotal} logos
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center text-sm text-gray-600">
-                  <span className="mr-2">Go to:</span>
-                  <input
-                    value={goToInput}
-                    onChange={(e) => setGoToInput(e.target.value.replace(/[^0-9]/g, ''))}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const n = Math.max(1, Math.min(totalPages, parseInt(goToInput || '0', 10)));
-                        if (!Number.isNaN(n)) goToPage(n);
-                      }
-                    }}
-                    placeholder="Page"
-                    className="w-16 px-2 py-1 border border-gray-300 rounded-md mr-2"
-                  />
-                  <button
-                    onClick={() => {
-                      const n = Math.max(1, Math.min(totalPages, parseInt(goToInput || '0', 10)));
-                      if (!Number.isNaN(n)) goToPage(n);
-                    }}
-                    className="px-3 py-1 rounded-md bg-blue-500 text-white text-sm hover:bg-blue-600 disabled:opacity-50"
-                    disabled={!goToInput}
-                  >
-                    Go
-                  </button>
+            <div className="mt-8 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              {/* Mobile-friendly layout */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Results info */}
+                <div className="text-sm text-gray-600 text-center sm:text-left">
+                  Showing <span className="font-medium">{startIndex + 1}-{endIndex}</span> of{' '}
+                  <span className="font-medium">{filteredTotal}</span> logos
                 </div>
 
+                {/* Page navigation controls */}
                 <div className="flex items-center space-x-1">
                   <button
                     onClick={prevPage}
@@ -648,6 +649,35 @@ const AllImagesPage = () => {
                     aria-label="Next page"
                   >
                     <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Jump to page - Separate row for better mobile UX */}
+              <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-center sm:justify-end">
+                <div className="flex items-center text-sm text-gray-600 gap-2">
+                  <span>Go to page:</span>
+                  <input
+                    value={goToInput}
+                    onChange={(e) => setGoToInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const n = Math.max(1, Math.min(totalPages, parseInt(goToInput || '0', 10)));
+                        if (!Number.isNaN(n)) goToPage(n);
+                      }
+                    }}
+                    placeholder="Page"
+                    className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center"
+                  />
+                  <button
+                    onClick={() => {
+                      const n = Math.max(1, Math.min(totalPages, parseInt(goToInput || '0', 10)));
+                      if (!Number.isNaN(n)) goToPage(n);
+                    }}
+                    className="px-3 py-1 rounded-md bg-blue-500 text-white text-sm hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!goToInput}
+                  >
+                    Go
                   </button>
                 </div>
               </div>

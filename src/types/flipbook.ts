@@ -44,7 +44,7 @@ export interface ThumbnailRailProps {
   numPages: number;
   currentPage: number;
   onThumbnailClick: (page: number) => void;
-  renderPage: (pageNum: number) => Promise<string | null>;
+  renderPage: (pageNum: number, priority?: number) => Promise<string | null>;
 }
 
 export interface TableOfContentsProps {
@@ -62,7 +62,7 @@ export interface EmbedModalProps {
 
 export interface PageProps {
   pageNum: number;
-  renderPage: (pageNum: number) => Promise<string | null>;
+  renderPage: (pageNum: number, priority?: number) => Promise<string | null>;
 }
 
 export interface LoaderProps {
